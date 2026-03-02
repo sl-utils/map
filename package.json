@@ -1,6 +1,6 @@
 {
   "name": "@sl-utils/map",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.cjs",
   "module": "./src/sl-utils-map.ts",
