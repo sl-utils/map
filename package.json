@@ -10,6 +10,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json"
   },
   "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
     "leaflet": "^1.9.4",
     "rbush": "^4.0.1"
   },
@@ -23,7 +24,7 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./src/sl-utils-map.d.ts",
-      "import": "./src/sl-utils-map.js"
+      "import": "./src/sl-utils-map.ts"
     }
   },
   "repository": {
