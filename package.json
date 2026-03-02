@@ -1,5 +1,5 @@
 {
-  "name": "map",
+  "name": "@sl-utils/map",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -16,6 +16,13 @@
     "ts-node": "^10.9.2",
     "typescript": "~5.7.2"
   },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/sl-utils-map.d.ts",
+      "import": "./src/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sl-utils/map.git"
@@ -25,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/sl-utils/map/issues"
   },
-  "homepage": "https://github.com/sl-utils/map#readme"
+  "homepage": "https://github.com/sl-utils/map#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }

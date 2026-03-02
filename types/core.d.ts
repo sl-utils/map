@@ -502,7 +502,7 @@ declare namespace MapUtils {
     /**
      * 地图相关事件内置转化为对应库的事件 需要传入 type 0 | 1 | 2
      */
-    interface MapEventResponse<R = TypeToMap<T>> {
+    interface MapEventResponse<R> {
         /**事件类型 mousemove等 */
         type: string;
         latlng: { lat: number, lng: number };
