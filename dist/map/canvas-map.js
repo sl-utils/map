@@ -15,7 +15,6 @@ class SLUMap {
             let mapSource = names[0].split('.')[0];
             let center = map.getCenter();
             let zoom = map.getZoom();
-            map.options.crs = mapSource === 'Baidu' ? leaflet_2.SLCRS.Baidu : leaflet_1.CRS.EPSG3857;
             map._resetView(center, zoom, true);
             names?.forEach(name => {
                 if (curs[name])

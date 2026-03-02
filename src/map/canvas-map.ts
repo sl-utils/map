@@ -1,6 +1,6 @@
 import { CRS, Map, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
-import { SLCRS, SLEMap, SLULeafletNetMap } from '../leaflet';
+import { SLEMap, SLULeafletNetMap } from '../leaflet';
 declare var AMap: any;
 
 export class SLUMap {
@@ -21,7 +21,8 @@ export class SLUMap {
             let mapSource: string = names[0].split('.')[0]
             let center = map.getCenter();
             let zoom = map.getZoom();
-            map.options.crs = mapSource === 'Baidu' ? SLCRS.Baidu : CRS.EPSG3857; // 根据图层坐标系设置
+            //百度图层暂时不添加
+            // map.options.crs = mapSource === 'Baidu' ? SLCRS.Baidu : CRS.EPSG3857; 
             (map as any)._resetView(center, zoom, true);
             names?.forEach(name => {
                 if (curs[name]) return;
