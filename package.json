@@ -2,9 +2,12 @@
   "name": "@sl-utils/map",
   "version": "1.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "index.cjs",
+  "module": "./src/sl-utils-map.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build:cjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -20,7 +23,7 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./src/sl-utils-map.d.ts",
-      "import": "./src/index.js"
+      "import": "./src/sl-utils-map.js"
     }
   },
   "repository": {

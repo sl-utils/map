@@ -1,23 +1,25 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compilerOptions": {
-    "module": "commonjs",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "target": "es2015",
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "lib": [
       "es2020",
       "dom"
     ],
   },
   "include": [
-    "types/**/*",
     "src/**/*",
+    "types/**/*",
   ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts"
+    "dist"
   ]
 }
