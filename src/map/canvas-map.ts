@@ -5,15 +5,30 @@ declare var AMap: any;
 
 export class SLUMap {
     constructor(ele: string)
-    constructor(ele: string)
     constructor(ele: string, options: Partial<SLPMapOpt> = {}) {
-        this.createMap(ele, options)
+        this.ele = ele;
     }
-
-    private map: L.Map | AMAP.Map;
+    private ele:string;
+    /**地图实例 */
+    private _map:L.Map | AMAP.Map;
+    public get map(){
+        return this._map
+    }
     /**当前正在显示的网络图层 */
     private curs: Partial<{ [key in SLEMap]: SLULeafletNetMap | undefined }> = Object.create(null);
-
+    /**初始实例化地图
+     * @param options 地图初始化参数
+     */
+    public async init(options: Partial<SLPMapOpt> = {}){
+        const { type } = options,ele = this.ele;
+        let map: L.Map | AMAP.Map;
+        switch (type) {
+            case "A": this._map = await this.initAmap(ele, options); break;
+            default: this._map = await this.initLeaflet(ele, options);
+                this.showMap([SLEMap.tianDiTuNormalMap, SLEMap.tianDiTuNormalAnnotion]);
+                break;
+        }
+    }
     /**显示指定的网络图层 */
     public showMap(names: Array<SLEMap> = []): this {
         const { map, curs } = this;
@@ -39,16 +54,6 @@ export class SLUMap {
             }
         }
         return this
-    }
-    private async createMap(ele: string, options: Partial<SLPMapOpt>) {
-        const { type } = options;
-        let map: L.Map | AMAP.Map;
-        switch (type) {
-            case "A": this.map = await this.initAmap(ele, options); break;
-            default: this.map = await this.initLeaflet(ele, options);
-                this.showMap([SLEMap.tianDiTuNormalMap, SLEMap.tianDiTuNormalAnnotion]);
-                break;
-        }
     }
     /**---------------leaflet地图的相关方法------------------- */
     private initLeaflet(ele: string, opt: Partial<SLPMapOpt>) {

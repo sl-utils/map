@@ -1,8 +1,12 @@
 declare module '@sl-utils/map' {
   /**leaflet 需要开发者在样式表中挂载leaflet样式 */
   export class SLUMap {
-    constructor(ele: string, options?: Partial<SLPMapOpt>);
+    constructor(ele: string,);
     map: AMAP.Map | L.Map
+    /**初始实例化地图
+      * @param options 地图初始化参数
+      */
+    public init(options?: Partial<SLPMapOpt>): Promise<void>
   }
   // 添加其他导出...
   export class MapCanvasDraw {
