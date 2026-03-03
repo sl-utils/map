@@ -5,7 +5,7 @@
   "main": "index.cjs",
   "module": "./src/sl-utils-map.ts",
   "type": "module",
-  "types": "./src/sl-utils-map.d.ts",
+  "types": "./types/sl-utils-map.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build:cjs",
@@ -32,7 +32,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./src/sl-utils-map.d.ts",
+      "types": "./types/sl-utils-map.d.ts",
       "import": "./src/sl-utils-map.ts"
     }
   },

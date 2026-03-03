@@ -1,11 +1,24 @@
 <script setup lang="ts">
-
-import { SLUMap } from "@sl-utils/map";
+import { SLUMap, MapPluginDraw } from "@sl-utils/map";
 import { ref, onMounted } from "vue";
 
-
 onMounted(() => {
-  const map4 = new SLUMap("map");
+  const map4 = new SLUMap("map", { type: "A" });
+  setTimeout(() => {
+    const draw = new MapPluginDraw(map4.map);
+    draw.addRect({
+      latlngs: [
+        [26.3, 110.5],
+        [27.3, 112.5],
+      ],
+      width: 500,
+      height: 50,
+    });
+    draw.addArc({
+      latlng: [22.5, 114.0],
+      size: 100,
+    });
+  }, 1000);
   // const map1 = new MapCanvasDraw()
   // const map2 = new MapCanvasEvent()
   // const map3 = new MapCanvasLayer()

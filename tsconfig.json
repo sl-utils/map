@@ -15,17 +15,12 @@
       "dom"
     ],
     "paths": {
-      "@/*": ["src/*"],
-      "@sl-utils/*": ["src/utils/*"]  // 添加这行
+      "@sl-utils/map": ["types/sl-utils-map.d.ts"]  // 添加这行
     }
   },
   "include": [
     "src/**/*",
     "types/**/*",
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue"
   ],
   "exclude": []
 }

@@ -6,7 +6,7 @@ declare var AMap: any;
 export class SLUMap {
     constructor(ele: string)
     constructor(ele: string)
-    constructor(ele: string, options: Partial<SLSMapOpt> = {}) {
+    constructor(ele: string, options: Partial<SLPMapOpt> = {}) {
         this.createMap(ele, options)
     }
 
@@ -40,7 +40,7 @@ export class SLUMap {
         }
         return this
     }
-    private async createMap(ele: string, options: Partial<SLSMapOpt>) {
+    private async createMap(ele: string, options: Partial<SLPMapOpt>) {
         const { type } = options;
         let map: L.Map | AMAP.Map;
         switch (type) {
@@ -51,7 +51,7 @@ export class SLUMap {
         }
     }
     /**---------------leaflet地图的相关方法------------------- */
-    private initLeaflet(ele: string, opt: Partial<SLSMapOpt>) {
+    private initLeaflet(ele: string, opt: Partial<SLPMapOpt>) {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false } = opt;
         let param: L.MapOptions = {
             dragging,
@@ -69,7 +69,7 @@ export class SLUMap {
         return Promise.resolve(map)
     }
     /**---------------高德地图的相关方法------------------- */
-    private async initAmap(ele: string, opt: Partial<SLSMapOpt>) {
+    private async initAmap(ele: string, opt: Partial<SLPMapOpt>) {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
         return AMapLoader.load({
             "key": "87e1b1e9aa88724f69208972546fdd57",   // 申请好的Web端开发者Key，首次调用 load 时必填
@@ -101,27 +101,3 @@ export class SLUMap {
     }
 }
 
-interface SLSMapOpt {
-    /**地图的类型 @param L leaflet插件 @param A 高德地图 @param B 百度地图  @default L*/
-    type: 'L' | 'A' | 'B',
-    /**地图中心点 [lat,lng] @default [22.68471,114.12027] */
-    center: [number, number],
-    /**地图初始层级 @default 11*/
-    zoom: number,
-    /**最小层级 @default 2*/
-    minZoom: number,
-    /**最大层级 @default 20*/
-    maxZoom: number,
-    /**拖拽功能 @default true */
-    dragging: boolean,
-    /**显示层级控制器 @default false */
-    zoomControl: boolean,
-    /**显示属性控制器 @default false */
-    attributionControl: boolean,
-    /**双击放大层级 @default false */
-    doubleClickZoom: boolean,
-    /**点击关闭弹窗 @default false */
-    closePopupOnClick: boolean,
-    /**显示标签(省会、地名等) @param AMap @default true  */
-    showLabel: boolean,
-}

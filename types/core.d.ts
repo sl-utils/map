@@ -164,6 +164,31 @@ interface CanvasLine<I = any> extends SLPCanvas {
 }
 
 /**canvas绘图类型空间 */
+
+interface SLPMapOpt {
+    /**地图的类型 @param L leaflet插件 @param A 高德地图 @param B 百度地图  @default L*/
+    type: 'L' | 'A' | 'B',
+    /**地图中心点 [lat,lng] @default [22.68471,114.12027] */
+    center: [number, number],
+    /**地图初始层级 @default 11*/
+    zoom: number,
+    /**最小层级 @default 2*/
+    minZoom: number,
+    /**最大层级 @default 20*/
+    maxZoom: number,
+    /**拖拽功能 @default true */
+    dragging: boolean,
+    /**显示层级控制器 @default false */
+    zoomControl: boolean,
+    /**显示属性控制器 @default false */
+    attributionControl: boolean,
+    /**双击放大层级 @default false */
+    doubleClickZoom: boolean,
+    /**点击关闭弹窗 @default false */
+    closePopupOnClick: boolean,
+    /**显示标签(省会、地名等) @param AMap @default true  */
+    showLabel: boolean,
+}
 declare namespace SLTCanvas {
     /**canvse上的点位信息 */
     type Point = CanvasPoint | CanvasPoints;
