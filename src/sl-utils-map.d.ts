@@ -1,7 +1,8 @@
 declare module '@sl-utils/map' {
-  // 根据你的包实际导出的内容声明类型
-  export function mapFunction<T>(array: T[], callback: (item: T) => any): any[];
-  export const someValue: string;
+  /**leaflet 需要开发者在样式表中挂载leaflet样式 */
+  export class SLUMap {
+    constructor(ele: string);
+  }
   // 添加其他导出...
   export class MapCanvasDraw {
     constructor();
@@ -11,8 +12,5 @@ declare module '@sl-utils/map' {
   }
   export class MapCanvasLayer {
     constructor();
-  }
-  export class SLUMap {
-    constructor(ele: string);
   }
 }
