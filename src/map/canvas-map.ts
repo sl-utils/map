@@ -1,6 +1,7 @@
 import { CRS, Map, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { SLEMap, SLULeafletNetMap } from '../leaflet';
+import { u_mapGetBounds, u_mapSetFitBounds } from "../utils/slu-map";
 declare var AMap: any;
 
 export class SLUMap {
@@ -21,13 +22,23 @@ export class SLUMap {
      */
     public async init(options: Partial<SLPMapOpt> = {}){
         const { type } = options,ele = this.ele;
-        let map: L.Map | AMAP.Map;
         switch (type) {
             case "A": this._map = await this.initAmap(ele, options); break;
             default: this._map = await this.initLeaflet(ele, options);
                 this.showMap([SLEMap.tianDiTuNormalMap, SLEMap.tianDiTuNormalAnnotion]);
                 break;
         }
+    }
+    /**设置合适的视图范围 */
+    public setFitView(latlngs: [number, number][]): this {
+        if (this._map) {
+            u_mapSetFitBounds(this._map, latlngs);
+        }
+        return this
+    }
+    /**获取地图边界 */
+    public getBound() {
+        return u_mapGetBounds(this._map);
     }
     /**显示指定的网络图层 */
     public showMap(names: Array<SLEMap> = []): this {
