@@ -1,1 +1,2 @@
-export * from "./plot-service";
+export * from "./service-plot";
+export * from "./service-range";

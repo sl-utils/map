@@ -1,29 +1,21 @@
 <script setup lang="ts">
-import { SLUMap, MapServicePlot } from "@sl-utils/map";
+import { SLUMap, MapServiceRange } from "@sl-utils/map";
 import { onMounted } from "vue";
-let plot_: MapServicePlot;
+let range_: MapServiceRange;
 /**标绘 */
 onMounted(async () => {
   const map = new SLUMap("map");
-  const opt = {
-    zIndex: 200,
-    widthLine: 2,
-    colorFill: "rgba(37,155,138,0.5)",
-    colorLine: "#2c9b8a",
-    dash: [5, 5],
-    className: "plot",
-  };
   await map.init({ type: "L" });
-  plot_ = new MapServicePlot(map.map, opt);
+  range_ = new MapServiceRange(map.map);
 });
 function onPlot() {
-  plot_.plotOpenEdit("polygon");
+  range_.openRange();
 }
 </script>
 
 <template>
   <div id="map" class="card"></div>
-  <button class="btn" @click="onPlot">绘制多边形</button>
+  <button class="btn" @click="onPlot">测距</button>
 </template>
 
 <style scoped>

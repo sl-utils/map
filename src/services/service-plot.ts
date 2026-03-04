@@ -1,6 +1,6 @@
 import { MapPluginPlot } from '@sl-utils/map';
 
-export class PlotService {
+export class MapServicePlot {
     constructor(private readonly map_: AMAP.Map | L.Map, private readonly options?: SLPMap.Plot) { }
     private plotList: MapPlotInfo[] = [];
     /**标绘图层 */

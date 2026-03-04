@@ -385,10 +385,57 @@ declare module '@sl-utils/map' {
     /**添加新增点位时的监听函数 */
     public addCbPointMove(cb: (plotAni: MapPlotInfo) => void): this;
   }
+  /** 测绘类 */
+  export class MapPluginRange extends MapCanvasLayer {
+    /** 测绘类，传入Amap或者调用addTo */
+    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Range);
+    /**默认配置 */
+    public options: SLPMap.Range;
+    /** 地图事件控制管理对象 */
+    private ctrEvent: MapCanvasEvent;
+    /** 地图基础绘制类 */
+    private ctrMapDraw: MapCanvasDraw;
+    /** 动画绘制类 */
+    private ctrMapAniDraw: MapPluginDraw;
+    /** 所有的已确定的经纬度 (绘制确定的点线)*/
+    private lnglats: L.LatLng[][];
+    /** 鼠标当前所在的经纬度(绘制虚线) */
+    private lnglat?: L.LatLng;
+    /** 是否正在拖动地图 */
+    private ifDrag: boolean;
+    /** 单击事件 */
+    private eventClickTimer: number | undefined;
+    public setOptions(opt: SLPMap.Range): this;
+    /** 启用测距功能 */
+    public open(): this;
+    /** 关闭测距功能 */
+    public close(flag?: boolean): void;
+    endCb?: () => void;
+    public onEnd(cb: () => void): void;
+    /** 缓存绘图数据（对于引进确定的数据进行缓存） */
+    protected renderFixedData(): void;
+    protected renderAnimation(): void;
+    /** 动画虚线绘制 */
+    private genAniLineDate(): void;
+    /** 绘制文本信息  flag标识该条线已经绘制完成 */
+    protected drawEndTextImg(info: MapText, lineId: number): MapImage;
+    /**事件开关方法 
+      * @param flag true开启 false关闭
+    */
+    private eventSwitch(flag: boolean): void;
+    private eventDrag(e: L.LeafletMouseEvent): void;
+    private eventDragend(e: L.LeafletMouseEvent): void;
+    /** 单击事件 */
+    private eventClick(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    /** 鼠标移动事件 */
+    private eventMousemove(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    /** 双击关闭事件 */
+    private eventDblclick(): void;
+  }
 
   /**服务类--------集成层功能 */
   /**标绘 */
-  export class PlotService {
+  export class MapServicePlot {
     constructor(map_: AMAP.Map | L.Map, options?: SLPMap.Plot);
     private plotList: MapPlotInfo[];
     /**标绘图层 */
@@ -404,6 +451,26 @@ declare module '@sl-utils/map' {
     public plotOpenEdit(type: MapPlotType): MapPlotInfo;
     /**标绘数据改变需要重绘 */
     public plotRedraw(): void;
+    /**地图实例 */
+    private get map(): AMAP.Map | L.Map;
+    /**移除图层 */
+    public remove(): void;
+  }
+  /**测距 */
+  export class MapServiceRange {
+    constructor(map_: AMAP.Map | L.Map,);
+    /**开启,关闭测距
+     * @param flag 是否开启
+     * @param map 地图对象
+     */
+    public openRange(flag?: boolean): this
+    /**双击结束了测距 */
+    public onEnd(cb: () => void): void;
+    /**重设测距图层的相关配置 */
+    public resetOpt(opt: SLPMap.Range): void;
+    /**每个服务类都有的 */
+    /**测距图层 */
+    private layer?: MapPluginRange;
     /**地图实例 */
     private get map(): AMAP.Map | L.Map;
     /**移除图层 */
