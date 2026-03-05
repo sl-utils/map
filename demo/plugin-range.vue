@@ -2,7 +2,7 @@
 import { SLUMap, MapServiceRange } from "@sl-utils/map";
 import { onMounted } from "vue";
 let range_: MapServiceRange;
-/**标绘 */
+/**测距 */
 onMounted(async () => {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
