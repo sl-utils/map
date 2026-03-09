@@ -880,6 +880,8 @@ declare namespace SLPMap {
         url: string;
         /**风速风向雪碧图宽高 */
         size: [number, number];
+        /**风速风向雪碧图原始大小 */
+        sizeo: [number, number];
         /**不同层级下的大小 */
         zooMsize: [number, number][];
     }
@@ -917,3 +919,238 @@ declare namespace SLDMap {
         degree?: number
     }
 }
+
+
+
+/**-----------------------------grid数据格式-------------------------start--- */
+/**数据信息 */
+interface SLDMapGrid {
+    //行数
+    nx: number,
+    //列数
+    ny: number,
+    //经度差值
+    dx: number,
+    //纬度差值
+    dy: number,
+    //起始点经度(左上角)
+    sx: number,
+    //起始点纬度
+    sy: number,
+    //()
+    nodata: number | undefined,
+    //数据缩放比例(scale:0.01,data中数据1,真实数据0.01,减少数据包大小)
+    scale: number,
+    //每个数据由几个元素组成( 温度 1  , 降雨 1 ， 风速风向(u,v)  2)
+    num: number,
+    header: SLDMapGridHeader,
+    //数据
+    data: number[],
+}
+interface SLDMapGridHeader {
+    //行数
+    nx: number,
+    //列数
+    ny: number,
+    la1: number,
+    lo1: number,
+    dx: number,
+    dy: number,
+    la2: number,
+    lo2: number,
+}
+interface SLPMapGrid extends SLPMap.Canvas {
+    /**马赛克颜色等级 */
+    mosaicColor?: string[];
+    /**马赛克颜色值 */
+    mosaicValue?: number[];
+    /**渐变色设置 */
+    gradient?: { [key: number]: string };
+    /**渐变色最高值 */
+    gradientMax?: number;
+    /**渐变半径 */
+    gradientRadius?: number;
+}
+/**数据信息 */
+interface SLDMapGrid {
+    //行数
+    nx: number;
+    //列数
+    ny: number;
+    //经度差值
+    dx: number;
+    //纬度差值
+    dy: number;
+    //起始点经度(左上角)
+    sx: number;
+    //起始点纬度
+    sy: number;
+    //()
+    nodata: number | undefined;
+    //数据缩放比例(scale:0.01,data中数据1,真实数据0.01,减少数据包大小)
+    scale: number;
+    //每个数据由几个元素组成( 温度 1  , 降雨 1 ， 风速风向(u,v)  2)
+    num: number;
+    header: SLDMapGridHeader;
+    //数据
+    data: number[];
+}
+interface SLDMapGridHeader {
+    //行数
+    nx: number;
+    //列数
+    ny: number;
+    la1: number;
+    lo1: number;
+    dx: number;
+    dy: number;
+    la2: number;
+    lo2: number;
+}
+/**网格可视区边界 */
+interface GridBounds {
+    /**X轴起点 0 */
+    x: number;
+    /**Y轴起点 0*/
+    y: number;
+    /**X轴宽度 */
+    width: number;
+    /**Y轴高度 */
+    height: number;
+}
+
+interface WorkerInfo {
+    /**worker id */
+    id?: number;
+    /**可视区宽度 */
+    width: number;
+    /**可视区高度 */
+    height: number;
+    /**左上角纬度 */
+    lat: number;
+    /**左上角进度 */
+    lng: number;
+    /**可视范围内Y轴各像素点对应的纬度 */
+    lats: number[];
+    /**可视范围内X轴各像素点对应的经度差 */
+    lngd: number;
+    /**数据起始纬度 */
+    lat0: number;
+    /**数据起始经度 */
+    lng0: number;
+    /**数据纬度差 */
+    latΔ: number;
+    /**数据经度差 */
+    lngΔ: number;
+    /**空数据无数据的标识 */
+    invalid: number | undefined | null;
+    /**数据 */
+    grid: any;
+    /**马赛克颜色设置 */
+    mosaicColor?: string[];
+    /**马赛克颜色对应的值 */
+    mosaicValue?: number[];
+}
+/**-----------------------------grid数据格式-------------------------end--- */
+
+
+
+/**-----------------------------运动粒子类-------------------------start--- */
+interface SLPMapVelocity extends SLPMap.Canvas {
+    displayValues: boolean;
+    /**粒子大小控制 */
+    velocityScale?: number;
+
+    particleAge?: number;
+    maxVelocity: number;
+    /**速度单位(m/s  米/秒 ； k/h 千米/小时 ；  kt 节 ) */
+    unit: 'm/s' | 'k/h' | 'kt';
+    // 'bearing' (气流流向的角度) or 'meteo' (angle from which the flow comes)
+    // 'CW'(角度值顺时针增加)或'CCW'(角度值逆时针增加)
+    angleConvention: "bearingCCW" | "bearingCW" | "meteoCCW" | "meteoCW";
+    emptyString: string;
+    colorScale?: any;
+    data?: SLDVeloctiyWind[];
+}
+/**配置项 */
+interface SLPVelocityWindy {
+    /**最小速度 */
+    minVelocity: number;
+    /**最大速度(决定了粒子的颜色) */
+    maxVelocity: number;
+    /**粒子刻度(大小) */
+    velocityScale: number;
+    /**粒子生命值 */
+    particleAge: number;
+    /**粒子线宽 */
+    lineWidth: number;
+    /**绘制粒子数量的比例（宽像素*高像素*此比例）*/
+    particleMultiplier: number;
+    /**每秒播放帧数 */
+    frameRate: number;
+    defualtColorScale: string[];
+    data: any[];
+    canvas?: HTMLCanvasElement;
+}
+/**风场数据 */
+interface SLDVeloctiyWind {
+    header: VelocityHeader;
+    /**单个方向的值  该值是风速和角度运算后的结果 */
+    data: number[];
+}
+interface VelocityHeader {
+    /**数据时间 */
+    refTime: string;
+    /**数据纬度起点 */
+    la1: number;
+    /**数据经度起点 */
+    lo1: number;
+    /**数据纬度结束点 */
+    la2: number;
+    /**数据经度结束点 */
+    lo2: number;
+    /**数据x轴方向nx个数为一行(若全球数据中dx经度间隔得到一个数据，则nx =   360 * 1/ dx ) */
+    nx: number;
+    /**数据y轴方向ny个数为一列(若全球数据中dy纬度间隔得到一个数据，则nx =   181 * 1/ dy ) */
+    ny: number;
+    /**数据经度间隔 (若全球数据中0.5经度间隔得到一个数据，则 dx = 1 * 0.5 )*/
+    dx: number;
+    /**数据纬度间隔 (若全球数据中0.5纬度间隔得到一个数据，则 dy = 1 * 0.5 )*/
+    dy: number;
+    /**数据类型 */
+    type: "X" | "Y" | "Z";
+    /**流速单位 m/s */
+    unit: string;
+    forecastTime: number;
+}
+
+interface WindBounds {
+    /**X轴起点 0 */
+    x: number;
+    /**Y轴起点 0*/
+    y: number;
+    xMax: number;
+    yMax: number;
+    width: number;
+    height: number;
+}
+
+interface WindMapBounds {
+    south: number;
+    north: number;
+    east: number;
+    west: number;
+    width: number;
+    height: number;
+}
+
+/**风粒子 */
+interface WindParticle {
+    /**生命周期 */
+    age: number;
+    x: number;
+    y: number;
+    xt?: number;
+    yt?: number;
+}
+/**-----------------------------运动粒子类-------------------------end--- */
