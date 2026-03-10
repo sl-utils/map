@@ -15,6 +15,14 @@ import './style.css'
 /**浪场 */
 // import App from './plugin-wave.vue';
 /**热力图 */
-import App from './plugin-heat.vue';
+// import App from './plugin-heat.vue';
+/**动态箭头线 */
+// import App from './plugin-arrow-line.vue';
+/**大数据渲染 */
+// import App from './plugin-big-data.vue';
+/**leaflet的粒子效果 */
+// import App from './plugin-partial.vue';
+/**雷达 */
+import App from './plugin-radar.vue';
 
 createApp(App).mount('#app')

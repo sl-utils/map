@@ -8,3 +8,7 @@ export * from './grid/plugin-grid';
 export * from './flow/plugin-flow';
 export * from './flow/velocity-windy';
 export * from './plugin-heat';
+export * from './plugin-arrow-line';
+export * from './plugin-big-data';
+export * from './plugin-partial';
+export * from './plugin-radar';
