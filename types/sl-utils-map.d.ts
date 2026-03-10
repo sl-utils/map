@@ -14,6 +14,13 @@ declare module '@sl-utils/map' {
     public setFitView(latlngs: [number, number][]): this;
     /**获取地图边界 */
     public getBound(): AMAP.Bounds | L.LatLngBounds;
+    /**
+     * 设置地图中心
+     * @param center 中心 latlng顺序
+     * @param zoom 
+     * @param offset 中心 但需要偏移固定像素
+     */
+    public setCenter(center: [number, number], zoom: number, offset?: [number, number]): void;
   }
   // 添加其他导出...
   /** 地图canvas基础图形绘制类    点(arc) 线(line BezierLine) 多边形(rect) 图片(img)*/
@@ -175,7 +182,95 @@ declare module '@sl-utils/map' {
     */
     private genEventResponse(latlng: [number, number], point: [number, number], event: MapEvent, cursor: MapCursorInfo): MapEventResponse;
   }
-
+  /** 地图canvas箭头线类 */
+  export class MapCanvasArrowLine {
+    constructor(map: AMAP.Map | L.Map, ctx: CanvasRenderingContext2D, animeLineOpt?: SLPMap.ArrowLine);
+    private readonly defaultOption: SLPMap.ArrowLine;
+    private get imgUrl(): string;
+    private get patternBound(): [number, number];
+    private initResource(): void;
+    private allLines: MapLine[];
+    /**每组线的动画偏移变量暂存 */
+    private offset: number;
+    private allPoints: [number, number][][];
+    public setAllLines(lines: MapLine[]): void;
+    public update(): void;
+    private visiblePoint(point: [number, number], range: [number, number]): boolean;
+    /**
+     * 线段连线方向
+     * @param point1
+     * @param point2
+     * @returns
+     */
+    private directionLine(point1: [number, number], point2: [number, number]): string;
+    /**
+     * 不在画布范围内修改起始点 减少生成过多粒子
+     * @returns
+     */
+    private validLine(points: [[number, number], [number, number]]): false | [[number, number], [number, number]];
+    /**
+     * 获取二次贝塞尔曲线划分任意点位置
+     * @param {number} t 当前百分比
+     * @param {Array} p1 起点坐标
+     * @param {Array} cp 控制点
+     * @param {Array} p2 终点坐标
+     */
+    private getQuadraticBezierPoint(t: number, p1: [number, number], cp: [number, number], p2: [number, number]): [number, number];
+    public draw(): void;
+    private getValidPoints(points: [number, number][]): [number, number][];
+    private drawPath(points: [number, number][]): void;
+    private patternPathInit(): void;
+    private createPattern(): null | CanvasPattern;
+  }
+  /**地图canvas绘制雷达类 */
+  export class MapCanvasRadar {
+    constructor(map: AMAP.Map | L.Map, ctx: CanvasRenderingContext2D);
+    private get zoom(): number;
+    /**上一动画时间(毫秒) */
+    private pertime: number;
+    /**雷达的默认设置 */
+    private radarDefault: MapPluginRadarPara;
+    /**所有的雷达数据 */
+    private allRadars: MapPluginRadarPara[];
+    /**重设雷达绘制类 */
+    public setAllRadars(radars: MapPluginRadarPara[]): this;
+    /**添加雷达绘制类 */
+    public addRadar(radar: MapPluginRadarPara): this;
+    /**开始绘制所有雷达静态部分 */
+    public drawRadarStatic(): void;
+    /**开始绘制所有雷达动态扫描部分 */
+    public drawRadarAmi(time?: number): void;
+    /**更新所有雷达位置和大小 */
+    private updatePoint(radar: MapPluginRadarPara): void;
+    /**绘制雷达网格 */
+    private drawGrid(radar: MapPluginRadarPara): void;
+    /**虚线圈到中心点距离 */
+    private drawDashArc(radar: MapPluginRadarPara): void;
+    /**绘制自定义的虚线圈 */
+    private drawCustomDashArc(radar: MapPluginRadarPara): void;
+    /**绘制轮廓 */
+    private drawOutline(radar: MapPluginRadarPara): void;
+    /**绘制边缘单元 */
+    private drawOutlineUnit(radar: MapPluginRadarPara): void;
+    /**雷达背景蒙版 中间泛白*/
+    private drawBackground(radar: MapPluginRadarPara): void;
+    /**绘制文字描述 */
+    private drawText(radar: MapPluginRadarPara): void;
+    /**绘制扫描范围 */
+    private drawScanRange(radar: MapPluginRadarPara): void;
+    /**更新动态当前角度 */
+    private updateAngle(radar: MapPluginRadarPara, diffTime: number): void;
+    /**绘制扫描部分(动态) */
+    private drawScan(radar: MapPluginRadarPara): void;
+    /**
+     * 绘制扇形区域
+     * @param sectorDeg 扇形渐变角度
+     * @returns
+     */
+    private drawSector(radar: MapPluginRadarPara): void;
+    /**计算colors 渐变颜色 */
+    private caculateColorChange(colors: string[], total: number): [number, number, number][];
+  }
   /** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 */
   export class MapCanvasLayer {
     constructor(MAP: L.Map, opt?: MapCanvasPara)
@@ -820,6 +915,112 @@ declare module '@sl-utils/map' {
     /**填充颜色 */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void;
   }
+  /**动态箭头线图层 */
+  export class MapPluginArrowLine extends MapCanvasLayer {
+    constructor(map: AMAP.Map | L.Map, options?: SLPMap.ArrowLine);
+    private arrowLine: MapCanvasArrowLine;
+    public setAllLines(lines: MapLine[]): void;
+    /**
+     * 图层是否在移动 高德默认每次渲染更新像素坐标
+     * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
+     * 高德地图移动画布和地图同步偏移，leaflet画布固定 地图偏移 的区别
+     * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
+     * */
+    private isDrag: boolean;
+    protected override renderFixedData(): void;
+    protected override renderAnimation(time?: number): void;
+    /**拖拽不允许更新动画 */
+    protected addMapEvents(map: AMAP.Map | L.Map, key: "on" | "off"): void;
+    private drawStart(): void;
+    private drawEnd(): void;
+  }
+  /**
+ * 大数据绘制 优化处理
+ * 划分网格 同网格内设置最大图标数量
+ * 超出不绘制 减少画布渲染次数
+ */
+  export class MapPluginBigData extends MapPluginDraw {
+    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMap.Canvas> & BigDataOption);
+    /**R树搜索 绘制 */
+    private rbush;
+    private rbushData: SLTRbush[];
+    /**大数据绘制图标 */
+    private bigDataImgs: MapImage[];
+    /**已渲染的图标 用于事件添加 */
+    private _renderBigDataImgs: MapImageEvent[];
+    private bigDataOption: BigDataOption;
+    get renderBigDataList(): MapImageEvent[];
+    /**绘制大量图标 rbush筛选重叠优化 */
+    public setbigDataImgs(imgs: MapImage[]): void;
+    /**重设rbush */
+    private resetRbush(): void;
+    /**
+     * 将画布划分为多个矩形
+     * 矩形内限制最大重叠图形，超出不绘制
+     */
+    handleOverlapImage(): void;
+    /**
+     * 根据图层缩放 获取配置
+     * @param zoom
+     * @returns
+     */
+    private getZoomOption(zoom: number): [number, number];
+    /**图片转化为rbush数据格式 */
+    private transformRbush(img: MapImage): SLTRbush<MapImage>;
+    /**绘制所有需要绘制的类 */
+    public drawMapAll(): this;
+  }
+  /**leaflet的粒子效果 */
+  export class MapPluginPartial extends MapCanvasLayer {
+    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Canvas);
+    /**
+     * 图层是否在移动 高德默认每次渲染更新像素坐标
+     * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
+     * 高德地图移动画布和地图同步偏移，leaflet画布固定 地图偏移 的区别
+     * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
+     * */
+    private isDrag: boolean;
+    /**所有的粒子效果数据 */
+    private _allParticle: SLTMap.Particle.Info[];
+    /**设置所有粒子数据 */
+    public setAllParticles(particles: SLTMap.Particle.Info[]): void;
+    protected renderAnimation(time?: number): void;
+    private _animat(): void;
+    /**绘制粒子效果 */
+    private _drawParticles(): void;
+    /**获取当前贝塞尔曲线的粒子点位 */
+    private genCurBezierPoints(particle: SLTMap.Particle.Info): void;
+    /**绘制粒子 */
+    private drawParticle(particle: SLTMap.Particle.Info): void;
+    /**拖拽不允许更新动画 */
+    protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void;
+    private drawStart(): void;
+    private drawEnd(): void;
+  }
+  /*绘制雷达扫描图 */
+  export class MapPluginRadar extends MapCanvasLayer {
+    constructor(map: AMAP.Map | L.Map, options?: AMAP.CustomLayerOption | MapCanvasPara);
+    /**动画所有状态 */
+    private canvasRadar: MapCanvasRadar;
+    /**
+     * 图层是否在移动 高德默认每次渲染更新像素坐标
+     * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
+     * 高德地图移动画布和地图同步偏移，leaflet画布固定 地图偏移 的区别
+     * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
+     * */
+    private isDrag: boolean;
+    /**重设雷达绘制类 */
+    public setAllRadars(radars: MapPluginRadarPara[]): this;
+    /**添加雷达绘制类 */
+    public addRadar(radar: MapPluginRadarPara): this;
+    protected override renderFixedData(): void;
+    protected override renderAnimation(time?: number): void;
+    /**拖拽不允许更新动画 */
+    protected addMapEvents(map: L.Map, key: 'on' | 'off'): void;
+    private drawStart(): void;
+    private drawEnd(): void;
+  }
+
 
   /**服务类--------集成层功能 */
   /**标绘 */
@@ -969,4 +1170,8 @@ declare module '@sl-utils/map' {
   export type MapTrackGroup<T = any> = globalThis.MapTrackGroup<T>;
   /**轨迹点位信息 */
   export type MapTrackItem = globalThis.MapTrackItem;
+  /**图片信息 */
+  export type MapImage = globalThis.MapImage;
+  /**雷达扫描事件 */
+  export type MapRadarScanEvent<T = any> = globalThis.MapRadarScanEvent<T>;
 }

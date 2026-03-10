@@ -1,7 +1,7 @@
 import { CRS, Map, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { SLEMap, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapSetFitBounds } from "../utils/slu-map";
+import { u_mapGetBounds, u_mapSetFitBounds, u_mapSetViewCenter } from "../utils/slu-map";
 declare var AMap: any;
 
 export class SLUMap {
@@ -9,10 +9,10 @@ export class SLUMap {
     constructor(ele: string, options: Partial<SLPMapOpt> = {}) {
         this.ele = ele;
     }
-    private ele:string;
+    private ele: string;
     /**地图实例 */
-    private _map:L.Map | AMAP.Map;
-    public get map(){
+    private _map: L.Map | AMAP.Map;
+    public get map() {
         return this._map
     }
     /**当前正在显示的网络图层 */
@@ -20,8 +20,8 @@ export class SLUMap {
     /**初始实例化地图
      * @param options 地图初始化参数
      */
-    public async init(options: Partial<SLPMapOpt> = {}){
-        const { type } = options,ele = this.ele;
+    public async init(options: Partial<SLPMapOpt> = {}) {
+        const { type } = options, ele = this.ele;
         switch (type) {
             case "A": this._map = await this.initAmap(ele, options); break;
             default: this._map = await this.initLeaflet(ele, options);
@@ -39,6 +39,15 @@ export class SLUMap {
     /**获取地图边界 */
     public getBound() {
         return u_mapGetBounds(this._map);
+    }
+    /**
+     * 设置地图中心
+     * @param center 中心 latlng顺序
+     * @param zoom 
+     * @param offset 中心 但需要偏移固定像素
+     */
+    public setCenter(center: [number, number], zoom: number, offset?: [number, number]): void {
+        u_mapSetViewCenter(this._map, center, zoom, offset);
     }
     /**显示指定的网络图层 */
     public showMap(names: Array<SLEMap> = []): this {
