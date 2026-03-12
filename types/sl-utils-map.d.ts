@@ -1020,6 +1020,25 @@ declare module '@sl-utils/map' {
     private drawStart(): void;
     private drawEnd(): void;
   }
+  export class MapPluginControl extends MapCanvasLayer {
+    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Control);
+    public options: SLPMap.Control;
+    private cb?: (info: Partial<SLPMap.LatlngScale>) => void;
+    private info: Partial<SLPMap.LatlngScale>;
+    private mapType: MapType;
+    private latLng: SLPMap.LatLng;
+    public init(): Partial<SLPMap.LatlngScale>;
+    public setOptions(opt: Partial<SLPMap.Control>): Partial<SLPMap.LatlngScale>;
+    /**位置等更新时触发 */
+    public onUpdate(cb: (info: SLPMap.LatlngScale) => void): this;
+    private eventSwitch(flag: boolean): void;
+    /**设置经纬度信息 */
+    private setLatlng(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private getLatlng(value: number, ifLng: boolean): string;
+    private setZoomAndScale(): void;
+    private getZoom(): number;
+    private getLatLngFromEvent(e: L.LeafletMouseEvent | AMapMapsEvent): [number, number] | null;
+  }
 
 
   /**服务类--------集成层功能 */

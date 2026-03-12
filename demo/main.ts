@@ -23,6 +23,8 @@ import './style.css'
 /**leaflet的粒子效果 */
 // import App from './plugin-partial.vue';
 /**雷达 */
-import App from './plugin-radar.vue';
+// import App from './plugin-radar.vue';
+/**地图控件-比例尺/当前层级/鼠标所在位置 */
+import App from './plugin-control.vue';
 
 createApp(App).mount('#app')
