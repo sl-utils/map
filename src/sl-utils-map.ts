@@ -1,6 +1,5 @@
 export * from './canvas'
 export * from './plugins'
-export * from './services'
 export { MapCanvasDraw } from './map/canvas-draw'
 export { MapCanvasEvent } from './map/canvas-event'
 export { MapCanvasLayer } from './map/canvas-layer'

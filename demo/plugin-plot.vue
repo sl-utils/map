@@ -1,23 +1,36 @@
 <script setup lang="ts">
-import { SLUMap, MapServicePlot } from "@sl-utils/map";
+import { SLUMap, MapPluginPlot } from "@sl-utils/map";
 import { onMounted } from "vue";
-let plot_: MapServicePlot;
+let plot_: MapPluginPlot;
 /**标绘 */
 onMounted(async () => {
   const map = new SLUMap("map");
   const opt = {
     zIndex: 200,
     widthLine: 2,
-    colorFill: "rgba(37,155,138,0.5)",
+    colorFill: "rgba(137,185,138,0.5)",
     colorLine: "#2c9b8a",
     dash: [5, 5],
     className: "plot",
   };
   await map.init({ type: "L" });
-  plot_ = new MapServicePlot(map.map, opt);
+  plot_ = new MapPluginPlot(map.map, opt);
+  plot_.setPlotList([
+    {
+      type: "polygon",
+      colorFill: "rgba(37,155,138,0.5)",
+      colorLine: "#2c9b8a",
+      latLngs: [
+        [22.8042, 114.1074],
+        [22.7742, 114.1574],
+        [22.7442, 114.1474],
+        [22.6742, 113.6374],
+      ],
+    },
+  ]);
 });
 function onPlot() {
-  plot_.plotOpenEdit("polygon");
+  plot_.open("polygon");
 }
 </script>
 

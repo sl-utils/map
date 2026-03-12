@@ -159,7 +159,7 @@ function getDiffLatitude(distance: number | string) {
  * @param type=0  0天地图  1高德地图
  * @returns 两点间的距离(米)
  */
-function getDistance(latLngA: [number, number], latLngB: [number, number], type: 0 | 1 = 0): number {
+function getDistance(latLngA: [number, number], latLngB: [number, number], type: MapType): number {
     let [latA, lngA] = latLngA, [latB, lngB] = latLngB, dis = 0;
     if (type && AMap && AMap.GeometryUtil) {
         dis = AMap.GeometryUtil.distance([lngA, latA], [lngB, latB])
@@ -380,7 +380,7 @@ function setFitBounds(map: L.Map | AMAP.Map, point: [number, number] | [number, 
     }
 }
 /**判断参数是否是Cartesian2*/
-function uc_tsIfTwoArr(value:  [number, number] |  [number, number][]): value is [number, number][] {
+function uc_tsIfTwoArr(value: [number, number] | [number, number][]): value is [number, number][] {
     return value && Array.isArray(value[0]);
 }
 
@@ -423,5 +423,5 @@ export {
     getMapMouseEvent as u_mapGetMapMouseEvent,
     setFitBounds as u_mapSetFitBounds,
     setViewCenter as u_mapSetViewCenter,
-    getMapType as u_mapGetMapType
+    getMapType as u_mapGetMapType,
 };

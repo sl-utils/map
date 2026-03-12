@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { SLUMap, MapServiceHeat } from "@sl-utils/map";
+/**热力图 */
+import { SLUMap, MapPluginHeat } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
-let heat_: MapServiceHeat;
+let heat_: MapPluginHeat | undefined;
 /**是否显示热力图数据 */
+let map: SLUMap;
 const ifShow = ref(false);
 const data = [
   {
@@ -22,15 +24,22 @@ const data = [
     weight: 0.2,
   },
 ];
-/**热力图 */
 onMounted(async () => {
-  const map = new SLUMap("map");
+  map = new SLUMap("map");
   await map.init({ type: "L" });
-  heat_ = new MapServiceHeat(map);
 });
 function onVisible() {
   ifShow.value = !ifShow.value;
-  ifShow.value ? heat_.heatAdd(data) : heat_.remove();
+  ifShow.value ? add() : remove();
+}
+function add() {
+  heat_ = new MapPluginHeat(map.map);
+  heat_.setAllHeats(data);
+}
+function remove() {
+  if (!heat_) return;
+  heat_?.onRemove();
+  heat_ = undefined;
 }
 </script>
 

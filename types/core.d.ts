@@ -891,6 +891,31 @@ declare namespace SLPMap {
         strokeColor?: string
         imgUrl?: string
     }
+    /**地图控件配置-比例尺/当前层级/鼠标所在位置 */
+    interface Control extends Canvas {
+        /**经纬度是否转为度数显示 */
+        ifTran?: boolean;
+        /**经纬度度数显示精度 */
+        precision?: number;
+    }
+    interface LatLng {
+        /**纬度 */
+        lat: number;
+        /**经度 */
+        lng: number;
+    }
+    interface LatlngScale {
+        /**纬度 */
+        lat: string;
+        /**经度 */
+        lng: string;
+        /**层级 */
+        zoom: number;
+        /**比例尺 */
+        scale: string;
+        /**比例尺对应像素宽度 */
+        width: string;
+    }
 }
 /**-----------------------------各插件数据格式---------------------------- */
 declare namespace SLDMap {
@@ -1158,13 +1183,13 @@ interface WindParticle {
 
 /**-----------------------------大数据渲染类-------------------------start--- */
 interface BigDataOption {
-  zoomOption: {
-    [key: number]: {
+    zoomOption: {
+        [key: number]: {
       // maxCount为-1 退化成初始全部渲染 并且性能比全部渲染还差 还要维护rbush结构
       /**最大重叠数量 -1 表示不限制重叠数量 */ maxCount: number;
-      /**划分检索最小区域 不传则表示整个画布区域 划分越小越影响性能*/
-      minBound?: [number, number];
+            /**划分检索最小区域 不传则表示整个画布区域 划分越小越影响性能*/
+            minBound?: [number, number];
+        };
     };
-  };
 }
 /**-----------------------------大数据渲染类-------------------------end--- */
