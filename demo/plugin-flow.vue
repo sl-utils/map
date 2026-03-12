@@ -1,19 +1,37 @@
 <script setup lang="ts">
-import { SLUMap, MapServiceFlow } from "@sl-utils/map";
+/**流场 */
+import { SLUMap, MapPluginFlow } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
 import flowjson from "./assets/json/flow-global.json";
-let flow_: MapServiceFlow;
+let flow_: MapPluginFlow | undefined;
 /**是否显示流场数据 */
 const ifShow = ref(false);
-/**流场 */
+const options = {
+  pane: "flowPane",
+  displayValues: true,
+  unit: "m/s",
+  angleConvention: "bearingCCW",
+  emptyString: "No velocity data",
+  maxVelocity: 15,
+  colorScale: null,
+};
+let map: SLUMap;
 onMounted(async () => {
-  const map = new SLUMap("map");
+  map = new SLUMap("map");
   await map.init({ type: "L" });
-  flow_ = new MapServiceFlow(map);
 });
 function onVisible() {
   ifShow.value = !ifShow.value;
-  ifShow.value ? flow_.flowAdd(flowjson) : flow_.remove();
+  ifShow.value ? add() : remove();
+}
+function add() {
+  flow_ = new MapPluginFlow(map.map, options);
+  flow_.setData(flowjson);
+}
+function remove() {
+  if (!flow_) return;
+  flow_?.onRemove();
+  flow_ = undefined;
 }
 </script>
 

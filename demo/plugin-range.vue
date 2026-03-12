@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { SLUMap, MapServiceRange } from "@sl-utils/map";
-import { onMounted } from "vue";
-let range_: MapServiceRange;
 /**测距 */
+import { SLUMap, MapPluginRange } from "@sl-utils/map";
+import { onMounted } from "vue";
+let range_: MapPluginRange;
 onMounted(async () => {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
-  range_ = new MapServiceRange(map.map);
+  range_ = new MapPluginRange(map.map);
 });
-function onPlot() {
-  range_.openRange();
+function onRange() {
+  range_.open();
 }
 </script>
 
 <template>
   <div id="map" class="card"></div>
-  <button class="btn" @click="onPlot">测距</button>
+  <button class="btn" @click="onRange">测距</button>
 </template>
 
 <style scoped>

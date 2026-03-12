@@ -1,19 +1,53 @@
 <script setup lang="ts">
-import { SLUMap, MapServiceWave } from "@sl-utils/map";
+/**浪场 */
+import { SLUMap, MapPluginGrid } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
 import wavejson from "./assets/json/wave-global.json";
-let wave_: MapServiceWave;
+let wave_: MapPluginGrid | undefined;
+let map: SLUMap;
 /**是否显示浪场数据 */
 const ifShow = ref(false);
-/**浪场 */
+const options = {
+  zIndex: 200,
+  mosaicColor: [
+    "#0000CD",
+    "#0066ff",
+    "#00B7ff",
+    "#00E0FF",
+    "#00FFFF",
+    "#00FFCC",
+    "#00FF99",
+    "#00FF00",
+    "#99FF00",
+    "#CCFF00",
+    "#FFFF00",
+    "#FFCC00",
+    "#FF9900",
+    "#FF6600",
+    "#FF0000",
+    "#B03060",
+    "#D02090",
+    "#FF00FF",
+  ],
+  mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  pane: "wavePane",
+};
 onMounted(async () => {
-  const map = new SLUMap("map");
+  map = new SLUMap("map");
   await map.init({ type: "L" });
-  wave_ = new MapServiceWave(map);
 });
 function onVisible() {
   ifShow.value = !ifShow.value;
-  ifShow.value ? wave_.flowAdd(wavejson) : wave_.remove();
+  ifShow.value ? add() : remove();
+}
+function add() {
+  wave_ = new MapPluginGrid(map.map, options);
+  wave_.setData(wavejson);
+}
+function remove() {
+  if (!wave_) return;
+  wave_?.onRemove();
+  wave_ = undefined;
 }
 </script>
 

@@ -386,7 +386,7 @@ declare module '@sl-utils/map' {
      */
     public delAll(type?: 'all' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif'): this;
   }
-  /**自定义标绘类 需要调用addTo添加到map地图中 */
+  /**自定义标绘类  */
   export class MapPluginPlot extends MapCanvasLayer {
     constructor(map: AMAP.Map | L.Map, options?: SLPMap.Plot);
     /**默认配置 */
@@ -1020,6 +1020,7 @@ declare module '@sl-utils/map' {
     private drawStart(): void;
     private drawEnd(): void;
   }
+  /**地图控件-比例尺/当前层级/鼠标所在位置 */
   export class MapPluginControl extends MapCanvasLayer {
     constructor(map: L.Map | AMAP.Map, options?: SLPMap.Control);
     public options: SLPMap.Control;
@@ -1040,145 +1041,6 @@ declare module '@sl-utils/map' {
     private getLatLngFromEvent(e: L.LeafletMouseEvent | AMapMapsEvent): [number, number] | null;
   }
 
-
-  /**服务类--------集成层功能 */
-  /**标绘 */
-  export class MapServicePlot {
-    constructor(map_: AMAP.Map | L.Map, options?: SLPMap.Plot);
-    private plotList: MapPlotInfo[];
-    /**标绘图层 */
-    private layer?: MapPluginPlot;
-    /**将标绘添加到地图 */
-    public plotAdd(): MapPluginPlot;
-    /**设置标绘的数据 */
-    public plotSetList(plotList: MapPlotInfo[]): this;
-    /**设置正在编辑的标绘 */
-    public plotSetEdit(plot: MapPlotInfo): this;
-    public plotSave(): this;
-    /**打开标绘(返回正在标绘的对象) */
-    public plotOpenEdit(type: MapPlotType): MapPlotInfo;
-    /**标绘数据改变需要重绘 */
-    public plotRedraw(): void;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    /**移除图层 */
-    public remove(): void;
-  }
-  /**测距 */
-  export class MapServiceRange {
-    constructor(map_: AMAP.Map | L.Map,);
-    /**开启,关闭测距
-     * @param flag 是否开启
-     * @param map 地图对象
-     */
-    public openRange(flag?: boolean): this
-    /**双击结束了测距 */
-    public onEnd(cb: () => void): void;
-    /**重设测距图层的相关配置 */
-    public resetOpt(opt: SLPMap.Range): void;
-    /**每个服务类都有的 */
-    /**测距图层 */
-    private layer?: MapPluginRange;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    /**移除图层 */
-    public remove(): void;
-  }
-  /**地图轨迹服务类 */
-  export class MapServiceTrack {
-    constructor(sluMap_: SLUMap);
-    /**是否绘制名称 */
-    private _ifName: boolean;
-    public get ifName(): boolean;
-    public set ifName(value: boolean);
-    /**是否绘制编号 */
-    public ifMmsi: boolean;
-    /**是否绘制速度 */
-    public ifSpeed: boolean;
-    /**是否绘制轨迹 */
-    public ifTrack: boolean;
-    /**下一段路径回调 */
-    private cbNext: Function;
-    /** */
-    private ifFitView: boolean;
-    /**设置轨迹数据 */
-    public setTracks(infos: MapTrackGroup[]): MapPluginTrack;
-    /**获取下一段数据 */
-    public onNext(cb: Function): void;
-    /**设置轨迹的显影 */
-    public setTrackVisible(visible: boolean): void;
-    /**设置指定时间的轨迹点并绘制 */
-    public setPointByTime(time: Date): this;
-    /**每个服务类都有的 */
-    /**标绘图层 */
-    private layer?: MapPluginTrack;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    /**移除图层 */
-    public remove(): void;
-  }
-  /**风场服务类 */
-  export class MapServiceWind {
-    constructor(sluMap_: SLUMap);
-    private iconResolver?: (speed: number) => CanvasImage;
-    /**将流体数据添加到 */
-    public flowAdd(imgs: SLDMapGrid[]): void;
-    public setOption(opt: Partial<SLPMap.Wind>): void;
-    /**设置图标解析器 */
-    public setIconResolver(resolver: (speed: number) => CanvasImage): void;
-    /**每个服务类都有的 */
-    /**绘制图层 */
-    private layer?: MapPluginWind;
-    private options: Partial<SLPMap.Wind>;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    /**移除图层 */
-    public remove(): void;
-  }
-  /**流场服务类 */
-  export class MapServiceFlow {
-    constructor(sluMap_: SLUMap);
-    /**将流体数据添加到 */
-    public flowAdd(imgs: SLDVeloctiyWind[]): void;
-    private options: SLPMapVelocity;
-    /**每个服务类都有的 */
-    /**绘制图层 */
-    private layer?: MapPluginFlow;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    public setOption(opt: Partial<SLPMap.Wind>): void;
-    /**移除图层 */
-    public remove(): void;
-  }
-  /**地图浪绘制服务类*/
-  export class MapServiceWave {
-    constructor(sluMap_: SLUMap);
-    /**将流体数据添加到 */
-    public flowAdd(imgs: SLDMapGrid[]): void;
-    /**每个服务类都有的 */
-    /**绘制图层 */
-    private layer?: MapPluginGrid;
-    private options: Partial<SLPMapField>;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    public setOption(opt: Partial<SLPMapField>): void;
-    /**移除图层 */
-    public remove(): void;
-  }
-  /**热力图绘制服务类*/
-  export class MapServiceHeat {
-    constructor(sluMap_: SLUMap);
-    /**将流体数据添加到 */
-    public heatAdd(heats: SLTMap.Heat.Info[]): void;
-    setOptions(): void;
-    /**每个服务类都有的 */
-    /**绘制图层 */
-    private layer?: MapPluginHeat;
-    /**地图实例 */
-    private get map(): AMAP.Map | L.Map;
-    /**移除图层 */
-    public remove(): void;
-  }
 
   /**对外暴露的类型-待优化 */
   /**轨迹船舶信息 */
