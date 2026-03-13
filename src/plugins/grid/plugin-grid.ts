@@ -1,4 +1,4 @@
-import { MapPluginGridBase } from "@sl-utils/map";
+import { MapPluginGridBase } from "../grid/grid";
 import { u_mapGetMapSize } from "../../utils/slu-map";
 
 

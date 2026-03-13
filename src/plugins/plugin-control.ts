@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { MapCanvasLayer } from '@sl-utils/map';
+import { MapCanvasLayer } from '../map';
 import { u_mapGetDistance, u_mapGetMapType, u_mapGetMapSize, u_mapGetBounds } from '../utils/slu-map';
 import { u_mathGetPoint } from '../utils/slu-math';
 /**地图插件-控制插件 */

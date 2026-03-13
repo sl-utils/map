@@ -1,4 +1,4 @@
-import { MapCanvasDraw } from "@sl-utils/map";
+import { MapCanvasDraw } from "../map";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/grid";
 
