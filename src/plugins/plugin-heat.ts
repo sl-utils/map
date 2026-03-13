@@ -1,4 +1,4 @@
-import { MapCanvasLayer } from "@sl-utils/map";
+import { MapCanvasLayer } from "../map";
 import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";

@@ -1,5 +1,5 @@
 
-import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "@sl-utils/map";
+import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
 import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus } from "../utils/slu-map";
 import { u_arrAddItemsIndex } from "../utils/slu-array";
@@ -37,7 +37,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**记录当前鼠标纬经度 */
     private curPoint?: [number, number];
     /** 单击事件 */
-    private eventClickTimer: number | undefined;
+    private eventClickTimer: NodeJS.Timeout | undefined;
     /**开启新增的绘制 */
     public open<T extends MapPlotType>(type: T): MapPlotInfo<T> {
         /**移除掉之前添加的所有的监听函数 */

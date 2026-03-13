@@ -1,4 +1,4 @@
-import { MapCanvasLayer } from "@sl-utils/map";
+import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
 import { u_mapGetLatLngByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";

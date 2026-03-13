@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
-import { MapCanvasEvent } from "@sl-utils/map";
+import { MapCanvasEvent } from "../map";
 export class MapPluginTrack {
   /**轨迹绘制类 */
   constructor(map: L.Map | AMAP.Map, options?: Partial<MapTrackPara>) {
