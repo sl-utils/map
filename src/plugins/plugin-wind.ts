@@ -1,11 +1,11 @@
-import { MapCanvasDraw } from "../map";
+import { MapCanvasDraw, SLUMap } from "../map";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/grid";
 
 
 export class MapPluginWind extends MapPluginGridBase {
-    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMap.Wind>) {
-        super(map, options);
+    constructor(sluMap: SLUMap, options: Partial<SLPMap.Wind>) {
+        super(sluMap.map, options);
         this.draw = new MapCanvasDraw(this.map, this.canvas);
         this.options = { ...this.options, ...options };
     }

@@ -2,14 +2,15 @@ import rbush from "rbush";
 import { MapPluginDraw } from "./plugin-draw";
 import { SLUCanvasImg } from "../canvas";
 import { u_mapGetPointByLatlng } from "../utils/slu-map";
+import { SLUMap } from "../map";
 /**
  * 大数据绘制 优化处理
  * 划分网格 同网格内设置最大图标数量
  * 超出不绘制 减少画布渲染次数
  */
 export class MapPluginBigData extends MapPluginDraw {
-  constructor(map: L.Map | AMAP.Map, options: Partial<SLPMap.Canvas> & BigDataOption) {
-    super(map, options);
+  constructor(sluMap: SLUMap, options: Partial<SLPMap.Canvas> & BigDataOption) {
+    super(sluMap, options);
     this.bigDataOption = options;
     // this.map.on('moveend', this.resetRbush);
     // this.map.on('zoomend', this.resetRbush);

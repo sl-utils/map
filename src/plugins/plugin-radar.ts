@@ -1,13 +1,10 @@
-import { MapCanvasLayer, MapCanvasRadar } from "../map";
+import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
 
 /**地图插件(更换地图只需要更换继承的父类类型)----绘制 */
 export class MapPluginRadar extends MapCanvasLayer {
-    constructor(map: L.Map, opt?: MapCanvasPara);
-    constructor(map: AMAP.Map, opt?: AMAP.CustomLayerOption);
-    constructor(map: AMAP.Map | L.Map, opt?: AMAP.CustomLayerOption | MapCanvasPara);
-    constructor(map: AMAP.Map | L.Map, options?: AMAP.CustomLayerOption | MapCanvasPara) {
-        super(map, options);
-        this.canvasRadar = new MapCanvasRadar(map, this.ctx);
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara) {
+        super(sluMap.map, options);
+        this.canvasRadar = new MapCanvasRadar(sluMap.map, this.ctx);
     }
     /**动画所有状态 */
     private canvasRadar: MapCanvasRadar;

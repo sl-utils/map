@@ -1,10 +1,11 @@
 import { MapPluginGridBase } from "../grid/grid";
 import { u_mapGetMapSize } from "../../utils/slu-map";
+import { SLUMap } from "../../map";
 
 
 export class MapPluginGrid extends MapPluginGridBase {
-  constructor(map: L.Map | AMAP.Map, options: Partial<SLPMapField>) {
-    super(map, options);
+  constructor(sluMap: SLUMap, options: Partial<SLPMapField>) {
+    super(sluMap.map, options);
   }
   /**可视区内的网格数据XY */
   protected boundsDatas: [number, number, number][][] = [];

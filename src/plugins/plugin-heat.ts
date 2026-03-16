@@ -1,11 +1,11 @@
-import { MapCanvasLayer } from "../map";
+import { MapCanvasLayer, SLUMap } from "../map";
 import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 /**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] */
 export class MapPluginHeat extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Heat) {
-        super(map, options);
+    constructor(sluMap: SLUMap, options?: SLPMap.Heat) {
+        super(sluMap.map, options);
         this.setOptions(options);
     }
     // _map: any;

@@ -1,12 +1,12 @@
 import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
-import { MapCanvasLayer } from "../map";
+import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUCanvas } from "../canvas";
 import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
 
 /**leaflet的粒子效果 */
 export class MapPluginPartial extends MapCanvasLayer {
-  constructor(map: L.Map | AMAP.Map, options?: SLPMap.Canvas) {
-    super(map, options);
+  constructor(sluMap: SLUMap, options?: SLPMap.Canvas) {
+    super(sluMap.map, options);
   }
   /**
    * 图层是否在移动 高德默认每次渲染更新像素坐标

@@ -1,11 +1,11 @@
 import * as L from 'leaflet';
-import { MapCanvasLayer } from '../map';
+import { MapCanvasLayer, SLUMap } from '../map';
 import { u_mapGetDistance, u_mapGetMapType, u_mapGetMapSize, u_mapGetBounds } from '../utils/slu-map';
 import { u_mathGetPoint } from '../utils/slu-math';
 /**地图插件-控制插件 */
 export class MapPluginControl extends MapCanvasLayer {
-  constructor(map: L.Map | AMAP.Map, options?: SLPMap.Control) {
-    super(map, options);
+  constructor(sluMap: SLUMap, options?: SLPMap.Control) {
+    super(sluMap.map, options);
     Object.assign(this.options, {
       precision: 4,
       pointerEvents: 'none',
@@ -40,7 +40,7 @@ export class MapPluginControl extends MapCanvasLayer {
     this.cb = cb;
     return this;
   }
-  
+
   private eventSwitch(flag: boolean) {
     let key: 'on' | 'off' = flag ? 'on' : 'off';
     /**开启事件前需关闭事件防止多次添加 */
@@ -68,7 +68,7 @@ export class MapPluginControl extends MapCanvasLayer {
         unit = 'W'; value = 360 - value
       }
     }
-    value = Math.abs(value)    
+    value = Math.abs(value)
     if (!this.options.ifTran) return u_mathGetPoint(value, this.options.precision ?? 5) + '°' + unit;
     let f = value % 1 * 60
     let m = (f % 1 * 60).toFixed(2)

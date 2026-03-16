@@ -3,9 +3,9 @@ import { SLUMap, MapPluginDraw } from "@sl-utils/map";
 import { ref, onMounted } from "vue";
 
 onMounted(() => {
-  const map4 = new SLUMap("map");
-  map4.init({ type: "A" }).then(()=>{
- const draw = new MapPluginDraw(map4.map);
+  const map = new SLUMap("map");
+  map.init({ type: "A" }).then(()=>{
+ const draw = new MapPluginDraw(map);
     draw.addRect({
       latlngs: [
         [26.3, 110.5],

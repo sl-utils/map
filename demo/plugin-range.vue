@@ -6,7 +6,7 @@ let range_: MapPluginRange;
 onMounted(async () => {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
-  range_ = new MapPluginRange(map.map);
+  range_ = new MapPluginRange(map);
 });
 function onRange() {
   range_.open();

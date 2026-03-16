@@ -5,7 +5,7 @@ import { onMounted } from "vue";
 onMounted(async () => {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
-  const radar = new MapPluginRadar(map.map);
+  const radar = new MapPluginRadar(map);
   let radarData = [
       { id: "1", name: "厂区雷达", radius: 500, latitude: 39.749, longitude: 117.555, angle: [115, 205], ifClockwise: false },
       { id: "2", name: "海口雷达", radius: 50000, latitude: 20.47719, sectorAngle: 60, longitude: 109.45816, angle: [0, 90] },

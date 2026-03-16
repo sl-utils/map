@@ -84,7 +84,7 @@ function onVisible() {
   ifShow.value ? add() : remove();
 }
 function add() {
-  wind_ = new MapPluginWind(map.map, options);
+  wind_ = new MapPluginWind(map, options);
   wind_.setIconResolver(iconResolver);
   wind_.setData(windjson);
 }

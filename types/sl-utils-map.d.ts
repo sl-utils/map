@@ -336,7 +336,7 @@ declare module '@sl-utils/map' {
 
   /**地图插件----绘制 */
   export class MapPluginDraw extends MapCanvasLayer {
-    constructor(map: AMAP.Map | L.Map, options?: AMAP.CustomLayerOption | MapCanvasPara)
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara)
     /**地图绘制控制类 */
     protected _draw: MapCanvasDraw;
     /**地图事件引起的重绘绘制 */
@@ -388,7 +388,7 @@ declare module '@sl-utils/map' {
   }
   /**自定义标绘类  */
   export class MapPluginPlot extends MapCanvasLayer {
-    constructor(map: AMAP.Map | L.Map, options?: SLPMap.Plot);
+    constructor(sluMap: SLUMap, options?: SLPMap.Plot);
     /**默认配置 */
     public options: SLPMap.Plot;
     /**动态绘制图层 */
@@ -484,7 +484,7 @@ declare module '@sl-utils/map' {
   /** 测绘类 */
   export class MapPluginRange extends MapCanvasLayer {
     /** 测绘类，传入Amap或者调用addTo */
-    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Range);
+    constructor(sluMap: SLUMap, options?: SLPMap.Range);
     /**默认配置 */
     public options: SLPMap.Range;
     /** 地图事件控制管理对象 */
@@ -531,7 +531,7 @@ declare module '@sl-utils/map' {
   /**轨迹类 */
   export class MapPluginTrack {
     /**轨迹绘制类 */
-    constructor(map: L.Map | AMAP.Map, options?: Partial<MapTrackPara>);
+    constructor(sluMap: SLUMap, options?: Partial<MapTrackPara>);
     private map: L.Map | AMAP.Map;
     /**默认配置 */
     private options: MapTrackPara;
@@ -686,7 +686,7 @@ declare module '@sl-utils/map' {
 
   }
   export class MapPluginGrid extends MapPluginGridBase {
-    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMapField>);
+    constructor(sluMap: SLUMap, options: Partial<SLPMapField>);
     /**可视区内的网格数据XY */
     protected boundsDatas: [number, number, number][][];
     public setOptions(options: Partial<SLPMapField>): void;
@@ -699,7 +699,7 @@ declare module '@sl-utils/map' {
   }
   /**风场类 */
   export class MapPluginWind extends MapPluginGridBase {
-    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMap.Wind>);
+    constructor(sluMap: SLUMap, options: Partial<SLPMap.Wind>);
     /**根据风速返回图标配置 */
     private iconResolver?: (speed: number) => CanvasImage;
     private draw: MapCanvasDraw;
@@ -843,7 +843,7 @@ declare module '@sl-utils/map' {
   }
   /**流体动画(风速风向洋流动图)leaflet-velocity.js*/
   export class MapPluginFlow extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options?: Partial<SLPMapVelocity>);
+    constructor(sluMap: SLUMap, options?: Partial<SLPMapVelocity>);
     /**配置项 */
     public options: SLPMapVelocity;
     private windy: VelocityWindy | null;
@@ -877,7 +877,7 @@ declare module '@sl-utils/map' {
   }
   /**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] */
   export class MapPluginHeat extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Heat);
+    constructor(sluMap: SLUMap, options?: SLPMap.Heat);
     /**热力数据集合 */
     private _allHeats: SLTMap.Heat.Info[];
     /**计算后的热力图绘制数据 [位置x,位置y,权重W] */
@@ -917,7 +917,7 @@ declare module '@sl-utils/map' {
   }
   /**动态箭头线图层 */
   export class MapPluginArrowLine extends MapCanvasLayer {
-    constructor(map: AMAP.Map | L.Map, options?: SLPMap.ArrowLine);
+    constructor(sluMap: SLUMap, options?: SLPMap.ArrowLine);
     private arrowLine: MapCanvasArrowLine;
     public setAllLines(lines: MapLine[]): void;
     /**
@@ -940,7 +940,7 @@ declare module '@sl-utils/map' {
  * 超出不绘制 减少画布渲染次数
  */
   export class MapPluginBigData extends MapPluginDraw {
-    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMap.Canvas> & BigDataOption);
+    constructor(sluMap: SLUMap, options: Partial<SLPMap.Canvas> & BigDataOption);
     /**R树搜索 绘制 */
     private rbush;
     private rbushData: SLTRbush[];
@@ -972,7 +972,7 @@ declare module '@sl-utils/map' {
   }
   /**leaflet的粒子效果 */
   export class MapPluginPartial extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Canvas);
+    constructor(sluMap: SLUMap, options?: SLPMap.Canvas);
     /**
      * 图层是否在移动 高德默认每次渲染更新像素坐标
      * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
@@ -999,7 +999,7 @@ declare module '@sl-utils/map' {
   }
   /*绘制雷达扫描图 */
   export class MapPluginRadar extends MapCanvasLayer {
-    constructor(map: AMAP.Map | L.Map, options?: AMAP.CustomLayerOption | MapCanvasPara);
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara);
     /**动画所有状态 */
     private canvasRadar: MapCanvasRadar;
     /**
@@ -1022,7 +1022,7 @@ declare module '@sl-utils/map' {
   }
   /**地图控件-比例尺/当前层级/鼠标所在位置 */
   export class MapPluginControl extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Control);
+    constructor(sluMap: SLUMap, options?: SLPMap.Control);
     public options: SLPMap.Control;
     private cb?: (info: Partial<SLPMap.LatlngScale>) => void;
     private info: Partial<SLPMap.LatlngScale>;

@@ -14,7 +14,7 @@ onMounted(async () => {
     className: "plot",
   };
   await map.init({ type: "L" });
-  plot_ = new MapPluginPlot(map.map, opt);
+  plot_ = new MapPluginPlot(map, opt);
   plot_.setPlotList([
     {
       type: "polygon",

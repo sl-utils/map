@@ -13463,7 +13463,7 @@ class n0 {
 }
 class Ee extends Vt {
   constructor(t, e) {
-    super(t, e), this._draw = new gs(t, this.canvas);
+    super(t.map, e), this._draw = new gs(t.map, this.canvas);
   }
   /**地图事件引起的重绘绘制 */
   renderFixedData() {
@@ -13574,7 +13574,8 @@ function o0(s, t, e) {
 }
 class m0 extends Vt {
   constructor(t, e) {
-    super(t, e), this.options = {
+    const a = t.map;
+    super(a, e), this.options = {
       pane: "canvas",
       className: "plot"
     }, this.editArc = {
@@ -13582,18 +13583,18 @@ class m0 extends Vt {
       colorFill: "#fff",
       colorLine: "#2C9B8A",
       size: 4
-    }, this.plotList = [], this.plotAni = { latLngs: [], type: "polygon", ifEdit: !0 }, this.eventClick = (a) => {
+    }, this.plotList = [], this.plotAni = { latLngs: [], type: "polygon", ifEdit: !0 }, this.eventClick = (r) => {
       this.eventClickTimer = setTimeout(() => {
-        let r = this.plotAni.latLngs.length, o = this.plotAni.type;
-        const { latlng: l } = ki(a, this.type);
-        (o === "polygon" || o === "line" || r < 2) && this.plotAni.latLngs.push([l.lat, l.lng]), (o === "rect" || o === "circle") && this.plotAni.latLngs.length >= 2 ? this.eventDblclick() : this._redraw(), this.cbPointChange && this.cbPointChange(this.plotAni);
+        let o = this.plotAni.latLngs.length, l = this.plotAni.type;
+        const { latlng: u } = ki(r, this.type);
+        (l === "polygon" || l === "line" || o < 2) && this.plotAni.latLngs.push([u.lat, u.lng]), (l === "rect" || l === "circle") && this.plotAni.latLngs.length >= 2 ? this.eventDblclick() : this._redraw(), this.cbPointChange && this.cbPointChange(this.plotAni);
       }, 50);
-    }, this.eventMousemove = (a) => {
-      const { latlng: r } = ki(a, this.type);
-      this.curPoint = [r.lat, r.lng], this.renderAnimation();
+    }, this.eventMousemove = (r) => {
+      const { latlng: o } = ki(r, this.type);
+      this.curPoint = [o.lat, o.lng], this.renderAnimation();
     }, this.eventDblclick = () => {
       this.eventClickTimer && (clearTimeout(this.eventClickTimer), this.eventClickTimer = null), !(this.plotAni.type === "polygon" && this.plotAni.latLngs.length < 3) && (this.close(), this.curPoint = void 0, this._redraw());
-    }, this.ctrMapDraw = new gs(t, this.canvas), this.ctrMapAniDraw = new Ee(t, Object.assign({}, this.options, { className: this.options.className + " ani" })), this.ctrEvent = new Me(t), Object.assign(this.options, e);
+    }, this.ctrMapDraw = new gs(a, this.canvas), this.ctrMapAniDraw = new Ee(t, Object.assign({}, this.options, { className: this.options.className + " ani" })), this.ctrEvent = new Me(a), Object.assign(this.options, e);
   }
   /**开启新增的绘制 */
   open(t) {
@@ -13865,30 +13866,31 @@ class m0 extends Vt {
 class g0 extends Vt {
   /** 测绘类，传入Amap或者调用addTo */
   constructor(t, e) {
-    super(t, e), this.options = {
+    const a = t.map;
+    super(a, e), this.options = {
       pane: "canvas",
       className: "range",
       colorLine: "#364A7D",
       colorArc: "#FFF",
       colorArcStart: "#415880",
       colorFont: " #333333"
-    }, this.lnglats = [], this.ifDrag = !1, this.eventDrag = (a) => {
+    }, this.lnglats = [], this.ifDrag = !1, this.eventDrag = (r) => {
       this.ifDrag = !0;
-    }, this.eventDragend = (a) => {
+    }, this.eventDragend = (r) => {
       this.ifDrag = !1;
-    }, this.eventClick = (a) => {
-      console.log(a), this.eventClickTimer = setTimeout(() => {
-        const { latlng: r } = ki(a, this.type);
-        let o = new V.LatLng(r.lat, r.lng);
-        this.lnglats[this.lnglats.length - 1].push(o), this.renderFixedData(), this.renderAnimation();
+    }, this.eventClick = (r) => {
+      console.log(r), this.eventClickTimer = setTimeout(() => {
+        const { latlng: o } = ki(r, this.type);
+        let l = new V.LatLng(o.lat, o.lng);
+        this.lnglats[this.lnglats.length - 1].push(l), this.renderFixedData(), this.renderAnimation();
       }, 100);
-    }, this.eventMousemove = (a) => {
+    }, this.eventMousemove = (r) => {
       if (this.ifDrag) return;
-      const { latlng: r } = ki(a, this.type);
-      this.lnglat = new V.LatLng(r.lat, r.lng), this.renderAnimation();
+      const { latlng: o } = ki(r, this.type);
+      this.lnglat = new V.LatLng(o.lat, o.lng), this.renderAnimation();
     }, this.eventDblclick = () => {
       this.eventClickTimer && (clearTimeout(this.eventClickTimer), this.eventClickTimer = null), this.close(), this.lnglat = void 0, this.renderFixedData(), this.renderAnimation();
-    }, Object.assign(this.options, e), this.ctrMapDraw = new gs(t, this.canvas), this.ctrMapAniDraw = new Ee(t, Object.assign({}, this.options, { className: this.options.className + " ani" })), this.ctrEvent = new Me(t);
+    }, Object.assign(this.options, e), this.ctrMapDraw = new gs(a, this.canvas), this.ctrMapAniDraw = new Ee(t, Object.assign({}, this.options, { className: this.options.className + " ani" })), this.ctrEvent = new Me(a);
   }
   setOptions(t) {
     return Object.assign(this.options, t), this._redraw(), this;
@@ -14021,9 +14023,11 @@ class p0 {
       colorTextStart: "#8D4CC3",
       colorArcStart: "#8D4CC3",
       colorArcEnd: "#D85151"
-    }, this.allTracks = [], this.earlyTime = 0, this.intervalTime = 20, this.time = 0, this.cbs = /* @__PURE__ */ Object.create(null), this.map = t, Object.assign(this.options, e);
-    let a = this.options.zIndex + 1;
-    this.layerDraw = new Ee(t, this.options), this.layerAniDraw = new Ee(t, Object.assign({}, this.options, { zIndex: a, className: "track ani" })), this.allEvents = new Me(t);
+    }, this.allTracks = [], this.earlyTime = 0, this.intervalTime = 20, this.time = 0, this.cbs = /* @__PURE__ */ Object.create(null);
+    const a = t.map;
+    this.map = a, Object.assign(this.options, e);
+    let r = this.options.zIndex + 1;
+    this.layerDraw = new Ee(t, this.options), this.layerAniDraw = new Ee(t, Object.assign({}, this.options, { zIndex: r, className: "track ani" })), this.allEvents = new Me(a);
   }
   /**zoom变化 重设arc数据 */
   onRemove() {
@@ -14535,7 +14539,7 @@ class $r extends Vt {
 }
 class v0 extends $r {
   constructor(t, e) {
-    super(t, e), this.iconResolver = (a) => {
+    super(t.map, e), this.iconResolver = (a) => {
       const o = [(a < 0.3 ? 0 : a < 1.6 ? 1 : a < 3.4 ? 2 : a < 5.5 ? 3 : a < 8 ? 4 : a < 10.8 ? 5 : a < 13.9 ? 6 : a < 17.2 ? 7 : a < 20.8 ? 8 : a < 24.5 ? 9 : a < 28.5 ? 10 : a < 32.7 ? 11 : 12) + 2, 1], { url: l, size: u, sizeo: c } = this.options;
       return {
         url: l,
@@ -14626,7 +14630,7 @@ class v0 extends $r {
 }
 class y0 extends $r {
   constructor(t, e) {
-    super(t, e), this.boundsDatas = [];
+    super(t.map, e), this.boundsDatas = [];
   }
   setOptions(t) {
     Object.assign(this.options, t);
@@ -14938,7 +14942,7 @@ class c0 {
 }
 class M0 extends Vt {
   constructor(t, e) {
-    super(t, e), this.options = {
+    super(t.map, e), this.options = {
       pane: "overlayPane",
       displayValues: !0,
       unit: "m/s",
@@ -15038,7 +15042,7 @@ class M0 extends Vt {
 }
 class w0 extends Vt {
   constructor(t, e) {
-    super(t, e), this._allHeats = [], this.heatDatas = [], this.options = {
+    super(t.map, e), this._allHeats = [], this.heatDatas = [], this.options = {
       pane: "canvas",
       className: "heat",
       radius: 20,
@@ -15144,7 +15148,7 @@ class w0 extends Vt {
 }
 class x0 extends Vt {
   constructor(t, e) {
-    super(t, e), this.isDrag = !1, this.arrowLine = new s0(t, this.ctx, e);
+    super(t.map, e), this.isDrag = !1, this.arrowLine = new s0(t.map, this.ctx, e);
   }
   setAllLines(t) {
     this.arrowLine.setAllLines(t);
@@ -15170,7 +15174,7 @@ class x0 extends Vt {
 }
 class P0 extends Ee {
   constructor(t, e) {
-    super(t, e), this.rbush = new Pr(), this.rbushData = [], this.bigDataImgs = [], this._renderBigDataImgs = [], this.resetRbush = () => {
+    super(t.map, e), this.rbush = new Pr(), this.rbushData = [], this.bigDataImgs = [], this._renderBigDataImgs = [], this.resetRbush = () => {
       this.rbush && this.rbush.clear(), this.rbushData = [], this.bigDataImgs.forEach((a) => {
         this.transformRbush(a);
       }), this.rbush.load(this.rbushData);
@@ -15245,7 +15249,7 @@ function d0(s, t, e, a) {
 }
 class b0 extends Vt {
   constructor(t, e) {
-    super(t, e), this.isDrag = !1, this._allParticle = [];
+    super(t.map, e), this.isDrag = !1, this._allParticle = [];
   }
   /**设置所有粒子数据 */
   setAllParticles(t) {
@@ -15319,7 +15323,7 @@ class b0 extends Vt {
 }
 class E0 extends Vt {
   constructor(t, e) {
-    super(t, e), this.isDrag = !1, this.canvasRadar = new n0(t, this.ctx);
+    super(t.map, e), this.isDrag = !1, this.canvasRadar = new n0(t.map, this.ctx);
   }
   /**重设雷达绘制类 */
   setAllRadars(t) {
@@ -15349,7 +15353,7 @@ class E0 extends Vt {
 }
 class S0 extends Vt {
   constructor(t, e) {
-    super(t, e), this.options = {}, this.info = { zoom: 0 }, this.mapType = ms(this.map), this.setLatlng = (a) => {
+    super(t.map, e), this.options = {}, this.info = { zoom: 0 }, this.mapType = ms(this.map), this.setLatlng = (a) => {
       const r = this.getLatLngFromEvent(a);
       r && (this.latLng = { lat: r[0], lng: r[1] }, this.info.lat = this.getLatlng(r[0], !1), this.info.lng = this.getLatlng(r[1], !0), this.cb && this.cb(this.info));
     }, Object.assign(this.options, {
