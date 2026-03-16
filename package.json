@@ -1,6 +1,6 @@
 {
   "name": "@sl-utils/map",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "",
   "main": "build/sl-utils-map.umd.js",
   "exports": {
