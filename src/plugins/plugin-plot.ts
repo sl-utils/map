@@ -38,7 +38,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**记录当前鼠标纬经度 */
     private curPoint?: [number, number];
     /** 单击事件 */
-    private eventClickTimer: NodeJS.Timeout | undefined;
+    private eventClickTimer: number | undefined;
     /**开启新增的绘制 */
     public open<T extends MapPlotType>(type: T): MapPlotInfo<T> {
         /**移除掉之前添加的所有的监听函数 */

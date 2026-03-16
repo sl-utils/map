@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**风场 */
-import { SLUMap, MapPluginWind } from "@sl-utils/map";
+import { SLUMap, MapPluginWind } from "../src";
 import { onMounted, ref } from "vue";
 import windjson from "./assets/json/wind-global.json";
 const iconUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;

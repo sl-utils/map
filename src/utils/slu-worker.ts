@@ -1,4 +1,4 @@
-import workerSource from '../assets/worker/grid-worker1.js?raw';
+import workerSource from '../assets/grid-worker.js?raw';
 /**线程工具类 
  * @param name 子线程的文件名(线程文件必须放到`/assets/worker`)
  * @param cb 子线程结果回调函数

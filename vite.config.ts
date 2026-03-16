@@ -6,9 +6,23 @@ export default defineConfig({
   build: {
     outDir: 'build',
     lib: {
-      entry: 'src/sl-utils-map.ts',
+      entry: 'src/index.ts',
+      formats: ['es'],
       name: 'test',
-      fileName: (format) => `sl-utils-map.${format}.js`,
+    },
+    rollupOptions: {
+      output: {
+        // 关键配置：保留模块结构
+        preserveModules: true,
+        inlineDynamicImports: false,
+        // 可选，指定保留的根目录，默认为项目根目录
+        preserveModulesRoot: 'src',
+        format: 'es', // 或 'esm'
+        // 控制入口文件的命名
+        entryFileNames: '[name].js',
+        // 控制其他模块文件的命名，保持目录结构
+        chunkFileNames: '[name].js',
+      },
     },
   },
   server: {

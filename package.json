@@ -8,16 +8,14 @@
     ".": {
       "import": {
         "types": "./types/sl-utils-map.d.ts",
-        "default": "./build/sl-utils-map.umd.js"
+        "default": "./build/index.js"
       }
     }
   },
   "type": "module",
   "scripts": {
     "vite": "vite build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run build:cjs",
-    "build:cjs": "tsc -p tsconfig.cjs.json"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",

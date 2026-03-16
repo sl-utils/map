@@ -1,6 +1,0 @@
-export * from './canvas'
-export * from './plugins'
-export { MapCanvasDraw } from './map/canvas-draw'
-export { MapCanvasEvent } from './map/canvas-event'
-export { MapCanvasLayer } from './map/canvas-layer'
-export { SLUMap } from './map/canvas-map'

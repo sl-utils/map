@@ -27,7 +27,7 @@ export class MapCanvasLayer {
     }
     /**开发自己设置项目使用了的地图插件类型Leaflet(0)、高德(1)、百度(2),防止网络加载的第三方插件再使用instanceof是为define*/
     protected readonly type: 0 | 1 | 2;
-    protected readonly map!: AMAP.Map | L.Map;
+    public readonly map!: AMAP.Map | L.Map;
     private layer: L.Layer | AMAP.CustomLayer;
     protected readonly canvas: HTMLCanvasElement = document.createElement('canvas');
     protected readonly ctx: CanvasRenderingContext2D = this.canvas.getContext("2d")!;

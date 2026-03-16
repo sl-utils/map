@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**地图控件-比例尺/当前层级/鼠标所在位置 */
-import { SLUMap, MapPluginControl } from "@sl-utils/map";
+import { SLUMap } from "../src/map";
 import { ref, reactive, onMounted } from "vue";
+import { MapPluginControl } from "../src";
 
 /**控件数据 */
 let data = reactive({

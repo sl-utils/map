@@ -38,7 +38,7 @@ export class MapPluginRange extends MapCanvasLayer {
     /** 是否正在拖动地图 */
     private ifDrag: boolean = false;
     /** 单击事件 */
-    private eventClickTimer: NodeJS.Timeout | undefined;
+    private eventClickTimer: number | undefined;
     public setOptions(opt: SLPMap.Range) {
         Object.assign(this.options, opt);
         this._redraw();
