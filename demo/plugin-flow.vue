@@ -25,7 +25,7 @@ function onVisible() {
   ifShow.value ? add() : remove();
 }
 function add() {
-  flow_ = new MapPluginFlow(map.map, options);
+  flow_ = new MapPluginFlow(map, options);
   flow_.setData(flowjson);
 }
 function remove() {

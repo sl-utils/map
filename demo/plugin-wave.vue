@@ -41,7 +41,7 @@ function onVisible() {
   ifShow.value ? add() : remove();
 }
 function add() {
-  wave_ = new MapPluginGrid(map.map, options);
+  wave_ = new MapPluginGrid(map, options);
   wave_.setData(wavejson);
 }
 function remove() {

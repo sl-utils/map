@@ -1,17 +1,18 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
-import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
+import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas";
 /** 测绘类 */
 export class MapPluginRange extends MapCanvasLayer {
     /** 测绘类，传入Amap或者调用addTo */
-    constructor(map: L.Map | AMAP.Map, options?: SLPMap.Range) {
+    constructor(sluMap: SLUMap, options?: SLPMap.Range) {
+        const map = sluMap.map;
         super(map, options);
         Object.assign(this.options, options);
         /** 动态绘制图层 */
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        this.ctrMapAniDraw = new MapPluginDraw(map, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
+        this.ctrMapAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
         this.ctrEvent = new MapCanvasEvent(map);
     }
     /**默认配置 */

@@ -33,7 +33,7 @@ function onVisible() {
   ifShow.value ? add() : remove();
 }
 function add() {
-  heat_ = new MapPluginHeat(map.map);
+  heat_ = new MapPluginHeat(map);
   heat_.setAllHeats(data);
 }
 function remove() {

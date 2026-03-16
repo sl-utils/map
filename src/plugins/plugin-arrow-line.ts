@@ -1,5 +1,5 @@
 
-import { MapCanvasArrowLine, MapCanvasLayer } from "../map";
+import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
 
 /**
  * @constructor
@@ -7,12 +7,9 @@ import { MapCanvasArrowLine, MapCanvasLayer } from "../map";
  * @param {SLPMap.ArrowLine} arrowLineOption
  */
 export class MapPluginArrowLine extends MapCanvasLayer {
-  constructor(map: L.Map, opt?: SLPMap.ArrowLine);
-  constructor(map: AMAP.Map, opt?: SLPMap.ArrowLine);
-  constructor(map: AMAP.Map | L.Map, options?: SLPMap.ArrowLine);
-  constructor(map: AMAP.Map | L.Map, options?: SLPMap.ArrowLine) {
-    super(map, options);
-    this.arrowLine = new MapCanvasArrowLine(map, this.ctx, options);
+  constructor(sluMap: SLUMap, options?: SLPMap.ArrowLine) {
+    super(sluMap.map, options);
+    this.arrowLine = new MapCanvasArrowLine(sluMap.map, this.ctx, options);
   }
   private arrowLine: MapCanvasArrowLine;
   public setAllLines(lines: MapLine[]) {
@@ -41,7 +38,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
     });
   }
   /**拖拽不允许更新动画 */
-  protected addMapEvents(map: L.Map, key: "on" | "off") {
+  protected addMapEvents(map: L.Map|AMAP.Map, key: "on" | "off") {    
     map[key]("dragstart", this.drawEnd, this);
     // map[key]('dragend', this.drawStart, this);
     map[key]("movestart", this.drawEnd, this);

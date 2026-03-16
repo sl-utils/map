@@ -16,7 +16,7 @@ const ifShow = ref(false);
 onMounted(async () => {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
-  track_ = new MapPluginTrack(map.map);
+  track_ = new MapPluginTrack(map);
 
   const tracks = genTracks();
   track_.setTracks(tracks);

@@ -1,11 +1,11 @@
 import * as L from "leaflet";
 import { u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
-import { MapCanvasLayer } from "../../map";
+import { MapCanvasLayer, SLUMap } from "../../map";
 import { VelocityWindy } from "./velocity-windy";
 /**流体动画(风速风向洋流动图)leaflet-velocity.js*/
 export class MapPluginFlow extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options?: Partial<SLPMapVelocity>) {
-        super(map, options);
+    constructor(sluMap: SLUMap, options?: Partial<SLPMapVelocity>) {
+        super(sluMap.map, options);
         Object.assign(this.options, options);
     }
     /**配置项 */

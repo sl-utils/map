@@ -10,7 +10,7 @@ onMounted(async () => {
     [38.925008, 118.05103],
     [38.94, 117.555],
   ]);
-  const data = new MapPluginBigData(map.map, {
+  const data = new MapPluginBigData(map, {
     zIndex: 299,
     zoomOption: {
       1: { maxCount: 2, minBound: [22, 22] },

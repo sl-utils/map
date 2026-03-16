@@ -1,10 +1,10 @@
-import { MapCanvasDraw, MapCanvasLayer } from "../map";
+import { MapCanvasDraw, MapCanvasLayer, SLUMap } from "../map";
 
 /**地图插件----绘制 */
 export class MapPluginDraw extends MapCanvasLayer {
-    constructor(map: AMAP.Map | L.Map, options?: AMAP.CustomLayerOption | MapCanvasPara) {
-        super(map, options);
-        this._draw = new MapCanvasDraw(map, this.canvas);
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara) {
+        super(sluMap.map, options);
+        this._draw = new MapCanvasDraw(sluMap.map, this.canvas);
     }
     /**地图绘制控制类 */
     protected _draw: MapCanvasDraw;

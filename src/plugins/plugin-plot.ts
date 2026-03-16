@@ -1,14 +1,15 @@
 
-import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
+import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
 import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus } from "../utils/slu-map";
 import { u_arrAddItemsIndex } from "../utils/slu-array";
 /**自定义标绘类 需要调用addTo添加到map地图中 */
 export class MapPluginPlot extends MapCanvasLayer {
-    constructor(map: AMAP.Map | L.Map, options?: SLPMap.Plot) {
+    constructor(sluMap: SLUMap, options?: SLPMap.Plot) {
+        const map = sluMap.map;
         super(map, options);
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        this.ctrMapAniDraw = new MapPluginDraw(map, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
+        this.ctrMapAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
         this.ctrEvent = new MapCanvasEvent(map);
         Object.assign(this.options, options);
     }

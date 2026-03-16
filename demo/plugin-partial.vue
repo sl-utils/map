@@ -9,7 +9,7 @@ onMounted(async () => {
     [39.735008, 117.58103],
     [39.74, 117.525],
   ]);
-  const partial = new MapPluginPartial(map.map);
+  const partial = new MapPluginPartial(map);
   partial.setAllParticles([
     {
       latlngs: [

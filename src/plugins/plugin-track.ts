@@ -1,14 +1,15 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
-import { MapCanvasEvent } from "../map";
+import { MapCanvasEvent, SLUMap } from "../map";
 export class MapPluginTrack {
   /**轨迹绘制类 */
-  constructor(map: L.Map | AMAP.Map, options?: Partial<MapTrackPara>) {
+  constructor(sluMap: SLUMap, options?: Partial<MapTrackPara>) {
+    const map = sluMap.map;
     this.map = map;
     Object.assign(this.options, options);
     let zIndex = this.options.zIndex! + 1;
-    this.layerDraw = new MapPluginDraw(map, this.options);
-    this.layerAniDraw = new MapPluginDraw(map, Object.assign({}, this.options, { zIndex, className: "track ani" }));
+    this.layerDraw = new MapPluginDraw(sluMap, this.options);
+    this.layerAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { zIndex, className: "track ani" }));
     this.allEvents = new MapCanvasEvent(map);
   }
   private map: L.Map | AMAP.Map;

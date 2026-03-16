@@ -15,10 +15,10 @@ const ifTran = ref(true);
 let ctl: MapPluginControl | undefined;
 
 onMounted(async () => {
-  const slu = new SLUMap("map");
-  await slu.init({ type: "L" });
+  const map = new SLUMap("map");
+  await map.init({ type: "L" });
 
-  ctl = new MapPluginControl(slu.map, { ifTran: ifTran.value, precision: 5 });
+  ctl = new MapPluginControl(map, { ifTran: ifTran.value, precision: 5 });
 
   const info = ctl.init();
   const { lat, lng, zoom, scale, width } = info;

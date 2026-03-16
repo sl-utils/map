@@ -4,8 +4,8 @@ import { onMounted } from "vue";
 const url = new URL("./assets/images/direction-arrow.png", import.meta.url).href;
 onMounted(async () => {
   const map = new SLUMap("map");
-  await map.init({ type: "A" });
-  const arrowline = new MapPluginArrowLine(map.map,{imgUrl:url});
+  await map.init({ type: "L" });
+  const arrowline = new MapPluginArrowLine(map,{imgUrl:url});
   arrowline.setAllLines([
     {
       latlngs: [
