@@ -1,11 +1,13 @@
 import { SLUCanvasGif } from "src/canvas";
 import { SLUWorker } from "src/utils/slu-worker";
+import type { Map as AMap, Bounds, CustomLayerOption, CustomLayer } from './amap'
+import type { Map as LMap, LatLngBounds, LeafletMouseEvent, Layer, LatLng } from 'leaflet'
 
 declare module '@sl-utils/map' {
   /**leaflet 需要开发者在样式表中挂载leaflet样式 */
   export class SLUMap {
     constructor(ele: string,);
-    map: AMAP.Map | L.Map
+    map: AMap | LMap
     /**初始实例化地图
       * @param options 地图初始化参数
       */
@@ -13,7 +15,7 @@ declare module '@sl-utils/map' {
     /**设置合适的视图范围 */
     public setFitView(latlngs: [number, number][]): this;
     /**获取地图边界 */
-    public getBound(): AMAP.Bounds | L.LatLngBounds;
+    public getBound(): Bounds | LatLngBounds;
     /**
      * 设置地图中心
      * @param center 中心 latlng顺序
@@ -25,10 +27,10 @@ declare module '@sl-utils/map' {
   // 添加其他导出...
   /** 地图canvas基础图形绘制类    点(arc) 线(line BezierLine) 多边形(rect) 图片(img)*/
   export class MapCanvasDraw {
-    constructor(map: AMAP.Map | L.Map, canvas: HTMLCanvasElement);
+    constructor(map: AMap | LMap, canvas: HTMLCanvasElement);
     private canvas: HTMLCanvasElement;
     protected ctx: CanvasRenderingContext2D;
-    protected map: AMAP.Map | L.Map;
+    protected map: AMap | LMap;
     private gif: SLUCanvasGif;
     /**所有的小圆数据 */
     protected _allArcs: MapArc[];
@@ -104,7 +106,7 @@ declare module '@sl-utils/map' {
   }
   /**地图事件控制类 */
   export class MapCanvasEvent {
-    constructor(map: AMAP.Map | L.Map);
+    constructor(map: AMap | LMap);
     /**R树搜索 事件 */
     private rbush;
     /**是否重新开始事件指针变化(使不同canvas的事件指针能正确显示)*/
@@ -114,7 +116,7 @@ declare module '@sl-utils/map' {
     /**地图销毁必须调用此方法，否则事件指针会异常 */
     public static destory(): void;
     private static initCursor(): void;
-    protected map: AMAP.Map | L.Map;
+    protected map: AMap | LMap;
     /** 监听事件 */
     protected _listenCbs: { [key in SLTEventType]?: ((e: MapEventResponse<any>) => void)[] };
     /** key 防止setEvent清除其他事件 */
@@ -169,9 +171,9 @@ declare module '@sl-utils/map' {
     /**准备触发事件 
     * @param e 地图事件
     */
-    private triggerEvent(e: AMapMapsEvent | L.LeafletMouseEvent): void;
+    private triggerEvent(e: AMapMapsEvent | LeafletMouseEvent): void;
     /**获取指针触发范围内的事件 */
-    private getEventsByRange(e: AMapMapsEvent | L.LeafletMouseEvent): { curEvents: MapEventResponse<MapEvent<any, any>, any>[], enterEvents: MapEventResponse<MapEvent<any, any>, any>[], leaveEvents: MapEventResponse<MapEvent<any, any>, any>[] };
+    private getEventsByRange(e: AMapMapsEvent | LeafletMouseEvent): { curEvents: MapEventResponse<MapEvent<any, any>, any>[], enterEvents: MapEventResponse<MapEvent<any, any>, any>[], leaveEvents: MapEventResponse<MapEvent<any, any>, any>[] };
     /**通过事件类型执行回调函数*/
     private doCbByEventType(resp: MapEventResponse, type: SLTEventType): void;
     /**生成地图事件响应对象 
@@ -184,7 +186,7 @@ declare module '@sl-utils/map' {
   }
   /** 地图canvas箭头线类 */
   export class MapCanvasArrowLine {
-    constructor(map: AMAP.Map | L.Map, ctx: CanvasRenderingContext2D, animeLineOpt?: SLPMap.ArrowLine);
+    constructor(map: AMap | LMap, ctx: CanvasRenderingContext2D, animeLineOpt?: SLPMap.ArrowLine);
     private readonly defaultOption: SLPMap.ArrowLine;
     private get imgUrl(): string;
     private get patternBound(): [number, number];
@@ -224,7 +226,7 @@ declare module '@sl-utils/map' {
   }
   /**地图canvas绘制雷达类 */
   export class MapCanvasRadar {
-    constructor(map: AMAP.Map | L.Map, ctx: CanvasRenderingContext2D);
+    constructor(map: AMap | LMap, ctx: CanvasRenderingContext2D);
     private get zoom(): number;
     /**上一动画时间(毫秒) */
     private pertime: number;
@@ -273,13 +275,13 @@ declare module '@sl-utils/map' {
   }
   /** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 */
   export class MapCanvasLayer {
-    constructor(MAP: L.Map, opt?: MapCanvasPara)
-    constructor(MAP: AMAP.Map, opt?: AMAP.CustomLayerOption)
-    constructor(MAP: AMAP.Map | L.Map, opt?: AMAP.CustomLayerOption | MapCanvasPara)
+    constructor(MAP: LMap, opt?: MapCanvasPara)
+    constructor(MAP: AMap, opt?: CustomLayerOption)
+    constructor(MAP: AMap | LMap, opt?: CustomLayerOption | MapCanvasPara)
     /**开发自己设置项目使用了的地图插件类型Leaflet(0)、高德(1)、百度(2),防止网络加载的第三方插件再使用instanceof是为define*/
     protected readonly type: 0 | 1 | 2;
-    protected readonly map: AMAP.Map | L.Map;
-    private layer: L.Layer | AMAP.CustomLayer;
+    protected readonly map: AMap | LMap;
+    private layer: Layer | CustomLayer;
     protected readonly canvas: HTMLCanvasElement;
     protected readonly ctx: CanvasRenderingContext2D;
     protected width: number;
@@ -292,7 +294,7 @@ declare module '@sl-utils/map' {
     /** 清空并重新设置画布 */
     public resetCanvas(): void
     /**添加或关闭地图特定的监听事件(_eventSwitch事件后自动调用) */
-    protected addMapEvents(map: AMAP.Map | L.Map, key: 'on' | 'off'): void
+    protected addMapEvents(map: AMap | LMap, key: 'on' | 'off'): void
     /**绘制静态数据推荐使用此方法(固定的图) */
     protected renderFixedData(): void
     /** 推荐使用此方法绘制动态图(跟随鼠标拖动，移动时需要立刻绘制时)
@@ -336,7 +338,7 @@ declare module '@sl-utils/map' {
 
   /**地图插件----绘制 */
   export class MapPluginDraw extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara)
+    constructor(sluMap: SLUMap, options?: CustomLayerOption | MapCanvasPara)
     /**地图绘制控制类 */
     protected _draw: MapCanvasDraw;
     /**地图事件引起的重绘绘制 */
@@ -461,9 +463,9 @@ declare module '@sl-utils/map' {
     * @param flag true开启 false关闭
     */
     private eventSwitch(flag: boolean): void;
-    private eventClick(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private eventClick(e: LeafletMouseEvent | AMapMapsEvent): void;
     /** 鼠标移动事件 */
-    private eventMousemove(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private eventMousemove(e: LeafletMouseEvent | AMapMapsEvent): void;
     /** 双击关闭事件 */
     private eventDblclick(): void;
     /**移除所有的监听函数 */
@@ -494,9 +496,9 @@ declare module '@sl-utils/map' {
     /** 动画绘制类 */
     private ctrMapAniDraw: MapPluginDraw;
     /** 所有的已确定的经纬度 (绘制确定的点线)*/
-    private lnglats: L.LatLng[][];
+    private lnglats: LatLng[][];
     /** 鼠标当前所在的经纬度(绘制虚线) */
-    private lnglat?: L.LatLng;
+    private lnglat?: LatLng;
     /** 是否正在拖动地图 */
     private ifDrag: boolean;
     /** 单击事件 */
@@ -519,12 +521,12 @@ declare module '@sl-utils/map' {
       * @param flag true开启 false关闭
     */
     private eventSwitch(flag: boolean): void;
-    private eventDrag(e: L.LeafletMouseEvent): void;
-    private eventDragend(e: L.LeafletMouseEvent): void;
+    private eventDrag(e: LeafletMouseEvent): void;
+    private eventDragend(e: LeafletMouseEvent): void;
     /** 单击事件 */
-    private eventClick(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private eventClick(e: LeafletMouseEvent | AMapMapsEvent): void;
     /** 鼠标移动事件 */
-    private eventMousemove(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private eventMousemove(e: LeafletMouseEvent | AMapMapsEvent): void;
     /** 双击关闭事件 */
     private eventDblclick(): void;
   }
@@ -532,7 +534,7 @@ declare module '@sl-utils/map' {
   export class MapPluginTrack {
     /**轨迹绘制类 */
     constructor(sluMap: SLUMap, options?: Partial<MapTrackPara>);
-    private map: L.Map | AMAP.Map;
+    private map: LMap | AMap;
     /**默认配置 */
     private options: MapTrackPara;
     /**当前的轨迹数据 */
@@ -594,7 +596,7 @@ declare module '@sl-utils/map' {
     public trigger(key: string): void;
   }
   export class MapPluginGridBase extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMapGrid>);
+    constructor(map: LMap | AMap, options: Partial<SLPMapGrid>);
     public readonly options: SLPMapGrid
     /**网格数据   数据 [X] [Y]  */
     protected gridXY?: [number, number][][];
@@ -719,7 +721,7 @@ declare module '@sl-utils/map' {
   export class VelocityWindy {
     constructor(options: Partial<SLPVelocityWindy>);
     private options: SLPVelocityWindy;
-    private map: L.Map | AMAP.Map;
+    private map: LMap | AMap;
     private canvas: HTMLCanvasElement;
     /**velocity at which particle intensity is minimum (m/s)*/
     private MIN_VELOCITY_INTENSITY: number;
@@ -860,7 +862,7 @@ declare module '@sl-utils/map' {
     /*------------------------------------ PRIVATE ------------------------------------------*/
     protected renderFixedData(): void;
     /**添加或关闭地图特定的监听事件(_eventSwitch事件后自动调用) */
-    protected addMapEvents(map: L.Map, key: "on" | "off"): void;
+    protected addMapEvents(map: LMap, key: "on" | "off"): void;
     /**初始化windy对象 */
     private initWindy(): void;
     /**开始动画 */
@@ -868,7 +870,7 @@ declare module '@sl-utils/map' {
     /**停止动画 */
     private stopWindy(): void;
     /**鼠标点击事件监听 */
-    private onMouseClick(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent): void;
     private vectorToDegrees(uMs: number, vMs: number, angleConvention: string): number;
     /**将m/s 转换为指定单位的速度 */
     private vectorToSpeed(uMs: number, vMs: number, unit: string): number;
@@ -930,7 +932,7 @@ declare module '@sl-utils/map' {
     protected override renderFixedData(): void;
     protected override renderAnimation(time?: number): void;
     /**拖拽不允许更新动画 */
-    protected addMapEvents(map: AMAP.Map | L.Map, key: "on" | "off"): void;
+    protected addMapEvents(map: AMap | LMap, key: "on" | "off"): void;
     private drawStart(): void;
     private drawEnd(): void;
   }
@@ -993,13 +995,13 @@ declare module '@sl-utils/map' {
     /**绘制粒子 */
     private drawParticle(particle: SLTMap.Particle.Info): void;
     /**拖拽不允许更新动画 */
-    protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void;
+    protected addMapEvents(map: LMap | AMap, key: "on" | "off"): void;
     private drawStart(): void;
     private drawEnd(): void;
   }
   /*绘制雷达扫描图 */
   export class MapPluginRadar extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara);
+    constructor(sluMap: SLUMap, options?: CustomLayerOption | MapCanvasPara);
     /**动画所有状态 */
     private canvasRadar: MapCanvasRadar;
     /**
@@ -1016,7 +1018,7 @@ declare module '@sl-utils/map' {
     protected override renderFixedData(): void;
     protected override renderAnimation(time?: number): void;
     /**拖拽不允许更新动画 */
-    protected addMapEvents(map: L.Map, key: 'on' | 'off'): void;
+    protected addMapEvents(map: LMap, key: 'on' | 'off'): void;
     private drawStart(): void;
     private drawEnd(): void;
   }
@@ -1034,11 +1036,11 @@ declare module '@sl-utils/map' {
     public onUpdate(cb: (info: SLPMap.LatlngScale) => void): this;
     private eventSwitch(flag: boolean): void;
     /**设置经纬度信息 */
-    private setLatlng(e: L.LeafletMouseEvent | AMapMapsEvent): void;
+    private setLatlng(e: LeafletMouseEvent | AMapMapsEvent): void;
     private getLatlng(value: number, ifLng: boolean): string;
     private setZoomAndScale(): void;
     private getZoom(): number;
-    private getLatLngFromEvent(e: L.LeafletMouseEvent | AMapMapsEvent): [number, number] | null;
+    private getLatLngFromEvent(e: LeafletMouseEvent | AMapMapsEvent): [number, number] | null;
   }
 
 

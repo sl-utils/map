@@ -2,17 +2,18 @@
   "name": "@sl-utils/map",
   "version": "1.0.13",
   "description": "",
-  "main": "build/sl-utils-map.umd.js",
+  "main": "./build/index.js",
+  "type": "module",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "import": {
-        "types": "./types/sl-utils-map.d.ts",
+        "types": "./types/index.d.ts",
         "default": "./build/index.js"
       }
     }
   },
-  "type": "module",
+  "types": "./types/sl-utils-map.d.ts",
   "scripts": {
     "vite": "vite build",
     "build": "tsc -p tsconfig.json"

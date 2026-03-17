@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 // https://vite.dev/config/
 export default defineConfig({
+  // 让 Vite 将 .gltf 和 .glb 文件视为静态资源处理
+  assetsInclude: ['**/*.gltf', '**/*.glb', '**/*.geojson', '**/*.json'],
   plugins: [vue()],
   build: {
     outDir: 'build',

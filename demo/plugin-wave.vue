@@ -35,6 +35,7 @@ const options = {
 onMounted(async () => {
   map = new SLUMap("map");
   await map.init({ type: "L" });
+
 });
 function onVisible() {
   ifShow.value = !ifShow.value;

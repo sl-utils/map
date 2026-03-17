@@ -6,7 +6,7 @@ let heat_: MapPluginHeat | undefined;
 /**是否显示热力图数据 */
 let map: SLUMap;
 const ifShow = ref(false);
-const data = [
+const data: SLTMap.Heat.Info[] = [
   {
     latlng: [22.745, 114.055],
     weight: 1,

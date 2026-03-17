@@ -41,7 +41,7 @@ function onVisible() {
   track_.setOpt({ ifLine: ifShow.value });
 }
 function genTracks() {
-  const rawData = trackChunk as MapTrackShipInfo;
+  const rawData = trackChunk as any as MapTrackShipInfo;
   const tracks: MapTrackGroup<MapTrackPosition>[] = [];
   for (const key in rawData) {
     if (!Object.hasOwn(rawData, key)) continue;
