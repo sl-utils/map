@@ -82,7 +82,7 @@ export class MapPluginRange extends MapCanvasLayer {
                     texts.push({ text, latlng, colorFill: opt.colorFont, py: -12, px: 5, textAlign: 'right', panel: { colorFill: '#fff', fillAlpha: 0.8, colorLine: '#90A4A4', widthLine: 1 } })
                 } else {
                     let per = lnglats[j - 1], pr = 5;
-                    let distance = u_mapGetDistance([per.lat, per.lng], [p.lat, p.lng], 0);
+                    let distance = u_mapGetDistance([per.lat, per.lng], [p.lat, p.lng], this.map);
                     let θ = u_mapGetAngle(this.map, [per.lat, per.lng], [p.lat, p.lng])
                     all += distance;
                     text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
@@ -145,7 +145,7 @@ export class MapPluginRange extends MapCanvasLayer {
         /**虚线绘制 */
         if (this.lnglat && this.lnglat.lat !== undefined && last.length > 0) {
             let p = last[last.length - 1];
-            let distance = u_mapGetDistance([this.lnglat.lat, this.lnglat.lng], [p.lat, p.lng], 0);
+            let distance = u_mapGetDistance([this.lnglat.lat, this.lnglat.lng], [p.lat, p.lng], this.map);
             let θ = u_mapGetAngle(this.map, [p.lat, p.lng], [this.lnglat.lat, this.lnglat.lng])
             let text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
             layer.setAllLines([{ latlngs: [[this.lnglat.lat, this.lnglat.lng], [p.lat, p.lng]], dash: [3, 3], colorLine: '#364A7D' }]);
@@ -221,7 +221,7 @@ export class MapPluginRange extends MapCanvasLayer {
     private eventClick = (e: LeafletMouseEvent | AMapMapsEvent) => {
         console.log(e)
         this.eventClickTimer = setTimeout(() => {
-            const { latlng } = u_mapGetMapMouseEvent(e, this.type);
+            const { latlng } = u_mapGetMapMouseEvent(e, this.map);
             let lnglat = new L.LatLng(latlng.lat, latlng.lng);
             let lnglats = this.lnglats[this.lnglats.length - 1];
             lnglats.push(lnglat);
@@ -232,7 +232,7 @@ export class MapPluginRange extends MapCanvasLayer {
     /** 鼠标移动事件 */
     private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent) => {
         if (this.ifDrag) return;
-        const { latlng } = u_mapGetMapMouseEvent(e, this.type);
+        const { latlng } = u_mapGetMapMouseEvent(e, this.map);
         this.lnglat = new L.LatLng(latlng.lat, latlng.lng);
         this.renderAnimation();
     }

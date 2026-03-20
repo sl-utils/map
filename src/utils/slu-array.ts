@@ -1,10 +1,3 @@
-/**清空数组，不改变引用地址
- * @param arr 数组
- */
-function clear<T>(arr: T[]): T[] {
-    arr.length = 0;
-    return arr;
-}
 /**判读对象是否是数组
  * @param arr 数组
  */
@@ -28,11 +21,11 @@ function isNonNull(arr: Array<any> | undefined): arr is any[] {
  *@param index 要添加的位置
  */
 function addItemsIndex<T>(arr: T[], adds: T[], index?: number): T[] {
-    if (isArray(arr) && isNonNull(adds)) {
+    if (isNonNull(adds)) {
         if (index !== undefined) {
             let start = arr.slice(0, index + 1)
             let end = arr.slice(index + 1)
-            clear(arr);
+            arr.length = 0;
             start.forEach(e => arr.push(e));
             adds.forEach(e => arr.push(e));
             end.forEach(e => arr.push(e));

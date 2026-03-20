@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import { MapCanvasLayer, SLUMap } from '../map';
-import { u_mapGetDistance, u_mapGetMapType, u_mapGetMapSize, u_mapGetBounds } from '../utils/slu-map';
+import { u_mapGetDistance, u_mapGetMapSize, u_mapGetBounds } from '../utils/slu-map';
 import { u_mathGetPoint } from '../utils/slu-math';
 import { OptMapPluginControl, OptLatlngScale, MapType, OptLatLng, AMapMapsEvent } from '@sl-utils/map';
 import { LeafletMouseEvent } from 'leaflet';
@@ -18,7 +18,6 @@ export class MapPluginControl extends MapCanvasLayer {
   public options: OptMapPluginControl = {};
   private cb?: (info: Partial<OptLatlngScale>) => void;
   private info: Partial<OptLatlngScale> = { zoom: 0 };
-  private mapType: MapType = u_mapGetMapType(this.map);
   private latLng: OptLatLng;
 
   public init() {
@@ -37,7 +36,9 @@ export class MapPluginControl extends MapCanvasLayer {
     return this.info;
   }
 
-  /**位置等更新时触发 */
+  /**位置等更新时触发 
+   * @param cb 回调函数
+  */
   public onUpdate(cb: (info: OptLatlngScale) => void) {
     this.cb = cb;
     return this;
@@ -85,7 +86,7 @@ export class MapPluginControl extends MapCanvasLayer {
     let width = u_mapGetMapSize(this.map).w;
     let dissLng = Math.abs(bounds.lngRight - bounds.lngLeft);
     let averLat = (bounds.latTop + bounds.latBottom) / 2;
-    let distance = u_mapGetDistance([averLat, 0], [averLat, dissLng], this.mapType);
+    let distance = u_mapGetDistance([averLat, 0], [averLat, dissLng], this.map);
     distance = distance / width * 50;
     let text = '';
     if (distance > 2000) {

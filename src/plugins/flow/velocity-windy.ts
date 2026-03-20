@@ -1,13 +1,13 @@
 import * as L from "leaflet";
 import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
-import { SLPVelocityWindy, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle } from "@sl-utils/map";
+import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle } from "@sl-utils/map";
 /**运动粒子类 */
 export class VelocityWindy {
-  constructor(options: Partial<SLPVelocityWindy>) {
+  constructor(options: Partial<OptMapPluginVelocity>) {
     this.canvas = options.canvas!;
     this.setOptions(options);
   }
-  private options: SLPVelocityWindy = {
+  private options: OptMapPluginVelocity = {
     minVelocity: 0,
     maxVelocity: 1,
     velocityScale: 1,

@@ -127,17 +127,16 @@ function getAngle(map: AMAP.Map | L.Map, latLngA: [number, number], latLngB: [nu
  * @params mapType=0  0天地图  1高德地图 2 百度 暂不支持
  *  */
 function getBounds(map: AMAP.Map | L.Map) {
-    const mapType = getMapType(map);
-    if (mapType == 0) {
-        let bounds = (map as L.Map).getBounds();
+    if (tsMapisLeaflet(map)) {
+        let bounds = map.getBounds();
         return {
             lngLeft: bounds.getSouthWest().lng,
             latTop: bounds.getNorthEast().lat,
             lngRight: bounds.getNorthEast().lng,
             latBottom: bounds.getSouthWest().lat
         }
-    } else if (mapType == 1) {
-        let { southwest, northeast } = (map as AMAP.Map).getBounds();
+    } else if (tsMapisAmap(map)) {
+        let { southwest, northeast } = map.getBounds();
         return {
             lngLeft: southwest.lng,
             latTop: northeast.lat,
@@ -161,12 +160,14 @@ function getDiffLatitude(distance: number | string) {
  * @param type=0  0天地图  1高德地图
  * @returns 两点间的距离(米)
  */
-function getDistance(latLngA: [number, number], latLngB: [number, number], type: MapType): number {
+function getDistance(latLngA: [number, number], latLngB: [number, number], map: L.Map | AMAP.Map): number {
     let [latA, lngA] = latLngA, [latB, lngB] = latLngB, dis = 0;
-    if (type && AMap && AMap.GeometryUtil) {
+    if (tsMapisLeaflet(map)) {
+        dis = L.latLng(latLngA).distanceTo(latLngB);
+    } else if (tsMapisAmap(map)) {
         dis = AMap.GeometryUtil.distance([lngA, latA], [lngB, latB])
     } else {
-        dis = L.latLng(latLngA).distanceTo(latLngB);
+        dis = 0;
     }
     return dis;
 }
@@ -178,7 +179,7 @@ function getDistance(latLngA: [number, number], latLngB: [number, number], type:
 function getLatLngByPoint(map: AMAP.Map | L.Map, point: [number, number] | undefined): [number, number] {
     if (!point) return [0, 0];
     let p: L.LatLng | AMAP.LngLat;
-    if (map instanceof L.Map) {
+    if (tsMapisLeaflet(map)) {
         p = map.containerPointToLatLng(point)
     } else {
         p = map.containerToLngLat(new AMap.Pixel(point[0], point[1]));
@@ -192,11 +193,10 @@ function getLatLngByPoint(map: AMAP.Map | L.Map, point: [number, number] | undef
  */
 function getLngDiffByDistance(map: AMAP.Map | L.Map, distance: number = 100, latLng: [number, number][]): number {
     if (latLng.length === 0) { return 0; }
-    let type: 0 | 1 = map instanceof L.Map ? 0 : 1;
     let lng = 0.00001, lat = latLng.map(e => e[0]).reduce((s, v) => s + v) / latLng.length;
     let positionA: [number, number] = [lat, 100],
         positionB: [number, number] = [lat, 100 + lng];
-    let xMeasure = getDistance(positionA, positionB, type);
+    let xMeasure = getDistance(positionA, positionB, map);
     return distance / xMeasure * lng
 }
 /** 得到坐标系点位    
@@ -258,18 +258,18 @@ function getMapSize(map: AMAP.Map | L.Map): { w: number, h: number } {
 * @param event LeafletMouseEvent | AMap.MouseEventArgs
 * @param mapType 0 | 1 | 2 对应leaflet | 高德 | 百度 （百度暂时不支持）
 */
-function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent, mapType: MapType): MapMouseEvent {
+function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent, map: L.Map | AMAP.Map): MapMouseEvent {
     let latlng, point, page, originalEvent, type;
     type = e.type as MapEventType;
-    if (mapType == 0) {
-        const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e = e as LeafletMouseEvent;
+    if (tsMapisLeaflet(map)) {
+        const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e as LeafletMouseEvent;
         const { lat, lng } = Llatlng;
         latlng = { lat, lng };
         const { x, y } = containerPoint;
         point = { x, y };
         originalEvent = LorginalEvent;
-    } else if (mapType == 1) {
-        const { pixel, originEvent, lnglat } = e = e as AMapMapsEvent;
+    } else if (tsMapisAmap(map)) {
+        const { pixel, originEvent, lnglat } = e as AMapMapsEvent;
         const { lat, lng } = lnglat;
         latlng = { lat, lng };
         const { x, y } = pixel;
@@ -305,20 +305,6 @@ function setMapStatus(map: AMAP.Map | L.Map, key: 'dragEnable', flag: boolean) {
     }
 }
 /**
- * 根据传入实例判断地图类型
- * @param map 
- * @returns 0 leaflet 1 高德 2 百度
- */
-function getMapType(map: AMAP.Map | L.Map): MapType {
-    if (map instanceof L.Map) {
-        return 0;
-    } else if (map instanceof AMap.Map) {
-        return 1;
-    } else {
-        return 2;
-    }
-}
-/**
  * 
  * @param map 
  * @param center 中心 latlng顺序
@@ -326,16 +312,13 @@ function getMapType(map: AMAP.Map | L.Map): MapType {
  * @param offset 中心 但需要偏移固定像素
  */
 function setViewCenter(map: L.Map | AMAP.Map, center: [number, number], zoom: number, offset?: [number, number]) {
-    const mapType = getMapType(map);
     if (offset) {
         const centerPixel = getPointByLatlng(map, center);
         center = getLatLngByPoint(map, [centerPixel[0] + offset[0], centerPixel[1] + offset[1]])
     }
-    if (mapType == 0) {
-        map = map as L.Map
+    if (tsMapisLeaflet(map)) {
         map.setView(center, zoom);
-    } else if (mapType == 1) {
-        map = map as AMAP.Map
+    } else if (tsMapisBaidu(map)) {
         map.setCenter(center.reverse() as [number, number]);
         map.setZoom(zoom);
     } else {
@@ -356,10 +339,9 @@ function setFitBounds(map: L.Map | AMAP.Map, allPoints: [number, number][]): voi
  */
 function setFitBounds(map: L.Map | AMAP.Map, southwest: [number, number], northeast: [number, number]): void;
 function setFitBounds(map: L.Map | AMAP.Map, point: [number, number] | [number, number][], point2?: [number, number]) {
-    const mapType = getMapType(map);
     let southwest: [number, number], northeast: [number, number];
     if (point.length == 0 || !point) return;
-    if (uc_tsIfTwoArr(point)) {
+    if (tsIfTwoArr(point)) {
         // 传入坐标数组
         let maxLat = Math.max(...point.map((e) => e[0])),
             minLat = Math.min(...point.map((e) => e[0])),
@@ -368,23 +350,18 @@ function setFitBounds(map: L.Map | AMAP.Map, point: [number, number] | [number, 
         southwest = [minLat, minLng];
         northeast = [maxLat, maxLng];
     } else {
-        southwest = point as [number, number];
-        northeast = point2 as [number, number];
+        southwest = point;
+        northeast = point2;
     }
-    if (mapType == 0) {
-        map = map as L.Map;
+    if (tsMapisLeaflet(map)) {
         map.fitBounds([southwest, northeast]);
-    } else if (mapType == 1) {
-        map = map as AMAP.Map;
+    } else if (tsMapisAmap(map)) {
         const bounds = new AMap.Bounds(southwest.reverse(), northeast.reverse());
         const [zoom, center] = map.getFitZoomAndCenterByBounds(bounds);
         map.setZoomAndCenter(zoom, center);
     }
 }
-/**判断参数是否是Cartesian2*/
-function uc_tsIfTwoArr(value: [number, number] | [number, number][]): value is [number, number][] {
-    return value && Array.isArray(value[0]);
-}
+
 
 /**移除数组指定item，会改变原数组，不改变引用地址
  * @param arr 要操作的数组
@@ -403,6 +380,36 @@ function delItem<T>(arr: T[] | undefined, item: T, key?: keyof T): T[] {
     }
     return arr || [];
 }
+
+/**判断参数是否是二维数组*/
+function tsIfTwoArr(value: [number, number] | [number, number][]): value is [number, number][] {
+    return value && Array.isArray(value[0]);
+}
+/**判断地图是否是Leaflet */
+function tsMapisLeaflet(map: AMAP.Map | L.Map): map is L.Map {
+    try {
+        return map instanceof L.Map
+    } catch (e) {
+        return false
+    }
+}
+/**判断地图是否是高德 */
+function tsMapisAmap(map: AMAP.Map | L.Map): map is AMAP.Map {
+    try {
+        return map instanceof AMap.Map
+    } catch (e) {
+        return false
+    }
+}
+/**判断地图是否是百度 */
+function tsMapisBaidu(map: AMAP.Map | L.Map): map is L.Map {
+    try {
+        return false
+    } catch (e) {
+        return false
+    }
+}
+
 export {
     delItem as u_arrItemDel,
     tobd09gps84 as u_mapTobd09gps84,
@@ -425,5 +432,9 @@ export {
     getMapMouseEvent as u_mapGetMapMouseEvent,
     setFitBounds as u_mapSetFitBounds,
     setViewCenter as u_mapSetViewCenter,
-    getMapType as u_mapGetMapType,
+
+    tsMapisLeaflet as u_tsMapisLeaflet,
+    tsMapisAmap as u_tsMapisAmap,
+    tsMapisBaidu as u_tsMapisBaidu,
+
 };

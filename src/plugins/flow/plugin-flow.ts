@@ -93,7 +93,7 @@ export class MapPluginFlow extends MapCanvasLayer {
     private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent) {
         if (!this.windy) return;
         var self = this;
-        const { containerPoint } = u_mapGetMapMouseEvent(e, this.type);
+        const { containerPoint } = u_mapGetMapMouseEvent(e, this.map);
         var [lat, lng] = u_mapGetLatLngByPoint(this.map, [containerPoint.x, containerPoint.y]);
         var gridValue = this.windy.interpolate(lng, lat);
         let degrees = 0, speed = 0;

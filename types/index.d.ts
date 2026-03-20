@@ -925,7 +925,7 @@ declare module '@sl-utils/map' {
     data?: DataMapVeloctiyWind[];
   }
   /**配置项 */
-  interface SLPVelocityWindy {
+  interface OptMapPluginVelocity {
     /**最小速度 */
     minVelocity: number;
     /**最大速度(决定了粒子的颜色) */
@@ -1739,14 +1739,11 @@ declare module '@sl-utils/map' {
     /**填充颜色 */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void;
   }
-  export interface SLPMapField extends OptMapGrid {
-
-  }
   export class MapPluginGrid extends MapPluginGridBase {
-    constructor(sluMap: SLUMap, options: Partial<SLPMapField>);
+    constructor(sluMap: SLUMap, options: Partial<OptMapGrid>);
     /**可视区内的网格数据XY */
     protected boundsDatas: [number, number, number][][];
-    public setOptions(options: Partial<SLPMapField>): void;
+    public setOptions(options: Partial<OptMapGrid>): void;
     /**设置渲染数据 */
     public setData(datas: DataMapGrid[]): void;
     public getInfoByLngLat(lng: number, lat: number): [number, number, number] | null;
@@ -1774,8 +1771,8 @@ declare module '@sl-utils/map' {
   }
   /**运动粒子类 */
   export class VelocityWindy {
-    constructor(options: Partial<SLPVelocityWindy>);
-    private options: SLPVelocityWindy;
+    constructor(options: Partial<OptMapPluginVelocity>);
+    private options: OptMapPluginVelocity;
     private map: LMap | AMap;
     private canvas: HTMLCanvasElement;
     /**velocity at which particle intensity is minimum (m/s)*/

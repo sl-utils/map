@@ -1,5 +1,5 @@
 import { Browser, DomUtil, Map as LMap, Layer, Util, bind, extend } from "leaflet";
-import { u_mapGetMapSize } from "../utils/slu-map";
+import { u_mapGetMapSize, u_tsMapisAmap, u_tsMapisLeaflet } from "../utils/slu-map";
 import { OptMapCanvas } from "@sl-utils/map";
 declare var AMap: any;
 /** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 */
@@ -10,24 +10,22 @@ export class MapCanvasLayer {
     constructor(map: AMAP.Map | LMap, opt?: AMAP.CustomLayerOption | OptMapCanvas) {
         this.map = map;
         Object.assign(this.options, opt);
-        if (map instanceof LMap) {
-            this.type = 0;
+        if (u_tsMapisLeaflet(map)) {
             let layer = this.layer = new Layer(this.options);
             this.layer.onAdd = () => { this.onAdd(); return layer }
-        } else if (map instanceof AMap.Map) {
-            this.type = 1;
+        } else if (u_tsMapisAmap(map)) {
             opt = Object.assign({
                 zooms: [3, 18],
                 alwaysRender: false,//缩放过程中是否重绘，复杂绘制建议设为false
                 zIndex: 200,
+                render: this._redraw()
             }, opt);
-            this.layer = new AMap.CustomLayer(this.canvas, opt);
+            this.layer = new AMap.CustomLayer(this.canvas, opt as AMAP.CustomLayerOption);
         }
         this.initCanvas();
         this.onAdd();
     }
-    /**开发自己设置项目使用了的地图插件类型Leaflet(0)、高德(1)、百度(2),防止网络加载的第三方插件再使用instanceof是为define*/
-    protected readonly type: 0 | 1 | 2;
+    /**地图实例*/
     public readonly map!: AMAP.Map | LMap;
     private layer: Layer | AMAP.CustomLayer;
     protected readonly canvas: HTMLCanvasElement = document.createElement('canvas');
@@ -81,7 +79,7 @@ export class MapCanvasLayer {
     }
     /**初始化canvas */
     private initCanvas() {
-        const { canvas, map, type, options, layer } = this;
+        const { canvas, map, options, layer } = this;
         canvas.className = `sl-layer ${options.className || 'sl-canvas-map'}`;
         canvas.style['zIndex'] = `${options.zIndex || 100}`;
         canvas.style['transformOrigin'] = '50% 50%';
@@ -92,7 +90,7 @@ export class MapCanvasLayer {
         this._onAmapAdd();
         this._eventSwitch(true);
         let layer: any = this.layer
-        layer['render'] = this._redraw;
+        // layer['render'] = this._redraw;
         return this;
     }
     /**基础的监听事件   
@@ -118,14 +116,14 @@ export class MapCanvasLayer {
     };
     /**------------------------------高德地图的实现------------------------------*/
     private _onAmapAdd() {
-        const { map, layer, type } = this;
-        if (type === 1) {
-            (layer as AMAP.CustomLayer).setMap(map as AMAP.Map);
+        const { map, layer } = this;
+        if (u_tsMapisAmap(map)) {
+            (layer as AMAP.CustomLayer).setMap(map);
         }
     }
     private _onAmapRemove() {
-        const { map, layer, type } = this;
-        if (type === 1) {
+        const { map, layer } = this;
+        if (u_tsMapisAmap(map)) {
             map.remove(layer as AMAP.CustomLayer);
             // (layer as AMAP.CustomLayer).destroy();
         }
@@ -133,8 +131,8 @@ export class MapCanvasLayer {
     /**------------------------------Leaflet地图的实现------------------------------*/
     /**初始化画布并添加到Pane中 */
     private initLeafletCanvas() {
-        const { canvas, map, type, options } = this;
-        if (type || !(map instanceof LMap)) return;
+        const { canvas, map, options } = this;
+        if (!u_tsMapisLeaflet(map)) return;
         let pane = options.pane || 'overlayPane', paneEle = map.getPane(pane) || map.createPane(pane);
         /**如果指定的pane不存在就自己创建(往map添加div Pane) */
         paneEle.appendChild(canvas);
@@ -149,10 +147,10 @@ export class MapCanvasLayer {
     }
     /**移除 */
     private _onLeafletRemove() {
-        let { map, layer, options, type } = this;
-        if (type == 0) {
+        let { map, layer, options } = this;
+        if (u_tsMapisLeaflet(map)) {
             let pane = options.pane;
-            pane && (map as LMap).getPane(pane)?.removeChild(this.canvas);
+            pane && map.getPane(pane)?.removeChild(this.canvas);
             (layer as Layer).remove();
         }
     }

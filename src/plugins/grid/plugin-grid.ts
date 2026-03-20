@@ -5,14 +5,12 @@ import { DataMapGrid, OptMapGrid } from "@sl-utils/map";
 
 
 export class MapPluginGrid extends MapPluginGridBase {
-  constructor(sluMap: SLUMap, options: Partial<SLPMapField>) {
+  constructor(sluMap: SLUMap, options: Partial<OptMapGrid>) {
     super(sluMap.map, options);
   }
   /**可视区内的网格数据XY */
   protected boundsDatas: [number, number, number][][] = [];
-  public setOptions(options: Partial<SLPMapField>) {
-    Object.assign(this.options, options);
-  }
+
   /**设置渲染数据 */
   public setData(datas: DataMapGrid[]): void {
     this._setDatas(datas);
@@ -29,8 +27,4 @@ export class MapPluginGrid extends MapPluginGridBase {
   protected renderFixedData(): void {
     this.renderStart();
   }
-}
-
-export interface SLPMapField extends OptMapGrid {
-
 }

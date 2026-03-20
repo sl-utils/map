@@ -377,7 +377,7 @@ export class MapPluginPlot extends MapCanvasLayer {
                 }
                 this._redraw();
                 let moveCb = (e: LeafletMouseEvent | AMapMapsEvent) => {
-                    const { latlng: eLatlng } = u_mapGetMapMouseEvent(e, this.type);
+                    const { latlng: eLatlng } = u_mapGetMapMouseEvent(e, this.map);
                     // let event = u_mapGetMapEvent(e)
                     if (type === 'polygon' || type === 'circle' || type === 'point' || type === 'line') {
                         /**移动点位数据并重绘 */
@@ -420,7 +420,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     private eventClick = (e: LeafletMouseEvent | AMapMapsEvent) => {
         this.eventClickTimer = setTimeout(() => {
             let len = this.plotAni!.latLngs.length, type = this.plotAni!.type;
-            const { latlng } = u_mapGetMapMouseEvent(e, this.type);
+            const { latlng } = u_mapGetMapMouseEvent(e, this.map);
             if (type === 'polygon' || type === 'line' || len < 2) (this.plotAni!.latLngs as any).push([latlng.lat, latlng.lng]);
             /**矩形和圆形只需要两个点 */
             if ((type === 'rect' || type === 'circle') && this.plotAni!.latLngs.length >= 2) {
@@ -434,7 +434,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     }
     /** 鼠标移动事件 */
     private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent) => {
-        const { latlng } = u_mapGetMapMouseEvent(e, this.type);
+        const { latlng } = u_mapGetMapMouseEvent(e, this.map);
         this.curPoint = [latlng.lat, latlng.lng];
         this.renderAnimation();
     }

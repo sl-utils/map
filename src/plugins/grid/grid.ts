@@ -7,8 +7,33 @@ import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "@sl-utils/map";
 export class MapPluginGridBase extends MapCanvasLayer {
     constructor(map: L.Map | AMAP.Map, options: Partial<OptMapGrid>) {
         super(map, options);
+        Object.assign(this.options, options);
     }
-    public readonly options: OptMapGrid
+    public readonly options: OptMapGrid = {
+        zIndex: 200,
+        mosaicColor: [
+            "#0000CD",
+            "#0066ff",
+            "#00B7ff",
+            "#00E0FF",
+            "#00FFFF",
+            "#00FFCC",
+            "#00FF99",
+            "#00FF00",
+            "#99FF00",
+            "#CCFF00",
+            "#FFFF00",
+            "#FFCC00",
+            "#FF9900",
+            "#FF6600",
+            "#FF0000",
+            "#B03060",
+            "#D02090",
+            "#FF00FF",
+        ],
+        mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+        pane: "wavePane",
+    }
     /**网格数据   数据 [X] [Y]  */
     protected gridXY?: [number, number][][];
     /**可视区网格数据 */

@@ -157,7 +157,6 @@ export class MapCanvasEvent {
         let { range = [5, 5], latlng, latlngs = [], left = 0, top = 0 } = event;
         if (latlng && latlng.length === 2) latlngs = [...latlngs, latlng];
         latlngs.forEach(latlng => {
-            const [lat, lng] = latlng;
             let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
             let item: MapRbush = {
                 minX: onX - range[0] + left,
@@ -169,7 +168,6 @@ export class MapCanvasEvent {
             }
             this._allRbush.push(item)
         })
-
     }
     /**准备触发事件 
     * @param e 地图事件
@@ -213,6 +211,7 @@ export class MapCanvasEvent {
             if (minZoom > zoom || maxZoom < zoom) return;
             /**事件位置信息 */
             let position: MapCursorPosition = Object.create(null);
+            { }
             position.latlng = latlng, position.page = [pageX, pageY], position.point = [x, y];
             /**事件响应对象 */
             let response: MapEventResponse = Object.create(null);
