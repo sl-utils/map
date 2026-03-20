@@ -1,26 +1,27 @@
+import { OptMapPluginRadar } from "@sl-utils/map";
 import { SLUCanvas } from "../canvas";
 import { u_mapGetPointByLatlng, u_mapGetSizeByMap } from "../utils/slu-map";
-
+import { Map as LMap } from 'leaflet';
 
 /**地图canvas绘制雷达类 */
 export class MapCanvasRadar {
-    constructor(private map: AMAP.Map | L.Map, private ctx: CanvasRenderingContext2D) { }
+    constructor(private map: AMAP.Map | LMap, private ctx: CanvasRenderingContext2D) { }
     private get zoom() {
         return this.map.getZoom();
     }
     /**上一动画时间(毫秒) */
     private pertime: number;
     /**雷达的默认设置 */
-    private radarDefault: MapPluginRadarPara = { animeId: '0', angle: [0, 90], currentAngle: 0, ifClockwise: true, time: 3, gridDensity: 8, arcDash: [100, 500], colorDash: ["#FF0000", "#00FF00"], dashDensity: 3, colorSector: '#00FF00', colorText: '#FFFF00', colorGrid: "#49EFEF66", colorRadar: "#00FFFF", sectorAngle: 30, sizeFix: [0, 0], latlng: [0, 0] }
+    private radarDefault: OptMapPluginRadar = { animeId: '0', angle: [0, 90], currentAngle: 0, ifClockwise: true, time: 3, gridDensity: 8, arcDash: [100, 500], colorDash: ["#FF0000", "#00FF00"], dashDensity: 3, colorSector: '#00FF00', colorText: '#FFFF00', colorGrid: "#49EFEF66", colorRadar: "#00FFFF", sectorAngle: 30, sizeFix: [0, 0], latlng: [0, 0] }
     /**所有的雷达数据 */
-    private allRadars: MapPluginRadarPara[] = [];
+    private allRadars: OptMapPluginRadar[] = [];
     /**重设雷达绘制类 */
-    public setAllRadars(radars: MapPluginRadarPara[]) {
+    public setAllRadars(radars: OptMapPluginRadar[]) {
         this.allRadars = radars.filter(e => e).map(e => Object.assign({}, this.radarDefault, e));
         return this;
     }
     /**添加雷达绘制类 */
-    public addRadar(radar: MapPluginRadarPara) {
+    public addRadar(radar: OptMapPluginRadar) {
         this.allRadars.push(Object.assign({}, this.radarDefault, radar));
         return this;
     }
@@ -54,13 +55,13 @@ export class MapCanvasRadar {
         })
     }
     /**更新所有雷达位置和大小 */
-    private updatePoint(radar: MapPluginRadarPara) {
+    private updatePoint(radar: OptMapPluginRadar) {
         const { map } = this;
         radar.radius = u_mapGetSizeByMap(map, radar)[0];
         radar.center = u_mapGetPointByLatlng(map, radar.latlng);
     }
     /**绘制雷达网格 */
-    private drawGrid(radar: MapPluginRadarPara) {
+    private drawGrid(radar: OptMapPluginRadar) {
         const { ctx } = this, { center, radius, gridDensity, colorGrid } = radar, [x, y] = center;
         ctx.save();
         ctx.beginPath();
@@ -98,7 +99,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**虚线圈到中心点距离 */
-    private drawDashArc(radar: MapPluginRadarPara) {
+    private drawDashArc(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius, colorRadar, dashDensity, arcDash } = radar,
             [x, y] = center;
@@ -125,7 +126,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**绘制自定义的虚线圈 */
-    private drawCustomDashArc(radar: MapPluginRadarPara) {
+    private drawCustomDashArc(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius, colorDash, arcDash = [] } = radar,
             [x, y] = center;
@@ -154,7 +155,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**绘制轮廓 */
-    private drawOutline(radar: MapPluginRadarPara) {
+    private drawOutline(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius, colorRadar } = radar,
             [x, y] = center;
@@ -167,7 +168,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**绘制边缘单元 */
-    private drawOutlineUnit(radar: MapPluginRadarPara) {
+    private drawOutlineUnit(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius, colorRadar } = radar,
             [x, y] = center;
@@ -197,7 +198,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**雷达背景蒙版 中间泛白*/
-    private drawBackground(radar: MapPluginRadarPara) {
+    private drawBackground(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius } = radar,
             [x, y] = center;
@@ -205,7 +206,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**绘制文字描述 */
-    private drawText(radar: MapPluginRadarPara) {
+    private drawText(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius, colorText } = radar,
             [x, y] = center;
@@ -249,7 +250,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**绘制扫描范围 */
-    private drawScanRange(radar: MapPluginRadarPara) {
+    private drawScanRange(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { angle, center, radius, colorRadar } = radar,
             [x, y] = center;
@@ -264,7 +265,7 @@ export class MapCanvasRadar {
         ctx.restore();
     }
     /**更新动态当前角度 */
-    private updateAngle(radar: MapPluginRadarPara, diffTime: number) {
+    private updateAngle(radar: OptMapPluginRadar, diffTime: number) {
         let { angle: [startAngle, endAngle], currentAngle, ifClockwise, time } = radar;
         startAngle -= 90;
         endAngle -= 90;
@@ -278,7 +279,7 @@ export class MapCanvasRadar {
         radar.currentAngle = angle;
     }
     /**绘制扫描部分(动态) */
-    private drawScan(radar: MapPluginRadarPara) {
+    private drawScan(radar: OptMapPluginRadar) {
         const { ctx } = this,
             { center, radius, currentAngle, colorSector } = radar,
             [x, y] = center;
@@ -305,7 +306,7 @@ export class MapCanvasRadar {
      * @param sectorDeg 扇形渐变角度
      * @returns
      */
-    private drawSector(radar: MapPluginRadarPara) {
+    private drawSector(radar: OptMapPluginRadar) {
         let { ctx } = this,
             { angle: [startAngle, endAngle], center, radius, ifClockwise, currentAngle, colorSector, sectorAngle } = radar,
             [centerX, centerY] = center;

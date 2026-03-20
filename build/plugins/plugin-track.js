@@ -142,7 +142,6 @@ class P {
     let r = t.data.map((i) => [i.lat, i.lng]);
     e.push({
       type: ["click"],
-      latlng: [90, 180],
       minZoom: 10,
       latlngs: r,
       info: t,

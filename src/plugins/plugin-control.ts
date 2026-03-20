@@ -2,9 +2,11 @@ import * as L from 'leaflet';
 import { MapCanvasLayer, SLUMap } from '../map';
 import { u_mapGetDistance, u_mapGetMapType, u_mapGetMapSize, u_mapGetBounds } from '../utils/slu-map';
 import { u_mathGetPoint } from '../utils/slu-math';
+import { OptMapPluginControl, OptLatlngScale, MapType, OptLatLng, AMapMapsEvent } from '@sl-utils/map';
+import { LeafletMouseEvent } from 'leaflet';
 /**地图插件-控制插件 */
 export class MapPluginControl extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options?: SLPMap.Control) {
+  constructor(sluMap: SLUMap, options?: OptMapPluginControl) {
     super(sluMap.map, options);
     Object.assign(this.options, {
       precision: 4,
@@ -13,11 +15,11 @@ export class MapPluginControl extends MapCanvasLayer {
     this.eventSwitch(true);
   }
 
-  public options: SLPMap.Control = {};
-  private cb?: (info: Partial<SLPMap.LatlngScale>) => void;
-  private info: Partial<SLPMap.LatlngScale> = { zoom: 0 };
+  public options: OptMapPluginControl = {};
+  private cb?: (info: Partial<OptLatlngScale>) => void;
+  private info: Partial<OptLatlngScale> = { zoom: 0 };
   private mapType: MapType = u_mapGetMapType(this.map);
-  private latLng: SLPMap.LatLng;
+  private latLng: OptLatLng;
 
   public init() {
     let latlng = this.latLng = this.map.getCenter();
@@ -27,7 +29,7 @@ export class MapPluginControl extends MapCanvasLayer {
     return this.info;
   }
 
-  public setOptions(opt: Partial<SLPMap.Control>) {
+  public setOptions(opt: Partial<OptMapPluginControl>) {
     Object.assign(this.options, opt);
     this.info.lat = this.getLatlng(this.latLng.lat, false);
     this.info.lng = this.getLatlng(this.latLng.lng, true);
@@ -36,7 +38,7 @@ export class MapPluginControl extends MapCanvasLayer {
   }
 
   /**位置等更新时触发 */
-  public onUpdate(cb: (info: SLPMap.LatlngScale) => void) {
+  public onUpdate(cb: (info: OptLatlngScale) => void) {
     this.cb = cb;
     return this;
   }
@@ -49,7 +51,7 @@ export class MapPluginControl extends MapCanvasLayer {
     this.map[key]('zoomend', () => this.setZoomAndScale());
   }
   /**设置经纬度信息 */
-  private setLatlng = (e: L.LeafletMouseEvent | AMapMapsEvent) => {
+  private setLatlng = (e: LeafletMouseEvent | AMapMapsEvent) => {
     const latlng = this.getLatLngFromEvent(e);
     if (!latlng) return;
     this.latLng = { lat: latlng[0], lng: latlng[1] };
@@ -109,10 +111,10 @@ export class MapPluginControl extends MapCanvasLayer {
     return typeof map.getZoom === 'function' ? map.getZoom() : 0;
   }
 
-  private getLatLngFromEvent(e: L.LeafletMouseEvent | AMapMapsEvent): [number, number] | null {
+  private getLatLngFromEvent(e: LeafletMouseEvent | AMapMapsEvent): [number, number] | null {
     if (!e) return null;
-    if ((e as L.LeafletMouseEvent).latlng) {
-      const { lat, lng } = (e as L.LeafletMouseEvent).latlng;
+    if ((e as LeafletMouseEvent).latlng) {
+      const { lat, lng } = (e as LeafletMouseEvent).latlng;
       return [lat, lng];
     }
     if ((e as AMapMapsEvent).lnglat) {

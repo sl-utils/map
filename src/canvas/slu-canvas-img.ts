@@ -1,3 +1,5 @@
+import { CanvasImage } from "@sl-utils/map";
+
 export class SLUCanvasImg {
     /**图片的缓存 */
     static readonly ImageCache: { [key: string]: HTMLImageElement } = Object.create(null);
@@ -6,7 +8,7 @@ export class SLUCanvasImg {
         urls.forEach((url) => this.getImgPromise(url));
     }
     /**绘制图片,默认图片中心点 */
-    public static async drawImg(img: SLTCanvas.Image, ctx: CanvasRenderingContext2D): Promise<void> {
+    public static async drawImg(img: CanvasImage, ctx: CanvasRenderingContext2D): Promise<void> {
         if (img.ifHide === true) return;
         let { point, points = [], size = [0, 0], url, sizeo, posX = 0, posY = 0, left = 0, top = 0, rotate = 0, alpha = 1 } = img;
         let sizeX: number = size[0],

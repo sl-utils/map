@@ -1,4 +1,6 @@
+import { AMapMapsEvent, MapEvent, MapEventResponse, MapEventType, MapMouseEvent, MapPoint, MapPoints, MapPosition, MapSize, MapType, TypeToMap } from "@sl-utils/map";
 import * as L from "leaflet";
+import { LeafletMouseEvent } from "leaflet";
 declare var AMap: any;
 const a = 6378245.0;
 const pi = 3.1415926535897932384626;
@@ -227,7 +229,7 @@ function getPointsByLatlngs(map: AMAP.Map | L.Map, latlngs: [number, number][] |
  * @param info 大小信息和位置信息
  * @returns [x轴的像素大小 number,y轴的像素大小 number]
  */
-function getSizeByMap(map: AMAP.Map | L.Map, info: (MapPoint | MapPoints) & (MapSize | MapSizeFix)): [number, number] {
+function getSizeByMap(map: AMAP.Map | L.Map, info: MapPosition & MapSize): [number, number] {
     let { sizeFix, latlng, size = [0, 0] } = info;
     if (!sizeFix || !latlng) {
         Array.isArray(size) || (size = [size, size]);
@@ -253,14 +255,14 @@ function getMapSize(map: AMAP.Map | L.Map): { w: number, h: number } {
 }
 /**
 * 转化为通用地图事件
-* @param event L.LeafletMouseEvent | AMap.MouseEventArgs
+* @param event LeafletMouseEvent | AMap.MouseEventArgs
 * @param mapType 0 | 1 | 2 对应leaflet | 高德 | 百度 （百度暂时不支持）
 */
-function getMapMouseEvent(e: L.LeafletMouseEvent | AMapMapsEvent, mapType: MapType): MapUtils.MapEventResponse<TypeToMap<MapType>> {
+function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent, mapType: MapType): MapMouseEvent {
     let latlng, point, page, originalEvent, type;
-    type = e.type;
+    type = e.type as MapEventType;
     if (mapType == 0) {
-        const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e = e as L.LeafletMouseEvent;
+        const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e = e as LeafletMouseEvent;
         const { lat, lng } = Llatlng;
         latlng = { lat, lng };
         const { x, y } = containerPoint;

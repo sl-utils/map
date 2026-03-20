@@ -2,12 +2,13 @@ import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
 import { u_mapGetLatLngByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";
+import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "@sl-utils/map";
 
 export class MapPluginGridBase extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map, options: Partial<SLPMapGrid>) {
+    constructor(map: L.Map | AMAP.Map, options: Partial<OptMapGrid>) {
         super(map, options);
     }
-    public readonly options: SLPMapGrid
+    public readonly options: OptMapGrid
     /**网格数据   数据 [X] [Y]  */
     protected gridXY?: [number, number][][];
     /**可视区网格数据 */
@@ -41,7 +42,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
         this.ctx.drawImage(data.data, 0, 0);
     }
     /**设置网格数据 */
-    public _setDatas(datas: SLDMapGrid[]) {
+    public _setDatas(datas: DataMapGrid[]) {
         if (!datas || datas.length === 0) {
             this.gridXY = [];
             return
@@ -121,7 +122,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
      * @param ny 行数
      * @returns 三维网格数据
      */
-    private builder(grids: SLDMapGrid[]): number[][][] {
+    private builder(grids: DataMapGrid[]): number[][][] {
         let { nx = 0, ny = 0, dx = 0 } = grids[0]?.header || {};
         let scale = 1;
         /**数据行数 * 间隔 要比360 */

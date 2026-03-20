@@ -1,8 +1,9 @@
+import { OptMapCanvas, MapArc, MapLine, MapRect, MapText, MapImage, MapGif } from "@sl-utils/map";
 import { MapCanvasDraw, MapCanvasLayer, SLUMap } from "../map";
 
 /**地图插件----绘制 */
 export class MapPluginDraw extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara) {
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | OptMapCanvas) {
         super(sluMap.map, options);
         this._draw = new MapCanvasDraw(sluMap.map, this.canvas);
     }

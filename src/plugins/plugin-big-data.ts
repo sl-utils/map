@@ -3,13 +3,14 @@ import { MapPluginDraw } from "./plugin-draw";
 import { SLUCanvasImg } from "../canvas";
 import { u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUMap } from "../map";
+import { OptMapCanvas, BigDataOption, MapRbush, MapImage, MapImageEvent } from "@sl-utils/map";
 /**
  * 大数据绘制 优化处理
  * 划分网格 同网格内设置最大图标数量
  * 超出不绘制 减少画布渲染次数
  */
 export class MapPluginBigData extends MapPluginDraw {
-  constructor(sluMap: SLUMap, options: Partial<SLPMap.Canvas> & BigDataOption) {
+  constructor(sluMap: SLUMap, options: Partial<OptMapCanvas> & BigDataOption) {
     super(sluMap, options);
     this.bigDataOption = options;
     // this.map.on('moveend', this.resetRbush);
@@ -17,7 +18,7 @@ export class MapPluginBigData extends MapPluginDraw {
   }
   /**R树搜索 绘制 */
   private rbush = new rbush();
-  private rbushData: SLTRbush[] = [];
+  private rbushData: MapRbush[] = [];
   /**大数据绘制图标 */
   private bigDataImgs: MapImage[] = [];
   /**已渲染的图标 用于事件添加 */
@@ -69,7 +70,7 @@ export class MapPluginBigData extends MapPluginDraw {
           minY: center[1] - boundHeight / 2,
           maxX: center[0] + boundWidth / 2,
           maxY: center[1] + boundHeight / 2,
-        }) as SLTRbush<MapImageEvent>[];
+        }) as MapRbush<MapImageEvent>[];
         rects.forEach((el, idx) => {
           const { data } = el;
           if ((idx < maxCount || maxCount == -1) && !drawCached.has(data)) {
@@ -106,7 +107,7 @@ export class MapPluginBigData extends MapPluginDraw {
     return zoomOption[zooms[len - 1]];
   }
   /**图片转化为rbush数据格式 */
-  private transformRbush(img: MapImage): SLTRbush<MapImage> {
+  private transformRbush(img: MapImage): MapRbush<MapImage> {
     const { latlng, size = [0, 0], left = 0, top = 0 } = img;
     let sizeX: number = size[0],
       sizeY: number = size[1];
@@ -117,6 +118,7 @@ export class MapPluginBigData extends MapPluginDraw {
       maxX: x + sizeX / 2 + left,
       maxY: y + sizeY / 2 + top,
       data: img,
+      latlng: latlng
     };
   }
   /**绘制所有需要绘制的类 */

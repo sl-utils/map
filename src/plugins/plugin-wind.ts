@@ -1,16 +1,17 @@
+import { OptMapPluginWind, CanvasImage, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "@sl-utils/map";
 import { MapCanvasDraw, SLUMap } from "../map";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/grid";
 
 
 export class MapPluginWind extends MapPluginGridBase {
-    constructor(sluMap: SLUMap, options: Partial<SLPMap.Wind>) {
+    constructor(sluMap: SLUMap, options: Partial<OptMapPluginWind>) {
         super(sluMap.map, options);
         this.draw = new MapCanvasDraw(this.map, this.canvas);
         this.options = { ...this.options, ...options };
     }
     /**根据风速返回图标配置 */
-    private iconResolver: (speed: number) => CanvasImage = (speed: number) => {
+    private iconResolver: (speed: number) => Image = (speed: number) => {
         const level = speed < 0.3 ? 0 : speed < 1.6 ? 1 : speed < 3.4 ? 2 : speed < 5.5 ? 3 : speed < 8.0 ? 4 : speed < 10.8 ? 5 : speed < 13.9 ? 6 : speed < 17.2 ? 7 : speed < 20.8 ? 8 : speed < 24.5 ? 9 : speed < 28.5 ? 10 : speed < 32.7 ? 11 : 12;
         const pos = [level + 2, 1];
         const { url, size, sizeo } = this.options;
@@ -24,7 +25,7 @@ export class MapPluginWind extends MapPluginGridBase {
     };
     private draw: MapCanvasDraw;
     /**配置 */
-    public options: SLPMap.Wind = {
+    public options: OptMapPluginWind = {
         url: '/assets/icons/icon-28.png',
         size: [28, 28],
         sizeo: [28, 28],
@@ -41,13 +42,13 @@ export class MapPluginWind extends MapPluginGridBase {
         return this;
     }
     /**设置风速风向数据 */
-    public setData(data: SLDMapGrid[]) {
+    public setData(data: DataMapGrid[]) {
         this._setDatas(data);
         this.renderFixedData();
     }
     /**获取视图范围内的(指定像素间隔的数据) */
-    protected getViewBoundsGridWind(bounds: GridBounds, pixelInterval: number = 2): SLDMap.Wind[] {
-        var columns: SLDMap.Wind[] = [];
+    protected getViewBoundsGridWind(bounds: GridBounds, pixelInterval: number = 2): DataMapWind[] {
+        var columns: DataMapWind[] = [];
         /**获取经纬度为[0,0]的点相对于容器的像素点(假设经纬度为[0,0]的点为必须渲染的点) */
         let [x0, y0] = u_mapGetPointByLatlng(this.map, [0, 0]);
         /**获取可视范围内需要渲染数据的起点x,y */

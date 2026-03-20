@@ -1,11 +1,13 @@
-// import { SLTCanvas.Line, SLPCanvas, SLTCanvas.Polygon, SLTCanvas.Rect, SLTCanvas.Text, SLTCanvas.Arc, SLTCanvas.Image } from "./slu-canvas.model";
+import { OptCanvas, CanvasArc, CanvasPolygon, CanvasLine, CanvasRect } from "@sl-utils/map";
+
+// import { CanvasLine, OptCanvas, CanvasPolygon, SLTCanvas.Rect, CanvasTxt, CanvasArc, CanvasImage } from "./slu-canvas.model";
 export class SLUCanvas {
   /**canvas画布的工具类*/
   constructor() { }
   /** */
   protected static ctx: CanvasRenderingContext2D;
   /**绘图的默认配置 */
-  static readonly ctxFig: SLPCanvas = {
+  static readonly ctxFig: OptCanvas = {
     alpha: 1,
     widthLine: 1,
     colorLine: '#FFFFFF',
@@ -20,7 +22,7 @@ export class SLUCanvas {
     shadowColor: '#000000',
   };
   /**绘制小圆点 */
-  public static drawArc(arc: SLTCanvas.Arc, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
+  public static drawArc(arc: CanvasArc, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
     if (arc.ifHide === true) return this;
     let { point, points = [], size = 10 } = arc;
     if (point) points = [...points, point];
@@ -37,7 +39,7 @@ export class SLUCanvas {
     return this;
   }
   /**绘制矩形 */
-  public static drawRect(rect: SLTCanvas.Rect, ctx: CanvasRenderingContext2D = this.ctx) {
+  public static drawRect(rect: CanvasRect, ctx: CanvasRenderingContext2D = this.ctx) {
     if (rect.ifHide === true) return this;
     let { point, points = [point], width = 0, height = 0, radius = [0, 0, 0, 0] } = rect;
     this.setCtxPara(ctx, rect);
@@ -64,7 +66,7 @@ export class SLUCanvas {
     return this;
   }
   /**画绘制多边形*/
-  public static drawPolygon(rect: SLTCanvas.Polygon, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
+  public static drawPolygon(rect: CanvasPolygon, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
     let { points = [] } = rect;
     if (rect.ifHide === true || points.length < 2) return this;
     this.setCtxPara(ctx, rect);
@@ -90,7 +92,7 @@ export class SLUCanvas {
     return this;
   }
   /**画线*/
-  public static drawLine(line: SLTCanvas.Line, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
+  public static drawLine(line: CanvasLine, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
     if (line.ifHide === true) return this;
     let { points = [] } = line;
     if (points.length < 2) return this;
@@ -107,7 +109,7 @@ export class SLUCanvas {
     return this;
   }
   /**画贝塞尔曲线*/
-  public static drawBezierLine(line: SLTCanvas.Line, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
+  public static drawBezierLine(line: CanvasLine, ctx: CanvasRenderingContext2D = this.ctx): SLUCanvas {
     if (line.ifHide === true) return this;
     let { points = [] } = line;
     if (points.length < 2) return this;
@@ -157,7 +159,7 @@ export class SLUCanvas {
    * @param fig 画布属性配置
    * @param ctx 2D画布渲染上下文
    */
-  public static setCtxPara(ctx: CanvasRenderingContext2D, fig: SLPCanvas = {}): CanvasRenderingContext2D {
+  public static setCtxPara(ctx: CanvasRenderingContext2D, fig: OptCanvas = {}): CanvasRenderingContext2D {
     this.ctx = ctx;
     this.deletePara(fig);
     fig = Object.assign({}, this.ctxFig, fig);

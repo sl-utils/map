@@ -4,10 +4,9 @@ import {
   MapPluginTrack,
   MapTrackShipInfo,
   MapTrackPosition,
-  MapTrackGroup,
+  DataMapTrackGroup,
 } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
-import trackChunk from "./assets/json/track-chunk.json";
 import { SLUFormat } from "./utils/app";
 let track_: MapPluginTrack;
 /**是否显示轨迹 */
@@ -17,8 +16,7 @@ onMounted(async () => {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
   track_ = new MapPluginTrack(map);
-
-  const tracks = genTracks();
+  const tracks = await genTracks();
   track_.setTracks(tracks);
   let latlngs: [number, number][] = [];
   tracks.forEach((info) => {
@@ -35,14 +33,19 @@ onMounted(async () => {
     [minLat, minLng],
     [maxLat, maxLng],
   ]);
+  track_.addCbClickPoint((e)=>{
+    console.log(e)
+  })
 });
 function onVisible() {
   ifShow.value = !ifShow.value;
   track_.setOpt({ ifLine: ifShow.value });
 }
-function genTracks() {
-  const rawData = trackChunk as any as MapTrackShipInfo;
-  const tracks: MapTrackGroup<MapTrackPosition>[] = [];
+async function genTracks() {
+  const response = await fetch("/json/track-chunk.json");
+  const trackChunk = await response.json()
+  const rawData =  trackChunk as any as MapTrackShipInfo;
+  const tracks: DataMapTrackGroup<MapTrackPosition>[] = [];
   for (const key in rawData) {
     if (!Object.hasOwn(rawData, key)) continue;
     const element = rawData[key];
@@ -65,7 +68,7 @@ function genTracks() {
         timeStamp: "EPOCH",
         speed: "SPEED",
         course: "COURSE",
-      },
+      }
     );
     tracks.push(trackGroup);
   }

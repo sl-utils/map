@@ -1,6 +1,7 @@
 import * as L from 'leaflet';
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByLatlngs, u_mapGetSizeByMap } from '../utils/slu-map'
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
+import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasTextRect, MapPoint, CanvasPosition, MapPosition } from '@sl-utils/map';
 
 /** 地图canvas基础图形绘制类    点(arc) 线(line BezierLine) 多边形(rect) 图片(img)*/
 export class MapCanvasDraw {
@@ -47,7 +48,7 @@ export class MapCanvasDraw {
   }
   /**绘制通过index */
   protected async drawByIndex() {
-    let textRects: SLTCanvas.TextRect[] = [], that = this, { ctx, zoom } = that,
+    let textRects: CanvasTextRect[] = [], that = this, { ctx, zoom } = that,
       all: any[] = that._allRects.map((e) => ({ ...e, mold: 'R' }));
     all = all.concat(that._allLines.map((e) => ({ ...e, mold: 'L' })));
     all = all.concat(that._allBLins.map((e) => ({ ...e, mold: 'B' })));
@@ -233,7 +234,7 @@ export class MapCanvasDraw {
    * latlngs为undefined,points也为undefined
    * latlng为undefined,point为[0,0]
    */
-  public transformXY(info: MapPoint & SLTCanvas.Point) {
+  public transformXY(info: MapPosition & CanvasPosition) {
     info.points = u_mapGetPointsByLatlngs(this.map, info.latlngs);
     info.point = u_mapGetPointByLatlng(this.map, info.latlng);
   }

@@ -2,14 +2,16 @@ import * as L from "leaflet";
 import { u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../../map";
 import { VelocityWindy } from "./velocity-windy";
+import { OptMapPluginFlow, DataMapVeloctiyWind, AMapMapsEvent } from "@sl-utils/map";
+import { LeafletMouseEvent } from "leaflet";
 /**流体动画(风速风向洋流动图)leaflet-velocity.js*/
 export class MapPluginFlow extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: Partial<SLPMapVelocity>) {
+    constructor(sluMap: SLUMap, options?: Partial<OptMapPluginFlow>) {
         super(sluMap.map, options);
         Object.assign(this.options, options);
     }
     /**配置项 */
-    public options: SLPMapVelocity = {
+    public options: OptMapPluginFlow = {
         pane: "overlayPane",
         displayValues: true,
         unit: "m/s",
@@ -21,7 +23,7 @@ export class MapPluginFlow extends MapCanvasLayer {
     private windy: VelocityWindy | null = null;
     private cbClick?: (degrees: number, speed: number) => void;
     /**设置配置项 */
-    public setOptions(opt: SLPMapVelocity) {
+    public setOptions(opt: OptMapPluginFlow) {
         let options = this.options = Object.assign(this.options, opt);
         if (this.windy) {
             this.windy.setOptions(options);
@@ -32,7 +34,7 @@ export class MapPluginFlow extends MapCanvasLayer {
      * data[0] 为X轴经度longitude方向的数据
      * data[1] 为Y轴纬度latitude方向的数据
      */
-    public setData(datas: SLDVeloctiyWind[]) {
+    public setData(datas: DataMapVeloctiyWind[]) {
         this.options.data = datas;
         if (this.windy) {
             this.windy.setData(datas);
@@ -88,7 +90,7 @@ export class MapPluginFlow extends MapCanvasLayer {
         if (this.windy) this.windy.stop();
     }
     /**鼠标点击事件监听 */
-    private onMouseClick(e: L.LeafletMouseEvent | AMapMapsEvent) {
+    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent) {
         if (!this.windy) return;
         var self = this;
         const { containerPoint } = u_mapGetMapMouseEvent(e, this.type);

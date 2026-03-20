@@ -1,16 +1,20 @@
+import { MapEventType, MapEventResponse, MapEvent, MapRbush, AMapMapsEvent, CanvasCursorPosition, MapCursorPosition } from "@sl-utils/map";
 import { u_arrItemDel, u_mapGetPointByLatlng } from "../utils/slu-map";
-import rbush from 'rbush'
+import rbush, { BBox } from 'rbush'
+import { LeafletMouseEvent, Map as LMap } from "leaflet";
 /** 地图canvas事件类*/
 export class MapCanvasEvent {
     /**地图事件控制类 */
-    constructor(map: AMAP.Map | L.Map) {
+    constructor(map: AMAP.Map | LMap) {
         this.map = map;
         this._eventSwitch(true);
         this.map.on('moveend', this.resetRbush);
         this.map.on('zoomend', this.resetRbush);
     }
     /**R树搜索 事件 */
-    private rbush = new rbush();
+    private rbush: rbush<MapRbush<MapEvent>> = new rbush();
+    /**R树查找对象 */
+    private readonly rbush_search: BBox = Object.create(null)
     /**是否重新开始事件指针变化(使不同canvas的事件指针能正确显示)*/
     private static ifInitCursor: boolean = true;
     /**是否开启事件控制类初始化 */
@@ -19,16 +23,13 @@ export class MapCanvasEvent {
     public static destory() {
         MapCanvasEvent.ifInit = true;
     }
-    private static initCursor() {
-        MapCanvasEvent.ifInitCursor = true
-    }
-    protected map: AMAP.Map | L.Map;
+    protected map: AMAP.Map | LMap;
     /** 监听事件 */
-    protected _listenCbs: { [key in SLTEventType]?: ((e: MapEventResponse<any>) => void)[] } = Object.create(null);
+    protected _listenCbs: { [key in MapEventType]?: ((e: MapEventResponse<any>) => void)[] } = Object.create(null);
     /** key 防止setEvent清除其他事件 */
     public _allMapEvents: Map<string, MapEvent[]> = new Map();
     /** Rbush查询子集 */
-    private _allRbush: SLTRbush<MapEvent>[] = [];
+    private _allRbush: MapRbush<MapEvent>[] = [];
     /** 上一次触发的事件集合 */
     private perEvents: MapEventResponse[] = [];
     /** 海图事件回调函数 */
@@ -40,18 +41,17 @@ export class MapCanvasEvent {
         let _cbs = this._listenCbs[e.type] || [];
         _cbs.map(cb => cb(e));
     };
+    /**事件类型名称集合 */
+    private readonly types = ['click', 'dblclick', 'mousemove', 'mousedown', 'mouseup', 'rightclick'];
     /** 事件开关 
      * @param flag true开启地图事件监听 false关闭地图事件监听
     */
     private _eventSwitch(flag: boolean) {
-        // this.map.off('mousemove', MapCanvasEvent.initCursor)
-        // this.map.on('mousemove', MapCanvasEvent.initCursor)
         if (MapCanvasEvent.ifInit) {
             MapCanvasEvent.ifInit = false;
             this.map.on('mousemove', () => { MapCanvasEvent.ifInitCursor = true })
         }
-        let types = ['click', 'dblclick', 'mousemove', 'mousedown', 'mouseup', 'rightclick'];
-        types.map(e => {
+        this.types.forEach(e => {
             this.map[flag ? 'on' : 'off'](e, this.triggerEvent)
         })
     }
@@ -60,7 +60,7 @@ export class MapCanvasEvent {
         if (this.rbush) this.rbush.clear();
         // 先暂时取消监听所有事件
         this._eventSwitch(false);
-        this._allRbush = [];
+        this._allRbush.length = 0;
         this._allMapEvents.forEach(evs => {
             evs.forEach(ev => {
                 this.transformRbush(ev);
@@ -71,12 +71,12 @@ export class MapCanvasEvent {
         this._eventSwitch(true);
     }
     /**统一监听该类的指定事件 */
-    public on<T extends MapEvent<any>>(type: SLTEventType, cb: (e: MapEventResponse<T>) => void) {
+    public on<T extends MapEvent<any>>(type: MapEventType, cb: (e: MapEventResponse<T>) => void) {
         let cbs = this._listenCbs[type] = this._listenCbs[type] || [];
         cbs.push(cb);
     }
     /**统一关闭指定事件的监听 */
-    public off<T extends MapEvent<any>>(type: SLTEventType, cb?: (e: MapEventResponse<T>) => void) {
+    public off<T extends MapEvent<any>>(type: MapEventType, cb?: (e: MapEventResponse<T>) => void) {
         let cbs = this._listenCbs[type] = this._listenCbs[type] || [];
         if (cb) {
             u_arrItemDel(cbs, cb);
@@ -109,8 +109,8 @@ export class MapCanvasEvent {
      * 清除所有事件
      */
     public clearAllEvents() {
-        this._allMapEvents = new Map();
-        this._allRbush = [];
+        this._allMapEvents.clear();
+        this._allRbush.length = 0;
         this.rbush.clear();
     }
     /**
@@ -159,12 +159,13 @@ export class MapCanvasEvent {
         latlngs.forEach(latlng => {
             const [lat, lng] = latlng;
             let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
-            let item: SLTRbush = {
+            let item: MapRbush = {
                 minX: onX - range[0] + left,
                 minY: onY - range[1] + top,
                 maxX: onX + range[0] + left,
                 maxY: onY + range[1] + top,
-                data: event
+                data: event,
+                latlng: latlng,
             }
             this._allRbush.push(item)
         })
@@ -173,7 +174,7 @@ export class MapCanvasEvent {
     /**准备触发事件 
     * @param e 地图事件
     */
-    private triggerEvent = (e: AMapMapsEvent | L.LeafletMouseEvent): void => {
+    private triggerEvent = (e: AMapMapsEvent | LeafletMouseEvent): void => {
         let allEvents: MapEvent<any, any>[] = []
         this._allMapEvents.forEach(eves => {
             allEvents = allEvents.concat(eves);
@@ -188,45 +189,45 @@ export class MapCanvasEvent {
         if (curEvents.length == 0) return
         MapCanvasEvent.ifInitCursor = false;
         style.cursor = 'pointer';
-        curEvents.forEach(resp => this.doCbByEventType(resp, e.type as SLTEventType))
+        curEvents.forEach(resp => this.doCbByEventType(resp, e.type as MapEventType))
     };
     /**获取指针触发范围内的事件 */
-    private getEventsByRange(e: AMapMapsEvent | L.LeafletMouseEvent) {
+    private getEventsByRange(e: AMapMapsEvent | LeafletMouseEvent) {
         let lng, lat, x, y, pageX, pageY, zoom = this.map.getZoom();
-        if ((e as L.LeafletMouseEvent).latlng) {
-            let event: L.LeafletMouseEvent = e as L.LeafletMouseEvent
+        if ((e as LeafletMouseEvent).latlng) {
+            let event: LeafletMouseEvent = e as LeafletMouseEvent
             ({ lng, lat } = event.latlng, { x, y } = event.containerPoint, { pageX, pageY } = event.originalEvent);
         } else {
             let event: AMapMapsEvent = e as AMapMapsEvent
             ({ lng, lat } = event.lnglat, { x, y } = event.pixel, { pageX, pageY } = event.originEvent);
         }
-        /**鼠标位置信息 */
-        let cursor: MapCursorInfo = { latlng: [lat, lng], page: [pageX, pageY], point: [x, y], }
         /** curEvents 当前位置存在的所有事件  enterEvents 鼠标首次进入事件集合  leaveEvents 鼠标离开事件集合 */
         let curEvents: MapEventResponse[] = [], enterEvents: MapEventResponse[] = [], leaveEvents: MapEventResponse[] = this.perEvents;
-        let curr = new Date()
-        if (e.type == 'click')
-            console.time('start');
+        if (e.type == 'click') console.time('start');
         // rbush查找
-        let ret = this.rbush.search({ minX: x, minY: y, maxX: x, maxY: y }) as SLTRbush<MapEvent>[]
+        const search = this.rbush_search;
+        search.maxX = search.minX = x, search.maxY = search.minY = y;
+        let ret = this.rbush.search(search);
         ret.forEach(res => {
-            let ev = res.data;
-            let { latlng, latlngs = [], range = [5, 5], left = 0, top = 0, minZoom = 1, maxZoom = 50 } = res.data
+            let event: MapEvent = res.data, latlng = res.latlng, { minZoom = 1, maxZoom = 50 } = event
             if (minZoom > zoom || maxZoom < zoom) return;
-            if (latlng && latlng.length === 2) latlngs = [...latlngs, latlng];
-            let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
-            let eventRes = this.genEventResponse(latlng, [onX, onY], ev, cursor);
-            curEvents.push(eventRes);
+            /**事件位置信息 */
+            let position: MapCursorPosition = Object.create(null);
+            position.latlng = latlng, position.page = [pageX, pageY], position.point = [x, y];
+            /**事件响应对象 */
+            let response: MapEventResponse = Object.create(null);
+            response.type = 'unset', response.position = position, response.event = event, response.info = event.info;
+            curEvents.push(response);
             /**从之前的所有响应对象中查找是否存在位置一样的响应对象 */
             let per = leaveEvents.find(e =>
-                e.position.latlng[0] === eventRes.position.latlng[0] && e.position.latlng[1] === eventRes.position.latlng[1]
+                e.position.latlng[0] === latlng[0] && e.position.latlng[1] === latlng[1]
             );
             if (per) {
                 /**存在则说明鼠标没有离开,则从离开事件集合中移除 */
                 u_arrItemDel(leaveEvents, per)
             } else {
                 /**不存在则说明鼠标刚刚进入,则添加到进入事件集合 */
-                enterEvents.push(eventRes)
+                enterEvents.push(response)
             };
         })
         // for (let i = 0, len = allEvents.length; i < len; i++) {
@@ -257,27 +258,15 @@ export class MapCanvasEvent {
         //         }
         //     }
         // }
-        if (e.type == 'click')
-            console.timeEnd('start');
+        if (e.type == 'click') console.timeEnd('start');
         return { curEvents, enterEvents, leaveEvents }
     }
     /**通过事件类型执行回调函数*/
-    private doCbByEventType(resp: MapEventResponse, type: SLTEventType) {
+    private doCbByEventType(resp: MapEventResponse, type: MapEventType) {
         let types = resp.event.type;
         if (!Array.isArray(types)) types = [types];
         if (!types.includes(type)) return;
         resp.type = type;
         this.cbMapEvent(resp)
-    }
-    /**生成地图事件响应对象 
-     * @param latlng 该事件对象的地图坐标
-     * @param point 该事件对象的地图像素坐标
-     * @param event 地图事件
-     * @param cursor 鼠标位置信息
-    */
-    private genEventResponse(latlng: [number, number], point: [number, number], event: MapEvent, cursor: MapCursorInfo): MapEventResponse {
-        let pageX = point[0] + cursor.page[0] - cursor.point[0], pageY = point[1] + cursor.page[1] - cursor.point[1];
-        let position: MapCursorInfo = { latlng: latlng, page: [pageX, pageY], point: point, }
-        return { position, cursor, event, info: event.info ?? {}, type: 'unset' };
     }
 }

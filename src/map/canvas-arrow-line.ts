@@ -1,14 +1,15 @@
 import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
+import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
 
 const ARROW_URL = "/assets/images/direction-arrow.png";
 export class MapCanvasArrowLine {
-  constructor(private map: AMAP.Map | L.Map, private ctx: CanvasRenderingContext2D, public animeLineOpt?: SLPMap.ArrowLine) {
+  constructor(private map: AMAP.Map | L.Map, private ctx: CanvasRenderingContext2D, public animeLineOpt?: OptMapPluginArrowLine) {
     this.animeLineOpt = Object.assign({}, this.defaultOption, this.animeLineOpt);
     this.initResource();
   }
-  private readonly defaultOption: SLPMap.ArrowLine = {
+  private readonly defaultOption: OptMapPluginArrowLine = {
     lineWidth: 16,
     // 默认每帧移动.5px
     speed: 0.5,

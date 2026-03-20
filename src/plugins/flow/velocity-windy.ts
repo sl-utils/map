@@ -1,5 +1,6 @@
 import * as L from "leaflet";
 import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
+import { SLPVelocityWindy, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle } from "@sl-utils/map";
 /**运动粒子类 */
 export class VelocityWindy {
   constructor(options: Partial<SLPVelocityWindy>) {
@@ -57,7 +58,7 @@ export class VelocityWindy {
   /** singleton for no wind in the form: [u, v, magnitude]*/
   private NULL_WIND_VECTOR = [NaN, NaN, null];
   /**传过来的原始数据 */
-  private gridData!: SLDVeloctiyWind[];
+  private gridData!: DataMapVeloctiyWind[];
   /** [U数据,V数据][ x序号 ][ y轴序号 ]   */
   private grid: [number, number][][] = [];
   private field!: WindyField;
@@ -90,7 +91,7 @@ export class VelocityWindy {
     if (options.hasOwnProperty("opacity")) this.OPACITY = +options.opacity;
   }
   /**设置数据 */
-  public setData(data: SLDVeloctiyWind[]) {
+  public setData(data: DataMapVeloctiyWind[]) {
     this.gridData = data;
   }
   /**停止运行 */
@@ -127,7 +128,7 @@ export class VelocityWindy {
     console.timeEnd('start');
   }
   /**构建网格数据 */
-  private buildGrid(data: SLDVeloctiyWind[]) {
+  private buildGrid(data: DataMapVeloctiyWind[]) {
     /**数据太少不支持 */
     if (data.length < 2) console.log("Windy Error: data must have at least two components (u,v)");
     let builder = this.createBuilder(data);
@@ -157,11 +158,11 @@ export class VelocityWindy {
     }
   }
   /**创建构造器 */
-  private createBuilder(data: SLDVeloctiyWind[]) {
+  private createBuilder(data: DataMapVeloctiyWind[]) {
     /**获得并设置起始数据 */
-    let uComp: SLDVeloctiyWind = data[0],
-      vComp: SLDVeloctiyWind = data[1],
-      zComp: SLDVeloctiyWind = data[2];
+    let uComp: DataMapVeloctiyWind = data[0],
+      vComp: DataMapVeloctiyWind = data[1],
+      zComp: DataMapVeloctiyWind = data[2];
     let uData = uComp.data,
       vData = vComp.data;
     return {

@@ -1,8 +1,9 @@
+import { OptMapCanvas, OptMapPluginRadar } from "@sl-utils/map";
 import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
 
 /**地图插件(更换地图只需要更换继承的父类类型)----绘制 */
 export class MapPluginRadar extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MapCanvasPara) {
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | OptMapCanvas) {
         super(sluMap.map, options);
         this.canvasRadar = new MapCanvasRadar(sluMap.map, this.ctx);
     }
@@ -16,12 +17,12 @@ export class MapPluginRadar extends MapCanvasLayer {
      * */
     private isDrag: boolean = false;
     /**重设雷达绘制类 */
-    public setAllRadars(radars: MapPluginRadarPara[]) {
+    public setAllRadars(radars: OptMapPluginRadar[]) {
         this.canvasRadar.setAllRadars(radars)
         return this;
     }
     /**添加雷达绘制类 */
-    public addRadar(radar: MapPluginRadarPara) {
+    public addRadar(radar: OptMapPluginRadar) {
         this.canvasRadar.addRadar(radar)
         return this;
     }

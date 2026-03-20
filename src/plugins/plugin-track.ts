@@ -1,9 +1,10 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent, SLUMap } from "../map";
+import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "@sl-utils/map";
 export class MapPluginTrack {
   /**轨迹绘制类 */
-  constructor(sluMap: SLUMap, options?: Partial<MapTrackPara>) {
+  constructor(sluMap: SLUMap, options?: Partial<OptMapPluginTrack>) {
     const map = sluMap.map;
     this.map = map;
     Object.assign(this.options, options);
@@ -14,7 +15,7 @@ export class MapPluginTrack {
   }
   private map: L.Map | AMAP.Map;
   /**默认配置 */
-  private options: MapTrackPara = {
+  private options: OptMapPluginTrack = {
     pane: "canvas",
     ifLine: true,
     ifArc: true,
@@ -34,7 +35,7 @@ export class MapPluginTrack {
     colorArcEnd: "#D85151",
   };
   /**当前的轨迹数据 */
-  private allTracks: MapTrackGroup[] = [];
+  private allTracks: DataMapTrackGroup[] = [];
   /**现有轨迹最早的时间点 */
   private earlyTime: number = 0;
   /**距离最早时间点多少秒去获取下一阶段数据 */
@@ -57,7 +58,7 @@ export class MapPluginTrack {
     this.layerAniDraw.onRemove();
   }
   /**设置添加轨迹数据(并重新绘制) */
-  public setTracks(tracks: MapTrackGroup[]) {
+  public setTracks(tracks: DataMapTrackGroup[]) {
     const that = this,
       { allTracks } = that;
     /**添加数据到轨迹 */
@@ -120,7 +121,7 @@ export class MapPluginTrack {
     return this;
   }
   /**设置轨迹的显示和隐藏 */
-  public setOpt(opt: Partial<MapTrackPara>) {
+  public setOpt(opt: Partial<OptMapPluginTrack>) {
     Object.assign(this.options, opt);
     this._drawTracks();
   }
@@ -151,13 +152,13 @@ export class MapPluginTrack {
     layerDraw.drawMapAll();
   }
   /**单条轨迹绘制 （并给点添加事件）*/
-  private drawHistoryTrack(track: MapTrackGroup) {
+  private drawHistoryTrack(track: DataMapTrackGroup) {
     this.drawLine(track);
     this.drawArc(track);
     this.drawStartEnd(track);
   }
   /**绘制轨迹线 */
-  private drawLine(track: MapTrackGroup) {
+  private drawLine(track: DataMapTrackGroup) {
     let { widthLine, colorLine } = this.options,
       { data } = track,
       time = this.time;
@@ -176,7 +177,7 @@ export class MapPluginTrack {
     this.layerDraw.addLine(line);
   }
   /**绘制轨迹点 */
-  private drawArc(track: MapTrackGroup) {
+  private drawArc(track: DataMapTrackGroup) {
     let { sizeArc, colorArcFill, colorArc, arcInterval = 0, ifArc } = this.options,
       { data } = track;
     if (!ifArc) return;
@@ -209,7 +210,7 @@ export class MapPluginTrack {
     return newArr;
   }
   /**绘制轨迹起点终点 */
-  private drawStartEnd(track: MapTrackGroup) {
+  private drawStartEnd(track: DataMapTrackGroup) {
     return;
     const that = this,
       { layerDraw } = that,
@@ -230,26 +231,25 @@ export class MapPluginTrack {
     layerDraw.addArc(ePoint);
   }
   /**添加轨迹点事件*/
-  private addPointEvent(track: MapTrackGroup, eves: MapEvent[]) {
+  private addPointEvent(track: DataMapTrackGroup, eves: MapEvent[]) {
     if (!this.cbClickPoint) return;
     let latlngs: [number, number][] = track.data.map((e) => [e.lat, e.lng])!;
     eves.push({
       type: ["click"],
-      latlng: [90, 180],
       minZoom: 10,
       latlngs: latlngs,
       info: track,
       range: [3, 3],
       cb: (e) => {
-        this.cbClickPoint && this.cbClickPoint(e);
+        this.cbClickPoint && this.cbClickPoint(e as any);
       },
     });
   }
   /**获得指定时间的位置信息 */
-  private getInfoByTime(epoch: number, infos: MapTrackItem[]): MapTrackTimePosition {
+  private getInfoByTime(epoch: number, infos: DataMapTrack[]): MapTrackTimePosition {
     let len = infos.length,
-      sData: MapTrackItem = infos[0],
-      eData: MapTrackItem = infos[len - 1];
+      sData: DataMapTrack = infos[0],
+      eData: DataMapTrack = infos[len - 1];
     if (epoch <= sData.timeStamp) {
       (sData = sData), (eData = infos[1] || sData);
     } else if (epoch >= eData.timeStamp) {
@@ -267,7 +267,7 @@ export class MapPluginTrack {
     return this.computeDate(sData, eData, epoch);
   }
   /**计算位置信息 */
-  private computeDate(sData: MapTrackItem, eData: MapTrackItem, time: number): MapTrackTimePosition {
+  private computeDate(sData: DataMapTrack, eData: DataMapTrack, time: number): MapTrackTimePosition {
     let { lat: sLat, lng: sLng, timeStamp: sTime, course: rotate, speed: SPEED } = sData;
     let { lat: eLat, lng: eLng, timeStamp: eTime } = eData;
     if (sData == eData) {

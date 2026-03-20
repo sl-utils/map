@@ -2,15 +2,16 @@ import { MapCanvasLayer, SLUMap } from "../map";
 import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { OptMapPluginHeat, DataMapHeat } from "@sl-utils/map";
 /**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] */
 export class MapPluginHeat extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: SLPMap.Heat) {
+    constructor(sluMap: SLUMap, options?: OptMapPluginHeat) {
         super(sluMap.map, options);
         this.setOptions(options);
     }
     // _map: any;
     /**热力数据集合 */
-    private _allHeats: SLTMap.Heat.Info[] = [];
+    private _allHeats: DataMapHeat[] = [];
     /**计算后的热力图绘制数据 [位置x,位置y,权重W] */
     private heatDatas: [number, number, number][] = [];
     /**用于绘制阴影，决定渲染颜色层级 */
@@ -21,7 +22,7 @@ export class MapPluginHeat extends MapCanvasLayer {
     private _grad!: Uint8ClampedArray;
     private _gradEl!: HTMLCanvasElement;
     /**默认配置 */
-    public options: SLPMap.Heat = {
+    public options: OptMapPluginHeat = {
         pane: 'canvas',
         className: 'heat',
         radius: 20,
@@ -48,21 +49,21 @@ export class MapPluginHeat extends MapCanvasLayer {
         }
     }
     /**重置[纬度，经度]集合*/
-    public setAllHeats(heats: SLTMap.Heat.Info[]) {
+    public setAllHeats(heats: DataMapHeat[]) {
         this._allHeats = heats;
         return this._redraw();
     }
     /**添加[纬度，经度],并重绘*/
-    public addHeat(heat: SLTMap.Heat.Info) {
+    public addHeat(heat: DataMapHeat) {
         this._allHeats.push(heat);
         return this._redraw();
     }
-    public delHeat(heat: SLTMap.Heat.Info) {
+    public delHeat(heat: DataMapHeat) {
         u_arrItemDel(this._allHeats, heat);
         return this._redraw();
     }
     /**更新配置 */
-    setOptions(options?: SLPMap.Heat) {
+    setOptions(options?: OptMapPluginHeat) {
         L.setOptions(this, options);
         this._updateOptions();
         return this._redraw();
@@ -92,7 +93,7 @@ export class MapPluginHeat extends MapCanvasLayer {
             i, len, cell, x, y, j, len2, k;
         /**对点位进行计算 */
         for (i = 0, len = this._allHeats.length; i < len; i++) {
-            let heat: SLTMap.Heat.Info = this._allHeats[i]
+            let heat: DataMapHeat = this._allHeats[i]
             /**得到像素点位 */
             let p = u_mapGetPointByLatlng(this.map, heat.latlng);
             /**判断点位是否在范围内 */

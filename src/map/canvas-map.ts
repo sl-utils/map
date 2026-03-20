@@ -1,17 +1,18 @@
-import { CRS, Map, latLng } from "leaflet";
+import { CRS, Map as LMap, MapOptions, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { SLEMap, SLULeafletNetMap } from '../leaflet';
 import { u_mapGetBounds, u_mapSetFitBounds, u_mapSetViewCenter } from "../utils/slu-map";
+import { OptMap } from "@sl-utils/map";
 declare var AMap: any;
 
 export class SLUMap {
     constructor(ele: string)
-    constructor(ele: string, options: Partial<SLPMapOpt> = {}) {
+    constructor(ele: string, options: Partial<OptMap> = {}) {
         this.ele = ele;
     }
     private ele: string;
     /**地图实例 */
-    private _map: L.Map | AMAP.Map;
+    private _map: LMap | AMAP.Map;
     public get map() {
         return this._map
     }
@@ -20,7 +21,7 @@ export class SLUMap {
     /**初始实例化地图
      * @param options 地图初始化参数
      */
-    public async init(options: Partial<SLPMapOpt> = {}) {
+    public async init(options: Partial<OptMap> = {}) {
         const { type } = options, ele = this.ele;
         switch (type) {
             case "A": this._map = await this.initAmap(ele, options); break;
@@ -52,7 +53,7 @@ export class SLUMap {
     /**显示指定的网络图层 */
     public showMap(names: Array<SLEMap> = []): this {
         const { map, curs } = this;
-        if (map && map instanceof Map) {
+        if (map && map instanceof LMap) {
             let mapSource: string = names[0].split('.')[0]
             let center = map.getCenter();
             let zoom = map.getZoom();
@@ -76,9 +77,9 @@ export class SLUMap {
         return this
     }
     /**---------------leaflet地图的相关方法------------------- */
-    private initLeaflet(ele: string, opt: Partial<SLPMapOpt>) {
+    private initLeaflet(ele: string, opt: Partial<OptMap>) {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false } = opt;
-        let param: L.MapOptions = {
+        let param: MapOptions = {
             dragging,
             zoomControl,
             zoom,
@@ -90,11 +91,11 @@ export class SLUMap {
             crs: CRS.EPSG3857,
             closePopupOnClick,//点击地图不关闭弹出层
         };
-        let map = new Map(ele, param);
+        let map = new LMap(ele, param);
         return Promise.resolve(map)
     }
     /**---------------高德地图的相关方法------------------- */
-    private async initAmap(ele: string, opt: Partial<SLPMapOpt>) {
+    private async initAmap(ele: string, opt: Partial<OptMap>) {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
         return AMapLoader.load({
             "key": "87e1b1e9aa88724f69208972546fdd57",   // 申请好的Web端开发者Key，首次调用 load 时必填

@@ -1,19 +1,19 @@
 /**在项目中用于数据转换的工具类 */
 
-import { MapTrackGroup, MapTrackItem } from "@sl-utils/map";
+import { DataMapTrackGroup, DataMapTrack } from "@sl-utils/map";
 
 /**
  * 映射轨迹数据结构格式转为plugin-track通用数据结构
  * @param orginDataItem 原始轨迹点数据项
- * @param itemMapping 映射关系 MapTrackItem 于原始数据结构
+ * @param itemMapping 映射关系 DataMapTrack 于原始数据结构
  * @returns 返回MapPluginTrack需要的结构
  */
-function formatToMapItemTrack<T>(orginDataItem: T, itemMapping: { [key in keyof MapTrackItem]: keyof T }): MapTrackItem {
-    const trackItem: Partial<MapTrackItem> = {};
+function formatToMapItemTrack<T>(orginDataItem: T, itemMapping: { [key in keyof DataMapTrack]: keyof T }): DataMapTrack {
+    const trackItem: Partial<DataMapTrack> = {};
     Object.keys(itemMapping).forEach((key) => {
         trackItem[key] = orginDataItem[itemMapping[key]];
     });
-    return trackItem as MapTrackItem;
+    return trackItem as DataMapTrack;
 }
 /**
  * 转为plugin-track通用数据结构
@@ -24,10 +24,10 @@ function formatToMapItemTrack<T>(orginDataItem: T, itemMapping: { [key in keyof 
  */
 function formatToMapTrackGroup<T, R>(
     orginDataGroup: T,
-    groupMapping: { [key in keyof Omit<MapTrackGroup<T>, 'orginData'>]: keyof T },
-    itemMapping: { [key in keyof MapTrackItem]: keyof R }
-): MapTrackGroup {
-    const trackGroup = {} as MapTrackGroup;
+    groupMapping: { [key in keyof Omit<DataMapTrackGroup<T>, 'orginData'>]: keyof T },
+    itemMapping: { [key in keyof DataMapTrack]: keyof R }
+): DataMapTrackGroup {
+    const trackGroup = {} as DataMapTrackGroup;
     Object.keys(groupMapping).forEach((key) => {
         trackGroup[key] = orginDataGroup[groupMapping[key]];
     });
@@ -38,7 +38,7 @@ function formatToMapTrackGroup<T, R>(
         });
     }
     trackGroup.orginData = orginDataGroup
-    return trackGroup as MapTrackGroup;
+    return trackGroup as DataMapTrackGroup;
 }
 export const SLUFormat = {
     /**

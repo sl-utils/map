@@ -1,13 +1,14 @@
 
+import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
 import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
 
 /**
  * @constructor
  * @param {L.Map | AMAP.Map} map
- * @param {SLPMap.ArrowLine} arrowLineOption
+ * @param {OptMapPluginArrowLine} arrowLineOption
  */
 export class MapPluginArrowLine extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options?: SLPMap.ArrowLine) {
+  constructor(sluMap: SLUMap, options?: OptMapPluginArrowLine) {
     super(sluMap.map, options);
     this.arrowLine = new MapCanvasArrowLine(sluMap.map, this.ctx, options);
   }

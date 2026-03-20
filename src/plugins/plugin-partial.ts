@@ -2,10 +2,11 @@ import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUCanvas } from "../canvas";
 import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
+import { OptMapCanvas, DataMapParticle, CanvasPosition } from "@sl-utils/map";
 
 /**leaflet的粒子效果 */
 export class MapPluginPartial extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options?: SLPMap.Canvas) {
+  constructor(sluMap: SLUMap, options?: OptMapCanvas) {
     super(sluMap.map, options);
   }
   /**
@@ -16,10 +17,12 @@ export class MapPluginPartial extends MapCanvasLayer {
    * */
   private isDrag: boolean = false;
   /**所有的粒子效果数据 */
-  private _allParticle: SLTMap.Particle.Info[] = [];
+  private _allParticle: (DataMapParticle & CanvasPosition)[] = [];
+
   /**设置所有粒子数据 */
-  public setAllParticles(particles: SLTMap.Particle.Info[]) {
-    this._allParticle = particles;
+  public setAllParticles(particles: DataMapParticle[]) {
+    /**渲染内部会添加CanvasPosition到数据 */
+    this._allParticle = particles as (DataMapParticle & CanvasPosition)[];
     this._redraw();
   }
   protected renderAnimation(time?: number) {
@@ -69,7 +72,7 @@ export class MapPluginPartial extends MapCanvasLayer {
     });
   }
   /**获取当前贝塞尔曲线的粒子点位 */
-  private genCurBezierPoints(particle: SLTMap.Particle.Info): void {
+  private genCurBezierPoints(particle: DataMapParticle & CanvasPosition): void {
     /**画布坐标*/
     let { points = [], index: i = 0, dense = 1 } = particle;
     let j = i + 1;
@@ -123,7 +126,7 @@ export class MapPluginPartial extends MapCanvasLayer {
     particle.curPoints = curPoints;
   }
   /**绘制粒子 */
-  private drawParticle(particle: SLTMap.Particle.Info): void {
+  private drawParticle(particle: DataMapParticle): void {
     var ctx = this.ctx;
     let points = particle.curPoints || [];
     for (let i = 0, len = points.length; i < len; i++) {

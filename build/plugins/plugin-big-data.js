@@ -61,7 +61,8 @@ class L extends B {
       minY: o - a / 2 + i,
       maxX: n + h / 2 + r,
       maxY: o + a / 2 + i,
-      data: t
+      data: t,
+      latlng: s
     };
   }
   /**绘制所有需要绘制的类 */

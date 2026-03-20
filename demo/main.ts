@@ -7,7 +7,7 @@ import './style.css'
 /**测距 */
 // import App from './plugin-range.vue';
 /**轨迹 */
-// import App from './plugin-track.vue';
+import App from './plugin-track.vue';
 /**风场 */
 // import App from './plugin-wind.vue';
 /**流场 */
@@ -25,6 +25,6 @@ import './style.css'
 /**雷达 */
 // import App from './plugin-radar.vue';
 /**地图控件-比例尺/当前层级/鼠标所在位置 */
-import App from './plugin-control.vue';
+// import App from './plugin-control.vue';
 
 createApp(App).mount('#app')

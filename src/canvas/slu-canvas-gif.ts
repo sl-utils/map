@@ -1,3 +1,5 @@
+import { CanvasGif } from "@sl-utils/map";
+
 /**canvas绘制gif工具类 */
 export class SLUCanvasGif {
     constructor() { }
@@ -15,10 +17,10 @@ export class SLUCanvasGif {
     private gifCache: { [url: string]: GifCache } = {};
     /**存放动画id用于停止之前绘制的动画 */
     private aniIds: { [id: string]: number | null } = {};
-    private opts: CanvasGifOpt[] = [];
+    private opts: CanvasGif[] = [];
     private timeId: number;
     /**加载gif并进行缓存 , 避免重复请求 url */
-    public async loadGIF(opt: CanvasGifOpt, ctx: CanvasRenderingContext2D) {
+    public async loadGIF(opt: CanvasGif, ctx: CanvasRenderingContext2D) {
         let { url } = opt;
         let cache = this.gifCache[url];
         this.CTX = ctx;
@@ -109,7 +111,7 @@ export class SLUCanvasGif {
         canvas.getContext('2d')!.setTransform(1, 0, 0, 1, 0, 0);
     };
     /**解析内容块 */
-    private parseBlock(opt: CanvasGifOpt, stream: any) {
+    private parseBlock(opt: CanvasGif, stream: any) {
         let block: GifBlock = Object.create(null), STREAM = stream;
         block.sentinel = STREAM.readByte();
         switch (String.fromCharCode(block.sentinel)) { // For ease of matching
@@ -136,7 +138,7 @@ export class SLUCanvasGif {
         }
     };
     /**播放gif */
-    private playGif(opt: CanvasGifOpt, index: number = 0) {
+    private playGif(opt: CanvasGif, index: number = 0) {
         const that = this, { delay = 0 } = opt;
         const { frameList: list } = that.gifCache[opt.url], len = list.length;
         let lastTimestamp: number | undefined;
@@ -156,7 +158,7 @@ export class SLUCanvasGif {
         that.aniIds[opt.id] = requestAnimationFrame(animate);
     }
     /**绘制每一帧 */
-    private drawFrame(opt: CanvasGifOpt, index: number) {
+    private drawFrame(opt: CanvasGif, index: number) {
         const that = this, ctx = that.CTX;
         let { point, points = [], size = [100, 100], url, sizeo, posX = 0, posY = 0, left = 0, top = 0, rotate = 0, alpha = 1, delay } = opt;
         let { frameList: list } = that.gifCache[opt.url];
@@ -188,7 +190,7 @@ export class SLUCanvasGif {
         }
     }
     /**关闭之前的定时动画 */
-    private stopGif(opt: CanvasGifOpt) {
+    private stopGif(opt: CanvasGif) {
         const that = this, aniId = that.aniIds[opt.id];
         if (!aniId) return;
         cancelAnimationFrame(aniId);
@@ -525,14 +527,7 @@ class Stream {
     };
 };
 
-/**canvas绘制gif的配置 */
-interface CanvasGifOpt extends CanvasGif {
-    size: [number, number];
-    point: [number, number];
-    points: [number, number][];
-    /**gif每一帧延迟的时间，控制整体播放速度 */
-    delay?: number;
-}
+
 
 /**Gif信息（属性顺序就是数据流顺序）*/
 interface GifInfo {

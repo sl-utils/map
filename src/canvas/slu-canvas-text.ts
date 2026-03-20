@@ -1,4 +1,5 @@
 
+import { CanvasTextRect, CanvasTxt } from '@sl-utils/map';
 import { u_TextSplitMultilineText } from '../utils/txt';
 import { SLUCanvas } from './slu-canvas';
 /**画布绘制文本工具类 */
@@ -10,8 +11,8 @@ export class SLUCanvasText {
    * @param ctx 画布
   */
   public static drawText(
-    info: SLTCanvas.Text,
-    textRects: SLTCanvas.TextRect[] = [],
+    info: CanvasTxt,
+    textRects: CanvasTextRect[] = [],
     ctx: CanvasRenderingContext2D = this.ctx
   ): void {
     let { text = '', maxWidth = 0, font = ctx.font, ifHide } = info;
@@ -47,7 +48,7 @@ export class SLUCanvasText {
    * @param info 文本配置
    * @param ctx 画布
    */
-  private static calcTextRect(texts: string[], info: SLTCanvas.Text, ctx: CanvasRenderingContext2D = this.ctx): SLTCanvas.TextRect {
+  private static calcTextRect(texts: string[], info: CanvasTxt, ctx: CanvasRenderingContext2D = this.ctx): CanvasTextRect {
     let { point = [20, 20], panel = {}, lineHeight, textAlign, px = 0, py = 0 } = info;
     let w = 0, h = 0, [x0, y0] = point;
     let { actualBoundingBoxDescent = 0 } = ctx.measureText('M');
@@ -57,7 +58,7 @@ export class SLUCanvasText {
     let width = w + pl + pr, height = h + pt + pb;
     if (textAlign === 'center') x0 -= width / 2;
     if (textAlign === 'right') x0 -= width;
-    let textRect: SLTCanvas.TextRect = {
+    let textRect: CanvasTextRect = {
       x: x0 + px,
       y: y0 + py,
       width: width,
@@ -70,7 +71,7 @@ export class SLUCanvasText {
 * @param rects 已存在的文本范围
 * @returns [X轴偏移量,Y轴偏移量,状态控制标识 0-7:方位 8:正常显示 9:不显示 ]
 */
-  private static avoidOverlap(info: SLTCanvas.Text, rect: SLTCanvas.TextRect, rects: SLTCanvas.TextRect[]): [number, number, number] {
+  private static avoidOverlap(info: CanvasTxt, rect: CanvasTextRect, rects: CanvasTextRect[]): [number, number, number] {
     const { x, y, width = 0, height = 0 } = rect, { overlap, textAlign } = info, { type = "show", querySpace = 1, maxDistance = 200, minSpacing = 0 } = overlap || {};
     if (type === 'show') return [0, 0, 8];
     let ifOverlap = this.isTextOverlap(rect, rects);
@@ -108,7 +109,7 @@ export class SLUCanvasText {
    * @param textRects 已绘制文本框
    * @param ctr 偏移控制
    */
-  private static renderTexts(info: SLTCanvas.Text, texts: string[], rect: SLTCanvas.TextRect, textRects: SLTCanvas.TextRect[], ctr: [number, number, number], ctx: CanvasRenderingContext2D) {
+  private static renderTexts(info: CanvasTxt, texts: string[], rect: CanvasTextRect, textRects: CanvasTextRect[], ctr: [number, number, number], ctx: CanvasRenderingContext2D) {
     const [px, py, status] = ctr,
       { panel = {}, overlap = {}, textAlign = 'center', px: upx = 0, py: upy = 0, point = [0, 0] } = info,
       { pl = 0, pt = 0, pb = pt, pr = pl } = panel,
@@ -150,7 +151,7 @@ export class SLUCanvasText {
     SLUCanvas.setCtxPara(ctx);
   }
   /**绘制多行文本*/
-  public static renderMultiText(texts: string[], start: number[], info: SLTCanvas.Text, ctx: CanvasRenderingContext2D) {
+  public static renderMultiText(texts: string[], start: number[], info: CanvasTxt, ctx: CanvasRenderingContext2D) {
     let [x, y] = start;
     const { lineHeight, ifShadow } = info;
     let { actualBoundingBoxDescent } = ctx.measureText('M');
@@ -166,7 +167,7 @@ export class SLUCanvasText {
     })
   }
   /**文本是否重叠 */
-  private static isTextOverlap(rect: SLTCanvas.TextRect, rects: SLTCanvas.TextRect[], minSpacing: number = 0) {
+  private static isTextOverlap(rect: CanvasTextRect, rects: CanvasTextRect[], minSpacing: number = 0) {
     for (const eRect of rects) {
       const { x, y, width = 0, height = 0 } = rect;
       const { x: ex, y: ey = 0, width: ew = 0, height: eh = 0 } = eRect;

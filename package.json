@@ -9,14 +9,17 @@
     ".": {
       "import": {
         "types": "./types/index.d.ts",
+        "development": "./src/index.ts",
+        "production": "./build/index.js",
         "default": "./build/index.js"
       }
     }
   },
-  "types": "./types/sl-utils-map.d.ts",
+  "types": "./types/index.d.ts",
   "scripts": {
-    "vite": "vite build",
-    "build": "tsc -p tsconfig.json"
+    "dev": "vite",
+    "build": "vite build",
+    "build:ts": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",

@@ -1,6 +1,7 @@
 import { MapPluginGridBase } from "../grid/grid";
 import { u_mapGetMapSize } from "../../utils/slu-map";
 import { SLUMap } from "../../map";
+import { DataMapGrid, OptMapGrid } from "@sl-utils/map";
 
 
 export class MapPluginGrid extends MapPluginGridBase {
@@ -13,7 +14,7 @@ export class MapPluginGrid extends MapPluginGridBase {
     Object.assign(this.options, options);
   }
   /**设置渲染数据 */
-  public setData(datas: SLDMapGrid[]): void {
+  public setData(datas: DataMapGrid[]): void {
     this._setDatas(datas);
     this.renderStart();
   }
@@ -30,6 +31,6 @@ export class MapPluginGrid extends MapPluginGridBase {
   }
 }
 
-export interface SLPMapField extends SLPMapGrid {
+export interface SLPMapField extends OptMapGrid {
 
 }
