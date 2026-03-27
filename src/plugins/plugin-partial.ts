@@ -4,7 +4,12 @@ import { SLUCanvas } from "../canvas";
 import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
 import { OptMapCanvas, DataMapParticle, CanvasPosition } from "@sl-utils/map";
 
-/**leaflet的粒子效果 */
+/**用于绘制地图上的粒子效果
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 地图初始化参数
+ */
 export class MapPluginPartial extends MapCanvasLayer {
   constructor(sluMap: SLUMap, options?: OptMapCanvas) {
     super(sluMap.map, options);
@@ -18,14 +23,18 @@ export class MapPluginPartial extends MapCanvasLayer {
   private isDrag: boolean = false;
   /**所有的粒子效果数据 */
   private _allParticle: (DataMapParticle & CanvasPosition)[] = [];
-
-  /**设置所有粒子数据 */
-  public setAllParticles(particles: DataMapParticle[]) {
+  /**设置所有粒子数据
+   * @param particles 粒子数据
+   */
+  public setAllParticles(particles: (DataMapParticle & CanvasPosition)[]): void {
     /**渲染内部会添加CanvasPosition到数据 */
-    this._allParticle = particles as (DataMapParticle & CanvasPosition)[];
+    this._allParticle = particles ;
     this._redraw();
   }
-  protected renderAnimation(time?: number) {
+  /**渲染动态数据
+   * @param time 时间戳
+   */
+  protected renderAnimation(time?: number): void {
     this.resetCanvas();
     this._allParticle.forEach((particle) => {
       particle.curPoints = [];
@@ -46,14 +55,15 @@ export class MapPluginPartial extends MapCanvasLayer {
       this.renderAnimation(time);
     });
   }
-  private _animat() {
+  /**动画循环 */
+  private _animat(): void {
     this.flagAnimation = requestAnimationFrame(() => {
       this._animat();
     });
     this._drawParticles();
   }
   /**绘制粒子效果 */
-  private _drawParticles() {
+  private _drawParticles(): void {
     let particles = this._allParticle,
       ctx = this.ctx;
     // ctx.globalCompositeOperation = "destination-in";
@@ -71,7 +81,9 @@ export class MapPluginPartial extends MapCanvasLayer {
       this.drawParticle(e);
     });
   }
-  /**获取当前贝塞尔曲线的粒子点位 */
+  /**获取当前贝塞尔曲线的粒子点位
+   * @param particle 粒子数据
+   */
   private genCurBezierPoints(particle: DataMapParticle & CanvasPosition): void {
     /**画布坐标*/
     let { points = [], index: i = 0, dense = 1 } = particle;
@@ -125,7 +137,9 @@ export class MapPluginPartial extends MapCanvasLayer {
     particle.age = age;
     particle.curPoints = curPoints;
   }
-  /**绘制粒子 */
+  /**绘制粒子
+   * @param particle 粒子数据
+   */
   private drawParticle(particle: DataMapParticle): void {
     var ctx = this.ctx;
     let points = particle.curPoints || [];
@@ -140,18 +154,23 @@ export class MapPluginPartial extends MapCanvasLayer {
       ctx.fill();
     }
   }
-  /**拖拽不允许更新动画 */
-  protected addMapEvents(map: L.Map, key: "on" | "off") {
+  /**控制地图监听事件 拖拽不允许更新动画
+   * @param map 地图实例
+   * @param key 事件类型
+   */
+  protected addMapEvents(map: L.Map, key: "on" | "off"): void {
     map[key]("dragstart", this.drawEnd, this);
     // map[key]('dragend', this.drawStart, this);
     map[key]("movestart", this.drawEnd, this);
     map[key]("moveend", this.drawStart, this);
   }
-  private drawStart() {
+  /**拖拽结束，开始绘制 */
+  private drawStart(): void {
     console.log("drawStart");
     this.isDrag = false;
   }
-  private drawEnd() {
+  /**拖拽开始，结束绘制 */
+ private drawEnd(): void {
     console.log("drawEnd");
     this.isDrag = true;
   }

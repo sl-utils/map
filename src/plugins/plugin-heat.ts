@@ -3,23 +3,28 @@ import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { OptMapPluginHeat, DataMapHeat } from "@sl-utils/map";
-/**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] */
+/**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] 
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 热力图配置
+*/
 export class MapPluginHeat extends MapCanvasLayer {
     constructor(sluMap: SLUMap, options?: OptMapPluginHeat) {
         super(sluMap.map, options);
         this.setOptions(options);
     }
-    // _map: any;
     /**热力数据集合 */
     private _allHeats: DataMapHeat[] = [];
     /**计算后的热力图绘制数据 [位置x,位置y,权重W] */
     private heatDatas: [number, number, number][] = [];
     /**用于绘制阴影，决定渲染颜色层级 */
-    private _circleShadow!: HTMLCanvasElement
+    private _circleShadow!: HTMLCanvasElement;
     /**单点渲染半径（ 默认+blur 15 ） */
     private _r!: number;
     /**渐变的二进制数据 */
     private _grad!: Uint8ClampedArray;
+    /**渐变元素 */
     private _gradEl!: HTMLCanvasElement;
     /**默认配置 */
     public options: OptMapPluginHeat = {
@@ -27,54 +32,67 @@ export class MapPluginHeat extends MapCanvasLayer {
         className: 'heat',
         radius: 20,
         blur: 10,
-        minOpacity: 0.1,
-        gradientIndex: 1,
-        ifTip: true,
-        tipX: 80,
-        tipY: 20,
         gradient: {
             0.2: 'blue',
             0.4: 'cyan',
             0.6: 'lime',
             0.8: 'yellow',
             1.0: 'red'
-        }
+        },
+        minOpacity: 0.1,
+        gradientIndex: 1,
+        ifTip: true,
+        tipX: 80,
+        tipY: 20,
     }
-    protected renderAnimation() {
+    /**渲染动态数据 */
+    protected renderAnimation(): void {
         this.heatDatas = this.computeHeatData();
         this.resetCanvas();
         this.drawByheatData();
         if (this.options && this.options.ifTip) {
-            this._addGradient(this.computeZoomGradient());
+            this._addGradient(this.computeZoomGradient().toString());
         }
     }
-    /**重置[纬度，经度]集合*/
-    public setAllHeats(heats: DataMapHeat[]) {
+    /**重置[纬度，经度]集合
+     * @param heats 热力数据集合
+    */
+    public setAllHeats(heats: DataMapHeat[]): void {
         this._allHeats = heats;
         return this._redraw();
     }
-    /**添加[纬度，经度],并重绘*/
-    public addHeat(heat: DataMapHeat) {
+    /**添加[纬度，经度],并重绘
+     * @param heat 热力数据
+    */
+    public addHeat(heat: DataMapHeat): void {
         this._allHeats.push(heat);
         return this._redraw();
     }
-    public delHeat(heat: DataMapHeat) {
+    /**删除[纬度，经度],并重绘
+     * @param heat 热力数据
+    */
+    public delHeat(heat: DataMapHeat): void {
         u_arrItemDel(this._allHeats, heat);
         return this._redraw();
     }
-    /**更新配置 */
-    setOptions(options?: OptMapPluginHeat) {
+    /**设置配置
+     * @param options 热力图配置
+     */
+    private setOptions(options?: OptMapPluginHeat): void {
         L.setOptions(this, options);
         this._updateOptions();
         return this._redraw();
     }
-    private _updateOptions() {
+    /**更新配置 */
+    private _updateOptions(): void {
         this.genShadowRadius(this.options.radius, this.options.blur);
         if (this.options.gradient) {
             this.genGradient(this.options.gradient);
         }
     }
-    /**计算热力图数据 */
+    /**计算热力图数据
+     * @returns 热力图绘制数据 [位置x,位置y,权重W]
+     */
     private computeHeatData(): [number, number, number][] {
         let map: any = this.map;
         if (!map) { return []; }
@@ -138,23 +156,29 @@ export class MapPluginHeat extends MapCanvasLayer {
         return data
         /**去设置热力图数据并绘制 */
     }
-    /**计算最高变色需要的数值 */
+    /**计算最高变色需要的数值
+     * @returns 最高变色需要的数值
+     */
     private computeZoomGradient(): number {
         let gradientIndex = this.options.gradientIndex!,
             zoom = this.map.getZoom(),
             num = Math.pow(2, Math.min(12, Math.atan(Math.PI / 8 / zoom) * 100 * gradientIndex | 0));
         return num
     }
-    /**添加等级标识 */
-    private _addGradient(num: any) {
+    /**添加等级标识
+     * @param num 等级标识
+     */
+    private _addGradient(num: string): void {
         let ctx = this.ctx, x = this.options.tipX!, y = this.options.tipY!;
         ctx.globalAlpha = 0.5;
         ctx.drawImage(this._gradEl, x, y, 20, 128);
         ctx.fillText('0', x + 25, y);
         ctx.fillText(num, x + 25, y + 128);
     }
-    /**根据数据重绘制热力图 */
-    private drawByheatData() {
+    /**根据数据重绘制热力图
+     * @returns MapPluginHeat实例
+     */
+    private drawByheatData(): MapPluginHeat {
         let ctx = this.ctx;
         if (!this._circleShadow) this.genShadowRadius(this.options.radius);
         if (!this._grad) this.genGradient(this.options.gradient);
@@ -171,8 +195,11 @@ export class MapPluginHeat extends MapCanvasLayer {
         ctx.putImageData(colored, 0, 0);
         return this;
     }
-    /**生成单个的阴影半径 */
-    private genShadowRadius(r: any, blur: any = 15): void {
+    /**生成单个的阴影半径
+     * @param r 半径
+     * @param blur 模糊半径
+     */
+    private genShadowRadius(r: number, blur: number = 15): void {
         /**优化建议,不同zoom下影响的半径不一样 */
         let circle = this._circleShadow = SLUCanvas.createCanvas(),
             ctx = circle.getContext('2d')!,
@@ -186,8 +213,11 @@ export class MapPluginHeat extends MapCanvasLayer {
         ctx.closePath();
         ctx.fill();
     }
-    /**创建渐变色 */
-    private genGradient(grad: any) {
+    /**创建渐变色
+     * @param grad 渐变色
+     * @returns MapPluginHeat实例
+     */
+    private genGradient(grad: any): MapPluginHeat {
         let canvas = this._gradEl = SLUCanvas.createCanvas(),
             ctx = canvas.getContext('2d')!,
             gradient = ctx.createLinearGradient(0, 0, 0, 256);
@@ -201,7 +231,10 @@ export class MapPluginHeat extends MapCanvasLayer {
         this._grad = ctx.getImageData(0, 0, 1, 256).data;
         return this;
     }
-    /**填充颜色 */
+    /**填充颜色
+     * @param pixels 像素数据
+     * @param gradient 渐变色
+     */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void {
         for (var i = 0, len = pixels.length, j; i < len; i += 4) {
             j = pixels[i + 3] * 4;

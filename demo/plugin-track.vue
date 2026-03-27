@@ -39,7 +39,7 @@ onMounted(async () => {
 });
 function onVisible() {
   ifShow.value = !ifShow.value;
-  track_.setOpt({ ifLine: ifShow.value });
+  track_.setIfShow(ifShow.value);
 }
 async function genTracks() {
   const response = await fetch("/json/track-chunk.json");

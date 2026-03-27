@@ -1,12 +1,16 @@
 import * as L from "leaflet";
 import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
-import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle } from "@sl-utils/map";
-/**运动粒子类 */
-export class VelocityWindy {
+import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "@sl-utils/map";
+/**运动粒子类
+ * @constructor
+ * @param options 配置项
+ */
+export class PluginVelocity {
   constructor(options: Partial<OptMapPluginVelocity>) {
     this.canvas = options.canvas!;
     this.setOptions(options);
   }
+  /**基础配置项 */
   private options: OptMapPluginVelocity = {
     minVelocity: 0,
     maxVelocity: 1,
@@ -15,53 +19,43 @@ export class VelocityWindy {
     lineWidth: 1,
     particleMultiplier: 1 / 300,
     frameRate: 30,
-    defualtColorScale: [
-      "rgb(36,104, 180)",
-      "rgb(60,157, 194)",
-      "rgb(128,205,193 )",
-      "rgb(151,218,168 )",
-      "rgb(198,231,181)",
-      "rgb(238,247,217)",
-      "rgb(255,238,159)",
-      "rgb(252,217,125)",
-      "rgb(255,182,100)",
-      "rgb(252,150,75)",
-      "rgb(250,112,52)",
-      "rgb(245,64,32)",
-      "rgb(237,45,28)",
-      "rgb(220,24,32)",
-      "rgb(180,0,35)",
-    ],
+    defualtColorScale: ["rgb(36,104, 180)", "rgb(60,157, 194)", "rgb(128,205,193 )", "rgb(151,218,168 )", "rgb(198,231,181)", "rgb(238,247,217)", "rgb(255,238,159)", "rgb(252,217,125)", "rgb(255,182,100)", "rgb(252,150,75)", "rgb(250,112,52)", "rgb(245,64,32)", "rgb(237,45,28)", "rgb(220,24,32)", "rgb(180,0,35)"],
     data: [],
   };
-  private map!: L.Map;
+  /**地图实例 */
+  private map!: L.Map | AMAP.Map;
+  /**画布元素 */
   private canvas!: HTMLCanvasElement;
-  /**velocity at which particle intensity is minimum (m/s)*/
+  /**粒子强度最低时的速度（米 / 秒） velocity at which particle intensity is minimum (m/s)*/
   private MIN_VELOCITY_INTENSITY!: number;
-  /**velocity at which particle intensity is maximum (m/s)*/
+  /**粒子强度最高时的速度（米 / 秒） velocity at which particle intensity is maximum (m/s)*/
   private MAX_VELOCITY_INTENSITY!: number;
   /**风速刻度(内部与可视区面积相关联) scale for wind velocity (completely arbitrary--this value looks nice)*/
   private VELOCITY_SCALE!: number;
-  /** max number of frames a particle is drawn before regeneration*/
+  /**粒子生命周期内最大绘制帧数 max number of frames a particle is drawn before regeneration*/
   private MAX_PARTICLE_AGE!: number;
-  /** line width of a drawn particle*/
+  /**粒子线宽 line width of a drawn particle*/
   private PARTICLE_LINE_WIDTH!: number;
   /**绘制粒子数量的比例（宽像素*高像素*此比例）*/
   private PARTICLE_MULTIPLIER!: number;
-  /** multiply particle count for mobiles by this amount*/
-  private PARTICLE_REDUCTION = Math.pow(window.devicePixelRatio, 1 / 3) || 1.6;
+  /**移动端粒子数量倍率 multiply particle count for mobiles by this amount*/
+  private PARTICLE_REDUCTION: number = Math.pow(window.devicePixelRatio, 1 / 3) || 1.6;
+  /**每秒播放帧数 */
   private FRAME_RATE!: number;
-  /** desired frames per second*/
+  /**每帧播放时间 desired frames per second*/
   private FRAME_TIME!: number;
-  private OPACITY = 0.97;
+  /**粒子透明度 */
+  private OPACITY: number = 0.97;
+  /**粒子颜色等级 */
   private colorScale!: string[];
-  /** singleton for no wind in the form: [u, v, magnitude]*/
-  private NULL_WIND_VECTOR = [NaN, NaN, null];
+  /**无风状态下的单例 singleton for no wind in the form: [u, v, magnitude]*/
+  private NULL_WIND_VECTOR: WindVector = [NaN, NaN, null];
   /**传过来的原始数据 */
   private gridData!: DataMapVeloctiyWind[];
   /** [U数据,V数据][ x序号 ][ y轴序号 ]   */
   private grid: [number, number][][] = [];
-  private field!: WindyField;
+  /**风场数据 */
+  private field!: PluginVelocityField;
   /**数据起始经度 */
   private lng0: number;
   /**数据起始纬度 */
@@ -70,10 +64,14 @@ export class VelocityWindy {
   private Δlng: number;
   /**数据纬度差值 */
   private Δlat: number;
-  private animationLoop?: any;
+  /**动画循环 */
+  private animationLoop?: number;
+  /**所有粒子id */
   private allThreatIds: number[] = [];
-  /**设置自身参数 */
-  public setOptions(options: any) {
+  /**设置自身参数
+   * @param options 配置项
+   */
+  public setOptions(options: any): void {
     options = Object.assign(this.options, options);
     this.map = options.map;
     this.MIN_VELOCITY_INTENSITY = options.minVelocity;
@@ -90,12 +88,14 @@ export class VelocityWindy {
     this.gridData = options.data;
     if (options.hasOwnProperty("opacity")) this.OPACITY = +options.opacity;
   }
-  /**设置数据 */
-  public setData(data: DataMapVeloctiyWind[]) {
+  /**设置数据
+   * @param data 数据
+   */
+  public setData(data: DataMapVeloctiyWind[]): void {
     this.gridData = data;
   }
   /**停止运行 */
-  public stop() {
+  public stop(): void {
     if (this.field) this.field.release();
     if (this.animationLoop) cancelAnimationFrame(this.animationLoop);
   }
@@ -104,7 +104,7 @@ export class VelocityWindy {
    * @param height 画布高度
    * @param extent 可视的经纬度范围
    */
-  public start(width: number, height: number, extent: [[number, number], [number, number]]) {
+  public start(width: number, height: number, extent: [[number, number], [number, number]]): void {
     this.stop();
     console.time('start');
     var mapBounds = {
@@ -127,8 +127,10 @@ export class VelocityWindy {
     this.interpolateField(buildBounds, mapBounds);
     console.timeEnd('start');
   }
-  /**构建网格数据 */
-  private buildGrid(data: DataMapVeloctiyWind[]) {
+  /**构建网格数据
+   * @param data 数据
+   */
+  private buildGrid(data: DataMapVeloctiyWind[]): void {
     /**数据太少不支持 */
     if (data.length < 2) console.log("Windy Error: data must have at least two components (u,v)");
     let builder = this.createBuilder(data);
@@ -157,8 +159,10 @@ export class VelocityWindy {
       grid[j] = row;
     }
   }
-  /**创建构造器 */
-  private createBuilder(data: DataMapVeloctiyWind[]) {
+  /**创建构造器
+   * @param data 数据
+   */
+  private createBuilder(data: DataMapVeloctiyWind[]): { header: VelocityHeader; data: (i: number) => [number, number]; } {
     /**获得并设置起始数据 */
     let uComp: DataMapVeloctiyWind = data[0],
       vComp: DataMapVeloctiyWind = data[1],
@@ -176,7 +180,7 @@ export class VelocityWindy {
    * @param bounds  可视区域的像素范围
    * @param extent  数据地图的经纬度范围
    */
-  private interpolateField(bounds: WindBounds, extent: WindMapBounds) {
+  private interpolateField(bounds: WindBounds, extent: WindMapBounds): void {
     /**数据地图面积 */
     var mapArea = (extent.south - extent.north) * (extent.west - extent.east);
     /**得到与可视区域的面积相关联的风速刻度*/
@@ -208,7 +212,7 @@ export class VelocityWindy {
       })
       this.allThreatIds.push(id);
     }
-    let field = this.field = new WindyField(columns, bounds, this.NULL_WIND_VECTOR);
+    let field = this.field = new PluginVelocityField(columns, bounds, this.NULL_WIND_VECTOR);
     this.animate(bounds, field);
   }
   /**获得指定经纬度的数据信息
@@ -269,13 +273,13 @@ export class VelocityWindy {
     return [u, v, Math.sqrt(u * u + v * v)];
   }
   /**根据地图的缩放级别调整粒子的大小
-   * @param λ 经度
-   * @param φ 纬度
+   * @param lng 经度
+   * @param lat 纬度
    * @param x 像素点X
    * @param y 像素点Y
    * @param scale 风速刻度
    * @param wind 风速信息 [计算得到的开始值S , 计算的到的结束值E, sqrt(S*S+E*E) ]
-   * @returns
+   * @returns 风速信息
    */
   private distort(lng: number, lat: number, x: number, y: number, scale: number, wind: [number, number, number]): [number, number, number] {
     let u = wind[0] * scale;
@@ -286,12 +290,13 @@ export class VelocityWindy {
     wind[1] = d[1] * u + d[3] * v;
     return wind;
   }
-  /**单个经纬度值跨越的像素点数量级
+  /**粒子系统 经纬度速度 → 屏幕像素速度
+   * 单个经纬度值跨越的像素点数量级
    * @param lng 经度
    * @param lat 纬度
    * @param x 像素点X
    * @param y 像素点Y
-   * @returns
+   * @returns [经度转 X 像素系数，0, 0, 纬度转 Y 像素系数]
    */
   private distortion(lng: number, lat: number, x: number, y: number): [number, number, number, number] {
     let H = 5; // ToDo:   Why does this work?
@@ -310,13 +315,20 @@ export class VelocityWindy {
       (pφ[1] - y) / hφ,
     ];
   }
-  /**根据经纬度获得像素点 */
+  /**根据经纬度获得像素点
+   * @param lat 纬度
+   * @param lon 经度
+   * @returns [像素点X, 像素点Y]
+   */
   private project(lat: number, lon: number): [number, number] {
     let [x, y] = u_mapGetPointByLatlng(this.map, [lat, lon]);
     return [x, y];
   }
-  /**动画 */
-  private animate(bounds: WindBounds, field: WindyField) {
+  /**动画
+   * @param bounds 可视区域的像素范围
+   * @param field 风场数据
+   */
+  private animate(bounds: WindBounds, field: PluginVelocityField): void {
     var colorStyles = this.colorScale;
     var buckets: any[][] = colorStyles.map(function (): any[] {
       return [];
@@ -413,48 +425,73 @@ export class VelocityWindy {
     };
     frame();
   }
-  /**根据风速得到所属颜色层级 */
-  private windColorIndexBySpeed(m: number) {
+  /**根据风速得到所属颜色层级
+   * @param m 风速
+   * @returns 颜色层级
+   */
+  private windColorIndexBySpeed(m: number): number {
     let length = this.colorScale.length,
       min = this.MIN_VELOCITY_INTENSITY,
       max = this.MAX_VELOCITY_INTENSITY;
     let index = Math.max(0, Math.min(length - 1, Math.round(((m - min) / (max - min)) * (length - 1))));
     return index;
   }
-  /**将经纬度转换为弧度  180 = Math.PI */
-  private deg2rad(deg: number) {
+  /**将经纬度转换为弧度  180 = Math.PI
+   * @param deg 经纬度
+   * @returns 弧度
+   */
+  private deg2rad(deg: number): number {
     return (deg / 180) * Math.PI;
   }
   /**针对经纬度特殊的取余数方法
    * 小于等于n的数字若a小于0，返回 2n+a ， -365  => 2n-365
+   * @param a 数字
+   * @param n 数字范围
+   * @returns 取余数
    */
   private floorMod(a: number, n: number): number {
     return a - n * Math.floor(a / n);
   }
-
+  /**判断是否是有效值
+   * @param x 值
+   * @returns 是否是有效值
+   */
   private isValue(x: [number, number]): boolean {
     return x !== null && x !== undefined;
   }
-  /**判断是否是移动端 */
-  private isMobile() {
+  /**判断是否是移动端
+   * @returns 是否是移动端
+   */
+  private isMobile(): boolean {
     return /android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i.test(navigator.userAgent);
   }
 }
-
-class WindyField {
-  constructor(columns: [number, number, number][][], bounds: WindBounds, NULL_WIND_VECTOR?: any[]) {
+/**风场类
+ * @constructor
+ * @param columns 风场数据
+ * @param bounds 风场边界
+ * @param NULL_WIND_VECTOR 空风矢量
+ * */
+class PluginVelocityField {
+  constructor(columns: WindVector[][], bounds: WindBounds, NULL_WIND_VECTOR?: WindVector) {
     this.columns = columns;
     this.bounds = bounds;
     this.NULL_WIND_VECTOR = NULL_WIND_VECTOR || [NaN, NaN, null];
   }
-  private columns: [number, number, number][][];
+  /**风场数据 */
+  private columns: WindVector[][];
+  /**风场边界 */
   private bounds: WindBounds;
-  private NULL_WIND_VECTOR: any[];
+  /**空风矢量 */
+  private NULL_WIND_VECTOR: WindVector = [NaN, NaN, null];
   /**释放内存 */
-  public release() {
+  public release(): void {
     this.columns = [];
   }
-  /**获取随机的  x , y 有数据的点(一个糟糕的未完成方法)*/
+  /**获取随机的  x , y 有数据的点(一个糟糕的未完成方法)
+   * @param o 粒子
+   * @returns 粒子
+  */
   public randomize(o: WindParticle): WindParticle {
     let x,
       y,
@@ -467,9 +504,13 @@ class WindyField {
     o.y = y;
     return o;
   }
-  /**获取指定像素点的数据 */
-  public run(x: number, y: number): [number, number, number] {
+  /**获取指定像素点的数据
+   * @param x x坐标
+   * @param y y坐标
+   * @returns 风矢量
+   */
+  public run(x: number, y: number): WindVector {
     var column = this.columns[Math.round(x)];
-    return (column && column[Math.round(y)]) || (this.NULL_WIND_VECTOR as any);
+    return (column && column[Math.round(y)]) ?? this.NULL_WIND_VECTOR;
   }
 }

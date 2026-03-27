@@ -5,9 +5,13 @@ import { u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMous
 import { SLUCanvas } from "../canvas";
 import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
-/** 测绘类 */
+/**测绘类
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 测绘配置
+ */
 export class MapPluginRange extends MapCanvasLayer {
-    /** 测绘类，传入Amap或者调用addTo */
     constructor(sluMap: SLUMap, options?: OptMapPluginRange) {
         const map = sluMap.map;
         super(map, options);
@@ -25,7 +29,6 @@ export class MapPluginRange extends MapCanvasLayer {
         colorArc: '#FFF',
         colorArcStart: '#415880',
         colorFont: ' #333333',
-
     };
     /** 地图事件控制管理对象 */
     private ctrEvent: MapCanvasEvent;
@@ -41,13 +44,10 @@ export class MapPluginRange extends MapCanvasLayer {
     private ifDrag: boolean = false;
     /** 单击事件 */
     private eventClickTimer: number | undefined;
-    public setOptions(opt: OptMapPluginRange) {
-        Object.assign(this.options, opt);
-        this._redraw();
-        return this;
-    }
-    /** 启用测距功能 */
-    public open() {
+    /** 启用测距功能
+     * @returns MapPluginRange实例
+     */
+    public open(): MapPluginRange {
         let i = this.lnglats.length;
         /**不加的话将会每次都删除 */
         if (this.lnglats[i] && this.lnglats[i].length > 0) i++;
@@ -55,13 +55,17 @@ export class MapPluginRange extends MapCanvasLayer {
         this.eventSwitch(true)
         return this;
     }
-    /** 关闭测距功能 */
-    public close(flag: boolean = true) {
+    /** 关闭测距功能
+     * @param flag 是否关闭事件监听
+     */
+    public close(flag: boolean = true): void {
         this.eventSwitch(false);
         flag && this.endCb?.();
     }
+    /** 测距结束回调函数 */
     endCb?: () => void;
-    public onEnd(cb: () => void) {
+    /** 测距结束回调函数 */
+    public onEnd(cb: () => void): void {
         this.endCb = cb;
     }
     /** 缓存绘图数据（对于引进确定的数据进行缓存） */
@@ -132,12 +136,13 @@ export class MapPluginRange extends MapCanvasLayer {
         this.ctrMapDraw.setAllTexts(texts);
         this.ctrMapDraw.drawMapAll();
     }
-    protected renderAnimation() {
+    /** 渲染动画 */
+    protected renderAnimation(): void {
         if (!this.map) return;
         this.genAniLineDate();
     }
     /** 动画虚线绘制 */
-    private genAniLineDate() {
+    private genAniLineDate(): void {
         let layer = this.ctrMapAniDraw;
         layer.setAllTexts([]).setAllLines([]);
         let lineLen = this.lnglats.length;
@@ -153,7 +158,11 @@ export class MapPluginRange extends MapCanvasLayer {
         }
         layer.drawMapAll();
     }
-    /** 绘制文本信息  flag标识该条线已经绘制完成 */
+    /** 绘制文本信息  flag标识该条线已经绘制完成
+     * @param info 文本信息
+     * @param lineId 线索引
+     * @returns MapImage实例
+     */
     protected drawEndTextImg(info: MapText, lineId: number): MapImage {
         let { latlng, panel, text = 'text' } = info;
         let point = u_mapGetPointByLatlng(this.map, latlng)
@@ -198,10 +207,11 @@ export class MapPluginRange extends MapCanvasLayer {
         }
     }
 
-    /**事件开关方法 
-            * @param flag true开启 false关闭
-    */
-    private eventSwitch(flag: boolean) {
+    /**控制地图监听事件
+   * @param map 地图实例
+   * @param key 事件类型
+   */
+    private eventSwitch(flag: boolean): void {
         let key: 'on' | 'off' = flag ? 'on' : 'off';
         /**开启事件前需关闭事件防止多次添加 */
         if (flag) this.eventSwitch(false);
@@ -211,14 +221,22 @@ export class MapPluginRange extends MapCanvasLayer {
         this.map[key]('dblclick', this.eventDblclick);
         this.map[key]('mousemove', this.eventMousemove);
     }
-    private eventDrag = (e: LeafletMouseEvent) => {
+    /** 拖动事件
+     * @param e 事件对象
+     */
+    private eventDrag = (e: LeafletMouseEvent): void => {
         this.ifDrag = true;
     }
-    private eventDragend = (e: LeafletMouseEvent) => {
+    /** 拖动结束事件
+     * @param e 事件对象
+     */
+    private eventDragend = (e: LeafletMouseEvent): void => {
         this.ifDrag = false;
     }
-    /** 单击事件 */
-    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent) => {
+    /** 单击事件
+     * @param e 事件对象
+     */
+    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent): void => {
         console.log(e)
         this.eventClickTimer = setTimeout(() => {
             const { latlng } = u_mapGetMapMouseEvent(e, this.map);
@@ -229,15 +247,17 @@ export class MapPluginRange extends MapCanvasLayer {
             this.renderAnimation();
         }, 100);
     }
-    /** 鼠标移动事件 */
-    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent) => {
+    /** 鼠标移动事件
+     * @param e 事件对象
+     */
+    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent): void => {
         if (this.ifDrag) return;
         const { latlng } = u_mapGetMapMouseEvent(e, this.map);
         this.lnglat = new L.LatLng(latlng.lat, latlng.lng);
         this.renderAnimation();
     }
     /** 双击关闭事件 */
-    private eventDblclick = () => {
+    private eventDblclick = (): void => {
         if (this.eventClickTimer) {
             clearTimeout(this.eventClickTimer);
             this.eventClickTimer = null;

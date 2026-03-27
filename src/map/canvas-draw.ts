@@ -1,18 +1,30 @@
 import * as L from 'leaflet';
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByLatlngs, u_mapGetSizeByMap } from '../utils/slu-map'
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
-import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasTextRect, MapPoint, CanvasPosition, MapPosition } from '@sl-utils/map';
+import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '@sl-utils/map';
 
-/** 地图canvas基础图形绘制类    点(arc) 线(line BezierLine) 多边形(rect) 图片(img)*/
+/** 地图canvas基础图形绘制类
+ * @constructor
+ * @param map 地图实例
+ * @param canvas 画布元素
+ *  设置/新增/删除：点(arc) 线(line BezierLine) 多边形(rect) 图片(img) Gif(gif) 文本(text) 
+ *  绘制：所有需要绘制的类(按drawIndex顺序)
+ *  将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
+ *  设置图片/圆点的大小
+ */
 export class MapCanvasDraw {
   constructor(map: AMAP.Map | L.Map, canvas: HTMLCanvasElement) {
     this.map = map;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
   }
+  /**画布 */
   private canvas: HTMLCanvasElement;
+  /**画布上下文 */
   protected ctx: CanvasRenderingContext2D;
+  /**地图实例 */
   protected map: AMAP.Map | L.Map;
+  /**Gif实例 */
   private gif: SLUCanvasGif;
   /**所有的小圆数据 */
   protected _allArcs: MapArc[] = [];
@@ -28,10 +40,11 @@ export class MapCanvasDraw {
   protected _allImgs: MapImage[] = [];
   /**所有的Gif数据 */
   protected _allGifs: MapGif[] = [];
+  /**当前地图缩放层级 */
   protected get zoom(): number {
     return this.map.getZoom();
   }
-  /** 清空并重新设置画布 */
+  /**清空并重新设置画布 */
   public reSetCanvas(): void {
     let { canvas, map, ctx } = this;
     const { w, h } = u_mapGetMapSize(map);
@@ -42,13 +55,13 @@ export class MapCanvasDraw {
     canvas.height = h;
   }
   /**绘制所有需要绘制的类(按drawIndex顺序) */
-  public drawMapAll() {
+  public drawMapAll(): void {
     this.reSetCanvas();
     this.drawByIndex();
   }
   /**绘制通过index */
-  protected async drawByIndex() {
-    let textRects: CanvasTextRect[] = [], that = this, { ctx, zoom } = that,
+  protected drawByIndex(): void {
+    let that = this, { ctx, zoom } = that,
       all: any[] = that._allRects.map((e) => ({ ...e, mold: 'R' }));
     all = all.concat(that._allLines.map((e) => ({ ...e, mold: 'L' })));
     all = all.concat(that._allBLins.map((e) => ({ ...e, mold: 'B' })));
@@ -57,6 +70,7 @@ export class MapCanvasDraw {
     all = all.concat(that._allImgs.map((e) => ({ ...e, mold: 'I' })));
     all = all.concat(that._allGifs.map((e) => ({ ...e, mold: 'G' })));
     all.sort((a, b) => (a.index || 0) - (b.index || 0));
+    that._allTexts.length && SLUCanvasText.openDrawText();
     all.forEach((e, index) => {
       let { minZoom = 0, maxZoom = 50, overlap } = e;
       if (zoom >= minZoom && zoom <= maxZoom) {
@@ -76,7 +90,7 @@ export class MapCanvasDraw {
             SLUCanvas.drawPolygon(e, ctx);
             break;
           case 'T':
-            SLUCanvasText.drawText(e, textRects, ctx);
+            SLUCanvasText.drawText(e, ctx);
             break;
           case 'I':
             that.transformImageSize(e);
@@ -91,111 +105,169 @@ export class MapCanvasDraw {
       }
     });
   }
-  /**设置原点 */
-  public setAllArcs(arcs: MapArc[]) {
+  /**设置圆点
+   * @param arcs 圆点集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllArcs(arcs: MapArc[]): MapCanvasDraw {
     this._allArcs = arcs;
     return this;
   }
-  /**设置线数据 */
-  public setAllLines(lines: MapLine[]) {
+  /**设置线数据
+   * @param lines 线集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllLines(lines: MapLine[]): MapCanvasDraw {
     this._allLines = lines;
     return this;
   }
-  /**设置贝塞尔曲线数据 */
-  public setAllBezierLines(lines: MapLine[]) {
+  /**设置贝塞尔曲线数据
+   * @param lines 贝塞尔曲线集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllBezierLines(lines: MapLine[]): MapCanvasDraw {
     this._allBLins = lines;
     return this;
   }
-  /**设置多边形数据 */
-  public setAllRects(rects: MapRect[]) {
+  /**设置多边形数据
+   * @param rects 多边形集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllRects(rects: MapRect[]): MapCanvasDraw {
     this._allRects = rects;
     return this;
   }
-  /**设置文本数据 */
-  public setAllTexts(texts: MapText[]) {
+  /**设置文本数据
+   * @param texts 文本集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllTexts(texts: MapText[]): MapCanvasDraw {
     this._allTexts = texts;
     return this;
   }
-  /**设置图片数据 */
-  public setAllImgs(imgs: MapImage[]) {
+  /**设置图片数据
+   * @param imgs 图片集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllImgs(imgs: MapImage[]): MapCanvasDraw {
     this._allImgs = imgs;
     return this;
   }
-  /**设置图片数据 */
-  public setAllGifs(gifs: MapGif[]) {
+  /**设置图片数据
+   * @param gifs Gif集合
+   * @returns MapCanvasDraw实例
+   */
+  public setAllGifs(gifs: MapGif[]): MapCanvasDraw {
     this._allGifs = gifs;
     return this;
   }
-  /**增加原点 */
-  public addArc(arc: MapArc) {
+  /**增加圆点
+   * @param arc 圆点
+   * @returns MapCanvasDraw实例
+   */
+  public addArc(arc: MapArc): MapCanvasDraw {
     if (!arc.latlngs && !arc.latlng) return this;
     this._allArcs.push(arc);
     return this;
   }
-  /**增加线 */
-  public addLine(line: MapLine) {
+  /**增加线
+   * @param line 线
+   * @returns MapCanvasDraw实例
+   */
+  public addLine(line: MapLine): MapCanvasDraw {
     if (!line.latlngs) return this;
     this._allLines.push(line);
     return this;
   }
-  /**增加贝塞尔曲线 */
-  public addBezierLine(line: MapLine) {
+  /**增加贝塞尔曲线
+   * @param line 贝塞尔曲线
+   * @returns MapCanvasDraw实例
+   */
+  public addBezierLine(line: MapLine): MapCanvasDraw {
     if (!line.latlngs) return this;
     this._allBLins.push(line);
     return this;
   }
-  /**增加多边形 */
-  public addRect(rect: MapRect) {
+  /**增加多边形
+   * @param rect 多边形
+   * @returns MapCanvasDraw实例
+   */
+  public addRect(rect: MapRect): MapCanvasDraw {
     if (!rect.latlngs) return this;
     this._allRects.push(rect);
     return this;
   }
-  /**增加文本 */
-  public addText(text: MapText) {
+  /**增加文本
+   * @param text 文本
+   * @returns MapCanvasDraw实例
+   */
+  public addText(text: MapText): MapCanvasDraw {
     if (!text.latlngs && !text.latlng) return this;
     this._allTexts.push(text);
     return this;
   }
-  /**增加图片 */
-  public addImg(img: MapImage) {
+  /**增加图片
+   * @param img 图片
+   * @returns MapCanvasDraw实例
+   */
+  public addImg(img: MapImage): MapCanvasDraw {
     if (!img.latlngs && !img.latlng) return this;
     this._allImgs.push(img);
     return this;
   }
-  /**删除指定圆点 */
-  public delArc(arc: MapArc) {
+  /**删除指定圆点
+   * @param arc 圆点
+   * @returns MapCanvasDraw实例
+   */
+  public delArc(arc: MapArc): MapCanvasDraw {
     u_arrItemDel(this._allArcs, arc);
     return this;
   }
-  /**删除指定线 */
-  public delLine(line: MapLine) {
+  /**删除指定线
+   * @param line 线
+   * @returns MapCanvasDraw实例
+   */
+  public delLine(line: MapLine): MapCanvasDraw {
     u_arrItemDel(this._allLines, line);
     return this;
   }
-  /**删除指定贝塞尔曲线 */
-  public delBezierLine(line: MapLine) {
+  /**删除指定贝塞尔曲线
+   * @param line 贝塞尔曲线
+   * @returns MapCanvasDraw实例
+   */
+  public delBezierLine(line: MapLine): MapCanvasDraw {
     u_arrItemDel(this._allBLins, line);
     return this;
   }
-  /**删除指定多边形 */
-  public delRect(rect: MapRect) {
+  /**删除指定多边形
+   * @param rect 多边形
+   * @returns MapCanvasDraw实例
+   */
+  public delRect(rect: MapRect): MapCanvasDraw {
     u_arrItemDel(this._allRects, rect);
     return this;
   }
-  /**删除指定文本 */
-  public delText(text: MapText) {
+  /**删除指定文本
+   * @param text 文本
+   * @returns MapCanvasDraw实例
+   */
+  public delText(text: MapText): MapCanvasDraw {
     u_arrItemDel(this._allTexts, text);
     return this;
   }
-  /**删除指定Img */
-  public delImg(img: MapImage) {
+  /**删除指定Img
+   * @param img 图片
+   * @returns MapCanvasDraw实例
+   */
+  public delImg(img: MapImage): MapCanvasDraw {
     u_arrItemDel(this._allImgs, img);
     return this;
   }
   /**清空
    * @param type 不填清空所有内容数据
+   * @returns MapCanvasDraw实例
    */
-  public delAll(type: 'all' | 'text' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif' = 'all') {
+  public delAll(type: 'all' | 'text' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif' = 'all'): MapCanvasDraw {
     const that = this;
     switch (type) {
       case 'arc':
@@ -233,17 +305,23 @@ export class MapCanvasDraw {
   /**将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
    * latlngs为undefined,points也为undefined
    * latlng为undefined,point为[0,0]
+   * @param info 对象
    */
-  public transformXY(info: MapPosition & CanvasPosition) {
+  public transformXY(info: MapPosition & CanvasPosition): void {
     info.points = u_mapGetPointsByLatlngs(this.map, info.latlngs);
     info.point = u_mapGetPointByLatlng(this.map, info.latlng);
   }
-  /**设置固定大小的图片 */
-  public transformImageSize(img: MapImage) {
+  /**设置图片的大小
+   * @param img 图片
+   */
+  public transformImageSize(img: MapImage): void {
     let [x, y] = u_mapGetSizeByMap(this.map, img)
     img.size = [x, y];
   }
-  private transformArcSize(arc: MapArc) {
+  /**设置圆点的大小
+   * @param arc 圆点
+   */
+  private transformArcSize(arc: MapArc): void {
     let [x, y] = u_mapGetSizeByMap(this.map, arc);
     /**经度的差值为X故 */
     arc.size = x;

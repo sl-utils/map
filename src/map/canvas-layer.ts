@@ -1,8 +1,12 @@
-import { Browser, DomUtil, Map as LMap, Layer, Util, bind, extend } from "leaflet";
-import { u_mapGetMapSize, u_tsMapisAmap, u_tsMapisLeaflet } from "../utils/slu-map";
+import { Browser, DomUtil, Map as LMap, Layer, Util, ZoomAnimEvent, bind, extend } from "leaflet";
+import { u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsMapisAmap, u_tsMapisLeaflet } from "../utils/slu-map";
 import { OptMapCanvas } from "@sl-utils/map";
 declare var AMap: any;
-/** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 */
+/** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 
+ * @constructor
+ * @param MAP 地图实例
+ * @param opt 图层配置项
+*/
 export class MapCanvasLayer {
     constructor(MAP: LMap, opt?: OptMapCanvas)
     constructor(MAP: AMAP.Map, opt?: AMAP.CustomLayerOption)
@@ -18,27 +22,33 @@ export class MapCanvasLayer {
                 zooms: [3, 18],
                 alwaysRender: false,//缩放过程中是否重绘，复杂绘制建议设为false
                 zIndex: 200,
-                render: this._redraw()
+                render: () => this._redraw()
             }, opt);
-            this.layer = new AMap.CustomLayer(this.canvas, opt as AMAP.CustomLayerOption);
+            this.layer = new AMap.CustomLayer(this.canvas, opt);
         }
         this.initCanvas();
         this.onAdd();
     }
     /**地图实例*/
     public readonly map!: AMAP.Map | LMap;
+    /**图层 */
     private layer: Layer | AMAP.CustomLayer;
+    /**画布 */
     protected readonly canvas: HTMLCanvasElement = document.createElement('canvas');
+    /**画布上下文 */
     protected readonly ctx: CanvasRenderingContext2D = this.canvas.getContext("2d")!;
+    /**画布宽度 */
     protected width: number = 0;
+    /**画布高度 */
     protected height: number = 0;
+    /**图层配置项 */
     public readonly options: OptMapCanvas = {
         pane: 'canvas',
     };
     /**动画循环的id标识 */
     protected flagAnimation: number = 0;
     /**移除图层 */
-    public onRemove() {
+    public onRemove(): MapCanvasLayer {
         const { flagAnimation } = this;
         this._eventSwitch(false);
         if (flagAnimation) cancelAnimationFrame(flagAnimation);
@@ -46,7 +56,7 @@ export class MapCanvasLayer {
         this._onLeafletRemove();
         return this;
     }
-    /** 清空并重新设置画布 */
+    /**清空并重新设置画布 */
     public resetCanvas(): void {
         const { canvas, map } = this;
         if (map instanceof LMap) {
@@ -60,43 +70,52 @@ export class MapCanvasLayer {
         this.width = canvas.width = w;
         this.height = canvas.height = h;
     }
-    /**添加或关闭地图特定的监听事件(_eventSwitch事件后自动调用) */
-    protected addMapEvents(map: AMAP.Map | LMap, key: 'on' | 'off') { }
+    /**添加或关闭地图特定的监听事件(_eventSwitch事件后自动调用)
+     * @param map 地图实例
+     * @param key 事件类型
+     */
+    protected addMapEvents(map: AMAP.Map | LMap, key: 'on' | 'off'): void { };
     /**绘制静态数据推荐使用此方法(固定的图) */
-    protected renderFixedData() { };
+    protected renderFixedData(): void { };
     /** 推荐使用此方法绘制动态图(跟随鼠标拖动，移动时需要立刻绘制时)
      ** 动画图层绘制前的画布清空、计算等均在此方法中自行计算 
      ** 与renderFixedData本质是一样的
      */
-    protected renderAnimation() { };
-    /** */
-    protected on(key: string, cb: Function) {
+    protected renderAnimation(): void { };
+    /**添加地图事件监听
+     * @param key 事件类型
+     * @param cb 事件回调函数
+     */
+    protected on(key: string, cb: Function): void {
         this.map.on(key, (e) => { cb() })
     }
-    /** */
-    protected off(key: string, cb: Function) {
+    /**移除地图事件监听
+     * @param key 事件类型
+     * @param cb 事件回调函数
+     */
+    protected off(key: string, cb: Function): void {
         this.map.off(key, (e) => { cb() })
     }
     /**初始化canvas */
-    private initCanvas() {
+    private initCanvas(): void {
         const { canvas, map, options, layer } = this;
         canvas.className = `sl-layer ${options.className || 'sl-canvas-map'}`;
         canvas.style['zIndex'] = `${options.zIndex || 100}`;
         canvas.style['transformOrigin'] = '50% 50%';
         this.initLeafletCanvas();
     }
-    /** 将图层添加到map实例中显示 */
-    private onAdd() {
+    /**将图层添加到map实例中显示
+     * @returns MapCanvasLayer实例
+     */
+    private onAdd(): MapCanvasLayer {
         this._onAmapAdd();
         this._eventSwitch(true);
-        let layer: any = this.layer
-        // layer['render'] = this._redraw;
         return this;
     }
     /**基础的监听事件   
     * @param flag true开启重绘事件监听 false 关闭重绘事件监听
     **/
-    private _eventSwitch(flag: boolean = true) {
+    private _eventSwitch(flag: boolean = true): void {
         let map = this.map;
         let key: 'on' | 'off' = flag ? 'on' : 'off';
         this.addLeafletEvent(flag);
@@ -107,7 +126,7 @@ export class MapCanvasLayer {
      ** 清空之前的绘制
      ** ①高德地图渲染配置alwaysRender:true后拖动缩放会多次渲染
      */
-    protected _redraw = () => {
+    protected _redraw = (): void => {
         console.log('##########--------MapCanvasLayer=>_redraw--------##########')
         if (!this.map) return;
         this.resetCanvas();
@@ -115,22 +134,25 @@ export class MapCanvasLayer {
         this.renderAnimation();
     };
     /**------------------------------高德地图的实现------------------------------*/
-    private _onAmapAdd() {
+    /**将图层添加到map实例中显示 */
+    private _onAmapAdd(): void {
         const { map, layer } = this;
-        if (u_tsMapisAmap(map)) {
-            (layer as AMAP.CustomLayer).setMap(map);
+        if (u_tsMapisAmap(map) && u_tsLayerisAmap(layer)) {
+            layer.setMap(map);
+            layer.render = this._redraw;
         }
     }
-    private _onAmapRemove() {
+    /**移除图层 */
+    private _onAmapRemove(): void {
         const { map, layer } = this;
-        if (u_tsMapisAmap(map)) {
-            map.remove(layer as AMAP.CustomLayer);
-            // (layer as AMAP.CustomLayer).destroy();
+        if (u_tsMapisAmap(map) && u_tsLayerisAmap(layer)) {
+            map.remove(layer);
+            // layer.destroy();
         }
     }
     /**------------------------------Leaflet地图的实现------------------------------*/
     /**初始化画布并添加到Pane中 */
-    private initLeafletCanvas() {
+    private initLeafletCanvas(): void {
         const { canvas, map, options } = this;
         if (!u_tsMapisLeaflet(map)) return;
         let pane = options.pane || 'overlayPane', paneEle = map.getPane(pane) || map.createPane(pane);
@@ -145,16 +167,19 @@ export class MapCanvasLayer {
             onload: bind(this._onCanvasLoad, this),
         });
     }
-    /**移除 */
-    private _onLeafletRemove() {
+    /**移除图层 */
+    private _onLeafletRemove(): void {
         let { map, layer, options } = this;
-        if (u_tsMapisLeaflet(map)) {
+        if (u_tsMapisLeaflet(map) && u_tsLayerisLeaflet(layer)) {
             let pane = options.pane;
             pane && map.getPane(pane)?.removeChild(this.canvas);
-            (layer as Layer).remove();
+            layer.remove();
         }
     }
-    private addLeafletEvent(flag: boolean = true) {
+    /**添加Leaflet地图事件监听
+     * @param flag true开启事件监听 false 关闭事件监听
+     */
+    private addLeafletEvent(flag: boolean = true): void {
         let map = this.map;
         if (map instanceof LMap) {
             /**为了和高德保持一致，初始化后渲染一次 */
@@ -170,18 +195,21 @@ export class MapCanvasLayer {
         };
     }
     /**重设画布,并重新渲染*/
-    private _reset() {
+    private _reset(): void {
         this.resetCanvas();
         this._redraw();
     }
-    /**缩放动画 */
-    private _animateZoom(e: any) {
+    /**缩放动画
+     * @param e 缩放事件对象
+     */
+    private _animateZoom(e: ZoomAnimEvent): void {
         let map: any = this.map;
         var scale = map.getZoomScale(e.zoom),
             offset = map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(map._getMapPanePos());
         DomUtil.setTransform(this.canvas, offset, scale);
     }
-    private _onCanvasLoad() {
-        if (this.layer instanceof Layer) this.layer.fire('load');
+    /**画布加载完成 */
+    private _onCanvasLoad(): void {
+        if (u_tsLayerisLeaflet(this.layer)) this.layer.fire('load');
     }
 }

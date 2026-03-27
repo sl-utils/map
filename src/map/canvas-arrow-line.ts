@@ -2,44 +2,66 @@ import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
 import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
-
 const ARROW_URL = "/assets/images/direction-arrow.png";
+/**地图canvas箭头线类
+ * @constructor
+ * @param map 地图实例
+ * @param ctx 画布上下文
+ * @param opts 动画线配置项
+ */
 export class MapCanvasArrowLine {
-  constructor(private map: AMAP.Map | L.Map, private ctx: CanvasRenderingContext2D, public animeLineOpt?: OptMapPluginArrowLine) {
-    this.animeLineOpt = Object.assign({}, this.defaultOption, this.animeLineOpt);
+  constructor(private map: AMAP.Map | L.Map, private ctx: CanvasRenderingContext2D, public opt?: OptMapPluginArrowLine) {
+    this.opt = Object.assign({}, this.options, this.opt);
     this.initResource();
   }
-  private readonly defaultOption: OptMapPluginArrowLine = {
+  /**默认配置项 */
+  private readonly options: OptMapPluginArrowLine = {
     lineWidth: 16,
     // 默认每帧移动.5px
     speed: 0.5,
-    imgUrl: ARROW_URL,
     partialHeight: 16,
     partialSpace: 2,
     partialWidth: 16,
+    degree: 1,
     fillColor: 'rgb(41, 152, 137)',
     strokeColor: 'rgb(179, 218, 255)',
-    degree: 1,
+    imgUrl: ARROW_URL,
   };
-  private get imgUrl() {
-    return this.animeLineOpt.imgUrl;
+  /**(箭头)图片地址 */
+  private get imgUrl(): string {
+    return this.opt.imgUrl;
   }
-  private get patternBound() {
-    return [this.animeLineOpt.partialWidth, this.animeLineOpt.partialHeight];
+  /**(箭头)图片宽度 */
+  private get partialWidth(): number {
+    return this.opt.partialWidth;
   }
-
-  private initResource() {
+  /**(箭头)图片高度 */
+  private get partialHeight(): number {
+    return this.opt.partialHeight;
+  }
+  /**边界 */
+  private get patternBound(): [number, number] {
+    return [this.opt.partialWidth, this.opt.partialHeight];
+  }
+  /**初始化资源加载图片 */
+  private initResource(): void {
     SLUCanvasImg.loadImg([this.imgUrl]);
   }
+  /**所有的线数据 */
   private allLines: MapLine[] = [];
   /**每组线的动画偏移变量暂存 */
   private offset: number = 0;
+  /**所有的点数据 */
   private allPoints: [number, number][][] = [];
-  public setAllLines(lines: MapLine[]) {
+  /**设置所有线
+   * @param lines 线集合
+   */
+  public setAllLines(lines: MapLine[]): void {
     this.allLines = lines;
     this.update();
   }
-  public update() {
+  /**更新所有线的点并绘制 */
+  public update(): void {
     this.allPoints = this.allLines.map((line) => {
       const { latlngs = [], latlng = [] } = line;
       if (latlng.length) {
@@ -49,9 +71,13 @@ export class MapCanvasArrowLine {
     });
     this.draw();
   }
-  private visiblePoint(point: [number, number], range: [number, number]) {
-    const [x, y] = point,
-      [w, h] = range;
+  /**判断点是否在画布范围内
+   * @param point 点
+   * @param range 画布范围
+   * @returns 是否在画布范围内
+   */
+  private visiblePoint(point: [number, number], range: [number, number]): boolean {
+    const [x, y] = point, [w, h] = range;
     if (x < 0 || y < 0) {
       return false;
     } else if (x > w || y > h) {
@@ -60,13 +86,12 @@ export class MapCanvasArrowLine {
     return true;
   }
 
-  /**
-   * 线段连线方向
+  /** 线段连线方向
    * @param point1
    * @param point2
-   * @returns
+   * @returns 线段连线方向
    */
-  private directionLine(point1: [number, number], point2: [number, number]) {
+  private directionLine(point1: [number, number], point2: [number, number]): string {
     const [x1, y1] = point1;
     const [x2, y2] = point2;
     if (x1 == x2 && y1 > y2) return "top";
@@ -79,9 +104,9 @@ export class MapCanvasArrowLine {
     if (x1 < x2 && y1 < y2) return "bottomright";
     return "undefined";
   }
-  /**
-   * 不在画布范围内修改起始点 减少生成过多粒子
-   * @returns
+  /** 不在画布范围内修改起始点 减少生成过多粒子
+   * @param points 线段点
+   * @returns 修正后的线段点
    */
   private validLine(points: [[number, number], [number, number]]): false | [[number, number], [number, number]] {
     const { width, height } = this.ctx.canvas;
@@ -235,12 +260,12 @@ export class MapCanvasArrowLine {
     }
     return [[x1, y1], [x2, y2]]
   }
-  /**
-   * 获取二次贝塞尔曲线划分任意点位置
+  /**获取二次贝塞尔曲线划分任意点位置
    * @param {number} t 当前百分比
    * @param {Array} p1 起点坐标
    * @param {Array} cp 控制点
    * @param {Array} p2 终点坐标
+   * @returns 二次贝塞尔曲线划分任意点位置
    */
   private getQuadraticBezierPoint(t: number, p1: [number, number], cp: [number, number], p2: [number, number]): [number, number] {
     const [x1, y1] = p1;
@@ -250,14 +275,15 @@ export class MapCanvasArrowLine {
     let y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * cy + t * t * y2;
     return [x, y];
   }
-  public draw() {
+  /**绘制箭头线 */
+  public draw(): void {
     const that = this,
-      { ctx, animeLineOpt } = that,
-      { isBezier, degree = 1, speed, partialWidth, partialSpace } = animeLineOpt;
+      { ctx, opt } = that,
+      { isBezier, degree = 1, speed, partialWidth, partialSpace } = opt;
     ctx.save();
     this.patternPathInit();
     ctx.lineCap = "round";
-    ctx.lineWidth = animeLineOpt.lineWidth;
+    ctx.lineWidth = opt.lineWidth;
     for (let i = 0; i < this.allPoints.length; i++) {
       let validPoints = this.getValidPoints(this.allPoints[i]);
       if (isBezier) {
@@ -290,7 +316,11 @@ export class MapCanvasArrowLine {
     this.offset += speed;
     this.offset >= partialWidth + partialSpace ? (this.offset = 0) : null;
   }
-  private getValidPoints(points: [number, number][]) {
+  /**获取修正后的线段点
+   * @param points 线段点
+   * @returns 修正后的线段点
+   */
+  private getValidPoints(points: [number, number][]): [number, number][] {
     let validPoints = [];
     let prev = points[0];
     for (let j = 1; j < points.length; j++) {
@@ -302,10 +332,13 @@ export class MapCanvasArrowLine {
     }
     return validPoints;
   }
-  private drawPath(points: [number, number][]) {
+  /**绘制箭头线路径
+   * @param points 线段点
+   */
+  private drawPath(points: [number, number][]): void {
     const that = this,
-      { ctx, animeLineOpt } = that,
-      { speed = 0.1, partialWidth } = animeLineOpt;
+      { ctx, opt } = that,
+      { speed = 0.1, partialWidth } = opt;
     let prev = points[0];
     ctx.save();
     ctx.beginPath();
@@ -333,17 +366,21 @@ export class MapCanvasArrowLine {
     }
     ctx.restore();
   }
-  private patternPathInit() {
+  /**初始化箭头线图案路径 */
+  private patternPathInit(): void {
     const pattern = this.createPattern();
     if (!pattern) {
-      this.ctx.strokeStyle = this.animeLineOpt.strokeColor;
-      this.ctx.fillStyle = this.animeLineOpt.fillColor;
+      this.ctx.strokeStyle = this.opt.strokeColor;
+      this.ctx.fillStyle = this.opt.fillColor;
       return;
     }
     this.ctx.strokeStyle = pattern;
   }
-  private createPattern() {
-    const {strokeColor, fillColor, partialSpace} = this.animeLineOpt
+  /**创建箭头线图案
+   * @returns 箭头线图案
+   */
+  private createPattern(): CanvasPattern | null {
+    const { strokeColor, fillColor, partialSpace } = this.opt
     const img = SLUCanvasImg.ImageCache[this.imgUrl];
     if (!img) return null;
     const [width, height] = this.patternBound;
@@ -352,7 +389,7 @@ export class MapCanvasArrowLine {
     //  图案组成动画通过统一把线条方向改为平行x轴方向，当前素材箭头是正上 导致需要对图案翻转90度以及取高度为offset偏移归零点
     canvas.width = width;
     canvas.height = height + partialSpace;
-    ctx.fillStyle =  fillColor;
+    ctx.fillStyle = fillColor;
     ctx.fillRect(0, 0, width, height + partialSpace);
     ctx.drawImage(img, 0, partialSpace, width, height);
     const pattern = ctx.createPattern(canvas, "repeat");

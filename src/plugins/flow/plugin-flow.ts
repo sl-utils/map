@@ -1,58 +1,71 @@
 import * as L from "leaflet";
 import { u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../../map";
-import { VelocityWindy } from "./velocity-windy";
+import { PluginVelocity } from "./plugin-velocity";
 import { OptMapPluginFlow, DataMapVeloctiyWind, AMapMapsEvent } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
-/**流体动画(风速风向洋流动图)leaflet-velocity.js*/
+/**流体动画(风速风向洋流动图)leaflet-velocity.js
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 基础配置
+*/
 export class MapPluginFlow extends MapCanvasLayer {
     constructor(sluMap: SLUMap, options?: Partial<OptMapPluginFlow>) {
         super(sluMap.map, options);
         Object.assign(this.options, options);
     }
-    /**配置项 */
+    /**基础配置项 */
     public options: OptMapPluginFlow = {
         pane: "overlayPane",
         displayValues: true,
+        maxVelocity: 15,
         unit: "m/s",
         angleConvention: "bearingCCW",
         emptyString: "No velocity data",
-        maxVelocity: 15,
         colorScale: null,
     }
-    private windy: VelocityWindy | null = null;
+    /**运动粒子类对象 */
+    private windy: PluginVelocity | null = null;
+    /**鼠标点击时的回调函数
+     * @param degrees 方向
+     * @param speed 速度
+     */
     private cbClick?: (degrees: number, speed: number) => void;
-    /**设置配置项 */
-    public setOptions(opt: OptMapPluginFlow) {
-        let options = this.options = Object.assign(this.options, opt);
-        if (this.windy) {
-            this.windy.setOptions(options);
-            if (options.hasOwnProperty("data")) this.windy.setData(options.data);
-        }
-    }
     /**设置数据并绘制canvas
+     * @param datas 数据
      * data[0] 为X轴经度longitude方向的数据
      * data[1] 为Y轴纬度latitude方向的数据
      */
-    public setData(datas: DataMapVeloctiyWind[]) {
+    public setData(datas: DataMapVeloctiyWind[]): void {
         this.options.data = datas;
+        /**彻底停止旧的动画 */
         if (this.windy) {
-            this.windy.setData(datas);
-        } else {
-            this.initWindy();
-            if (!datas || datas.length <= 0) {
-                this.windy?.stop();
-                this.resetCanvas();
-                return
-            };
-            this.startWindy();
+            this.windy.stop();
         }
+        if (!datas || datas.length <= 0) {
+            this.windy = null;
+            this.resetCanvas();
+            return;
+        }
+        /**有数据时才重建或更新 */
+        if (!this.windy) {
+            this.initWindy();
+        } else {
+            this.windy.setData(datas);
+        }
+        this.startWindy();
     }
-    /**添加鼠标点击时的回调函数 */
-    public addCbMouseClick(cb: (degrees: number, speed: number) => void) {
+    /**添加鼠标点击时的回调函数
+     * @param cb 回调函数
+     * @param degrees 方向
+     * @param speed 速度
+     */
+    public addCbMouseClick(cb: (degrees: number, speed: number) => void): void {
         this.cbClick = cb;
     }
     /*------------------------------------ PRIVATE ------------------------------------------*/
+    /**渲染静态图层 */
     protected renderFixedData(): void {
         let datas = this.options.data;
         if (datas && datas.length > 0 && this.windy) {
@@ -60,23 +73,26 @@ export class MapPluginFlow extends MapCanvasLayer {
             this.startWindy();
         }
     }
-    /**添加或关闭地图特定的监听事件(_eventSwitch事件后自动调用) */
-    protected addMapEvents(map: L.Map, key: "on" | "off"): void {
+    /**添加或关闭地图特定的监听事件(_eventSwitch事件后自动调用) 
+     * @param map 地图实例
+     * @param key 事件类型
+    */
+    protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void {
         map[key]("zoomstart", this.stopWindy, this);
         map[key]("dragstart", this.stopWindy, this);
         map[key]("click", this.onMouseClick, this);
     }
     /**初始化windy对象 */
-    private initWindy() {
+    private initWindy(): void {
         var options = Object.assign({
             canvas: this.canvas,
             map: this.map
         }, this.options);
-        this.windy = new VelocityWindy(options); // prepare context global var, start drawing
+        this.windy = new PluginVelocity(options); // prepare context global var, start drawing
         this.canvas.classList.add("velocity-overlay");
     }
     /**开始动画 */
-    private startWindy() {
+    private startWindy(): void {
         const size = u_mapGetMapSize(this.map);
         const { lngLeft, latTop, lngRight, latBottom } = u_mapGetBounds(this.map);
         var sw: [number, number] = [lngLeft, latBottom], ne: [number, number] = [lngRight, latTop];
@@ -86,11 +102,13 @@ export class MapPluginFlow extends MapCanvasLayer {
         );
     }
     /**停止动画 */
-    private stopWindy() {
+    private stopWindy(): void {
         if (this.windy) this.windy.stop();
     }
-    /**鼠标点击事件监听 */
-    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent) {
+    /**鼠标点击事件监听
+     * @param e 鼠标事件
+     */
+    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent): void {
         if (!this.windy) return;
         var self = this;
         const { containerPoint } = u_mapGetMapMouseEvent(e, this.map);
@@ -102,8 +120,13 @@ export class MapPluginFlow extends MapCanvasLayer {
             speed = self.vectorToSpeed(gridValue[0], gridValue[1], this.options.unit);
         }
         this.cbClick?.(degrees, speed);
-        console.log(degrees, speed)
     }
+    /**将m/s转换为方向
+     * @param uMs X轴速度
+     * @param vMs Y轴速度
+     * @param angleConvention 角度约定
+     * @returns 方向
+     */
     private vectorToDegrees(uMs: number, vMs: number, angleConvention: string): number {
         // Default angle convention is CW
         if (angleConvention.endsWith("CCW")) {
@@ -119,7 +142,12 @@ export class MapPluginFlow extends MapCanvasLayer {
         }
         return degrees;
     }
-    /**将m/s 转换为指定单位的速度 */
+    /**将m/s 转换为指定单位的速度
+     * @param uMs X轴速度
+     * @param vMs Y轴速度
+     * @param unit 单位
+     * @returns 速度
+     */
     private vectorToSpeed(uMs: number, vMs: number, unit: string): number {
         var v = Math.sqrt(Math.pow(uMs, 2) + Math.pow(vMs, 2)); // Default is m/s
         switch (unit) {
@@ -128,9 +156,17 @@ export class MapPluginFlow extends MapCanvasLayer {
             default: return v;
         };
     }
+    /**将m/s转换为kn节
+     * @param meters m/s
+     * @returns knot节/s
+     */
     private meterSec2Knots(meters: number): number {
         return meters / 0.514;
     }
+    /**将m/s转换为km/h
+     * @param meters m/s
+     * @returns km/h
+     */
     private meterSec2kilometerHour(meters: number): number {
         return meters * 3.6;
     }

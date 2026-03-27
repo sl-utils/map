@@ -13,7 +13,7 @@ type BreakCallback = (str: string) => readonly number[];
 
 function backProp(text: string, realWidth: number, keyMap: Map<string, number>, temperature: number, avgSize: number) {
   let guessWidth = 0;
-  const contribMap: Record<string, number> = {};
+  const contribMap: Record<string, number> = Object.assign({});
   for (const char of text) {
     const v = keyMap.get(char) ?? avgSize;
     guessWidth += v;

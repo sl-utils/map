@@ -4,35 +4,23 @@ import { u_mapGetLatLngByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";
 import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "@sl-utils/map";
 
+/**网格插件基础类
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param map 地图实例
+ * @param options 配置
+ */
 export class MapPluginGridBase extends MapCanvasLayer {
     constructor(map: L.Map | AMAP.Map, options: Partial<OptMapGrid>) {
         super(map, options);
         Object.assign(this.options, options);
     }
+    /**基础配置 */
     public readonly options: OptMapGrid = {
-        zIndex: 200,
-        mosaicColor: [
-            "#0000CD",
-            "#0066ff",
-            "#00B7ff",
-            "#00E0FF",
-            "#00FFFF",
-            "#00FFCC",
-            "#00FF99",
-            "#00FF00",
-            "#99FF00",
-            "#CCFF00",
-            "#FFFF00",
-            "#FFCC00",
-            "#FF9900",
-            "#FF6600",
-            "#FF0000",
-            "#B03060",
-            "#D02090",
-            "#FF00FF",
-        ],
-        mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         pane: "wavePane",
+        zIndex: 200,
+        mosaicColor: ["#0000CD", "#0066ff", "#00B7ff", "#00E0FF", "#00FFFF", "#00FFCC", "#00FF99", "#00FF00", "#99FF00", "#CCFF00", "#FFFF00", "#FFCC00", "#FF9900", "#FF6600", "#FF0000", "#B03060", "#D02090", "#FF00FF"],
+        mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     }
     /**网格数据   数据 [X] [Y]  */
     protected gridXY?: [number, number][][];
@@ -57,22 +45,26 @@ export class MapPluginGridBase extends MapCanvasLayer {
     /**渐变数据 */
     protected gradient?: Uint8ClampedArray;
     /**启用新的线程 */
-    private worker = new SLUWorker<WorkerInfo, { workerId: number, data: CanvasImageSource }>('grid-worker1', (data) => this.workerCb(data));
+    private worker: SLUWorker<WorkerInfo, { workerId: number; data: CanvasImageSource; }> = new SLUWorker<WorkerInfo, { workerId: number, data: CanvasImageSource }>('grid-worker1', (data) => this.workerCb(data));
     /**线程id */
     private workerId: number = 0;
-    /**将线程绘制的图像绘制出来 */
-    private workerCb(data: { workerId: number, data: CanvasImageSource }) {
+    /**将线程绘制的图像绘制出来
+     * @param data 线程绘制的图像
+     */
+    private workerCb(data: { workerId: number, data: CanvasImageSource }): void {
         if (data.workerId && (this.workerId - 1) !== data.workerId) return;
         this.resetCanvas();
         this.ctx.drawImage(data.data, 0, 0);
     }
-    /**设置网格数据 */
-    public _setDatas(datas: DataMapGrid[]) {
+    /**设置网格数据
+     * @param datas 网格数据
+     */
+    public _setDatas(datas: DataMapGrid[]): void {
         if (!datas || datas.length === 0) {
             this.gridXY = [];
             return
         };
-        let { lo1 = 0, la1 = 0, dx = 0, dy = 0 } = datas[0]?.header || {};
+        let { lo1 = 0, la1 = 0, dx = 0, dy = 0 } = datas[0]?.header || Object.assign({});
         this.lng0 = lo1;
         this.lat0 = la1;
         this.lngΔ = dx;
@@ -80,8 +72,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
         this.invalid = null;
         this.builder(datas);
     }
-    /**采用线程调取生成可视区网格数据 */
-    protected interpolateFieldByWorker(bounds: GridBounds) {
+    /**采用线程调取生成可视区网格数据
+     * @param bounds 可视区域的像素范围
+     */
+    protected interpolateFieldByWorker(bounds: GridBounds): void {
         let [lat, lng] = u_mapGetLatLngByPoint(this.map, [0, 0]);
         let [, lng1] = u_mapGetLatLngByPoint(this.map, [1, bounds.height]);
         let lats: number[] = [];
@@ -102,7 +96,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
     /**grid数据，以及获得指定经纬度数据的方法interpolate
      * @param bounds 可视区域的像素范围
     */
-    protected interpolateField(bounds: GridBounds) {
+    protected interpolateField(bounds: GridBounds): void {
         var columns: [number, number, number][][] = [];
         for (let y = bounds.x, len = bounds.height; y < len; y += 2) {
             let column: [number, number, number][] = [];
@@ -121,7 +115,11 @@ export class MapPluginGridBase extends MapCanvasLayer {
         this.boundsDatas = columns;
         this.genMosaic(columns);
     };
-    /**获取视图范围内的(指定像素间隔的数据) */
+    /**获取视图范围内的(指定像素间隔的数据)
+     * @param bounds 可视区域的像素范围
+     * @param pixelInterval 像素间隔
+     * @returns 可视区域的网格数据
+     */
     protected getViewBoundsGrid(bounds: GridBounds, pixelInterval: number = 2): [number, number, number][][] {
         var columns: [number, number, number][][] = [];
         for (let y = bounds.x, len = bounds.height; y < len; y += pixelInterval) {
@@ -142,13 +140,11 @@ export class MapPluginGridBase extends MapCanvasLayer {
         return columns;
     }
     /**构建网格数据gridXY: [开始的数据,结束的数据] [x序号] [y序号] 
-     * @param data 一维数据
-     * @param nx 列数
-     * @param ny 行数
+     * @param grids 一维数据
      * @returns 三维网格数据
      */
     private builder(grids: DataMapGrid[]): number[][][] {
-        let { nx = 0, ny = 0, dx = 0 } = grids[0]?.header || {};
+        let { nx = 0, ny = 0, dx = 0 } = grids[0]?.header || Object.assign({});
         let scale = 1;
         /**数据行数 * 间隔 要比360 */
         let isContinuous = Math.floor(nx * dx) >= 360;
@@ -223,20 +219,31 @@ export class MapPluginGridBase extends MapCanvasLayer {
     }
     /**针对经纬度特殊的取余数方法
      * 小于等于n的数字若a小于0，返回 2n+a ， -365  => 2n-365 
+     * @param a 待取余的数字
+     * @param n 取余的除数
+     * @returns 取余的结果
     */
     private floorMod(a: number, n: number): number {
         return a - n * Math.floor(a / n);
     }
-    /**判断是否为有效数据 */
+    /**判断是否为有效数据
+     * @param x 待判断的数字
+     * @returns 是否为有效数据
+     */
     private isValue(x: number[]): boolean {
         return x !== null && x !== undefined;
     }
-    /**此处无数据数据 */
-    private isNull(xy: [number, number]) {
+    /**此处无数据数据
+     * @param xy 待判断的经纬度
+     * @returns 是否为无数据数据
+     */
+    private isNull(xy: [number, number]): boolean {
         return this.invalid === xy[0] && this.invalid === xy[1];
     }
-    /**生成马赛克类型图 */
-    protected genMosaic(datas: [number, number, number][][]) {
+    /**生成马赛克类型图
+     * @param datas 网格数据
+     */
+    protected genMosaic(datas: [number, number, number][][]): void {
         let ctx = this.ctx, width = this.width, height = this.height;
         //根据点位创建颜色深度不一的黑色遮罩
         ctx.globalAlpha = 0.35;
@@ -248,8 +255,11 @@ export class MapPluginGridBase extends MapCanvasLayer {
             }
         }
     }
-    /**生成黑白遮罩，以便构建渐变图 */
-    protected genShade(datas: [number, number, number][][]) {
+    /**生成黑白遮罩，以便构建渐变图
+     * @param datas 网格数据
+     * @returns MapPluginGridBase实例
+     */
+    protected genShade(datas: [number, number, number][][]): MapPluginGridBase {
         let options = this.options;
         if (!this.shadowElement) this.shadowElement = this.genShadowRadius(1, 0);
         if (!this.gradientElement && options.gradient) this.gradientElement = this.genGradient(options.gradient);
@@ -268,7 +278,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
         ctx.putImageData(colored, 0, 0);
         return this;
     }
-    /**获取该值所在的颜色 */
+    /**获取该值所在的颜色
+     * @param value 待判断的数值
+     * @returns 该数值对应的颜色
+     */
     protected getColorByValue(value: number): string {
         if (value === this.invalid || value === undefined || value === null) return 'rgba(0,0,0,0)';
         let options = this.options, colors = options.mosaicColor || [], values = options.mosaicValue || [];
@@ -282,6 +295,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
     /**生成单个的阴影半径(圆形) 
      * @param r 半径
      * @param blur 模糊度
+     * @returns 画布元素
     */
     protected genShadowRadius(r: number, blur: number = 15): HTMLCanvasElement {
         /**优化建议,不同zoom下影响的半径不一样 */
@@ -298,7 +312,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
         ctx.fill();
         return circle;
     }
-    /**构建渐变色 */
+    /**构建渐变色
+     * @param grad 渐变颜色
+     * @returns 画布元素
+     */
     private genGradient(grad: { [key: number]: string }): HTMLCanvasElement {
         let canvas = SLUCanvas.createCanvas(),
             ctx = canvas.getContext('2d')!,
@@ -311,7 +328,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
         this.gradient = ctx.getImageData(0, 0, 1, 256).data;
         return canvas;
     }
-    /**填充颜色 */
+    /**填充颜色
+     * @param pixels 像素数据
+     * @param gradient 渐变颜色
+     */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void {
         for (var i = 0, len = pixels.length, j; i < len; i += 4) {
             j = pixels[i + 3] * 4;

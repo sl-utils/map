@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { SLUMap, MapPluginPlot } from "@sl-utils/map";
+import { SLUMap, MapPluginPlot, OptMapPluginPlot } from "@sl-utils/map";
 import { onMounted } from "vue";
 let plot_: MapPluginPlot;
 /**标绘 */
 onMounted(async () => {
   const map = new SLUMap("map");
-  const opt = {
+  const opt: OptMapPluginPlot = {
     zIndex: 200,
     widthLine: 2,
     colorFill: "rgba(137,185,138,0.5)",

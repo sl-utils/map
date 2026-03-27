@@ -24,7 +24,6 @@ onMounted(async () => {
     imgs.push(transfromShipImage(e));
   });
   data.setbigDataImgs(imgs);
-  data.drawMapAll();
 });
 function transfromShipImage(e: any): any {
   let { shipTypeCode, lat, lng, cog } = e;

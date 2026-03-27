@@ -1,16 +1,24 @@
 import { OptMapPluginWind, CanvasImage, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "@sl-utils/map";
 import { MapCanvasDraw, SLUMap } from "../map";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
-import { MapPluginGridBase } from "./grid/grid";
+import { MapPluginGridBase } from "./grid/plugin-grid-base";
 
-
+/**风速风向插件
+ * @extends MapPluginGridBase
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 配置
+ */
 export class MapPluginWind extends MapPluginGridBase {
-    constructor(sluMap: SLUMap, options: Partial<OptMapPluginWind>) {
+    constructor(sluMap: SLUMap, options: OptMapPluginWind) {
         super(sluMap.map, options);
         this.draw = new MapCanvasDraw(this.map, this.canvas);
         this.options = { ...this.options, ...options };
     }
-    /**根据风速返回图标配置 */
+    /**根据风速返回图标配置
+     * @param speed 风速
+     * @returns 图标配置
+     */
     private iconResolver: (speed: number) => Image = (speed: number) => {
         const level = speed < 0.3 ? 0 : speed < 1.6 ? 1 : speed < 3.4 ? 2 : speed < 5.5 ? 3 : speed < 8.0 ? 4 : speed < 10.8 ? 5 : speed < 13.9 ? 6 : speed < 17.2 ? 7 : speed < 20.8 ? 8 : speed < 24.5 ? 9 : speed < 28.5 ? 10 : speed < 32.7 ? 11 : 12;
         const pos = [level + 2, 1];
@@ -23,8 +31,9 @@ export class MapPluginWind extends MapPluginGridBase {
             posY: pos[1] * (size[1] + 1),
         };
     };
+    /**绘制实例 */
     private draw: MapCanvasDraw;
-    /**配置 */
+    /**基础配置 */
     public options: OptMapPluginWind = {
         url: '/assets/icons/icon-28.png',
         size: [28, 28],
@@ -36,17 +45,26 @@ export class MapPluginWind extends MapPluginGridBase {
         ],
         pane: 'windPane',
     };
-    /**设置图标解析器 */
-    public setIconResolver(resolver: (speed: number) => CanvasImage) {
+    /**设置图标解析器
+     * @param resolver 图标解析器
+     * @returns MapPluginWind实例
+     */
+    public setIconResolver(resolver: (speed: number) => Image): MapPluginWind {
         this.iconResolver = resolver;
         return this;
     }
-    /**设置风速风向数据 */
-    public setData(data: DataMapGrid[]) {
+    /**设置风速风向数据
+     * @param data 风速风向数据
+     */
+    public setData(data: DataMapGrid[]): void {
         this._setDatas(data);
         this.renderFixedData();
     }
-    /**获取视图范围内的(指定像素间隔的数据) */
+    /**获取视图范围内的(指定像素间隔的数据)
+     * @param bounds 视图范围
+     * @param pixelInterval 像素间隔
+     * @returns 风速风向数据
+     */
     protected getViewBoundsGridWind(bounds: GridBounds, pixelInterval: number = 2): DataMapWind[] {
         var columns: DataMapWind[] = [];
         /**获取经纬度为[0,0]的点相对于容器的像素点(假设经纬度为[0,0]的点为必须渲染的点) */
@@ -68,8 +86,9 @@ export class MapPluginWind extends MapPluginGridBase {
         return columns;
     }
     /**根据风力等级获取图片裁剪地址 x,y */
-    protected renderAnimation() { }
-    protected renderFixedData() {
+    protected renderAnimation(): void { }
+    /**渲染静态图层 */
+    protected renderFixedData(): void {
         var size = u_mapGetMapSize(this.map); // bounds, width, height, extent
         let columns = this.getViewBoundsGridWind({ x: 10, y: 10, width: size.w, height: size.h }, 60);
         let options = this.options, i = 1, imgs: MapImage[] = [];

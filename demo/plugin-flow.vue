@@ -1,12 +1,12 @@
 <script setup lang="ts">
 /**流场 */
-import { SLUMap, MapPluginFlow } from "@sl-utils/map";
+import { SLUMap, MapPluginFlow, OptMapPluginFlow } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
 import flowjson from "./assets/json/flow-global.json";
 let flow_: MapPluginFlow | undefined;
 /**是否显示流场数据 */
 const ifShow = ref(false);
-const options = {
+const options: Partial<OptMapPluginFlow> = {
   pane: "flowPane",
   displayValues: true,
   unit: "m/s",

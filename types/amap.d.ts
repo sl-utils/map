@@ -1479,6 +1479,7 @@ declare namespace AMAP {
      */
     export class CustomLayer extends CoreCustomLayer {
         constructor(canvas: HTMLCanvasElement, opts: CustomLayerOption);
+        render?: () => void;
     }
 
     /**

@@ -5,7 +5,12 @@ import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent
 import { u_arrAddItemsIndex } from "../utils/slu-array";
 import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
-/**自定义标绘类 需要调用addTo添加到map地图中 */
+/**自定义标绘类
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 标绘配置
+ */
 export class MapPluginPlot extends MapCanvasLayer {
     constructor(sluMap: SLUMap, options?: OptMapPluginPlot) {
         const map = sluMap.map;
@@ -34,42 +39,58 @@ export class MapPluginPlot extends MapCanvasLayer {
         size: 4,
     };
     /**所有的标绘集合 */
-    private plotList: DataMapPlot<MapPlotType>[] = [];
+    private plotList: DataMapPlot[] = [];
     /**正在动态绘制的标(仅仅改变图形不会动态改变原始数据) */
     public plotAni?: DataMapPlot = { latLngs: [], type: 'polygon', ifEdit: true };
     /**记录当前鼠标纬经度 */
     private curPoint?: [number, number];
     /** 单击事件 */
     private eventClickTimer: number | undefined;
-    /**开启新增的绘制 */
-    public open<T extends MapPlotType>(type: T): DataMapPlot<T> {
+    /**开启新增的绘制
+     * @param type 标绘类型
+     * @returns 新增的标绘实例
+     */
+    public open(type: MapPlotType): DataMapPlot {
         /**移除掉之前添加的所有的监听函数 */
         // this.clearCb();
         let i = this.plotList.length - 1 > 0 ? this.plotList.length - 1 : 0;
         this.eventSwitch(true);
         /**存在正在编辑的或者正在绘制的就是新增的，且还未保存则直接重新绘制（还能保证颜色就是之前的设置）*/
         let plot = this.plotList.find(info => info.ifEdit);
-        if (plot || (this.plotAni === this.plotList[i] && this.plotAni.ifEdit)) {
-            let cur: DataMapPlot = plot || this.plotAni!;
-            this.plotAni = cur;
+        /**优先复用正在编辑的 */
+        if (plot) {
+            plot.latLngs = [];
+            plot.type = type;
+            plot.ifEdit = true;
+            this.plotAni = plot;
+            return plot;
+        }
+        /**复用 plotAni */
+        if (this.plotAni && this.plotAni === this.plotList[i] && this.plotAni.ifEdit) {
+            const cur = this.plotAni;
             cur.latLngs = [];
             cur.type = type;
             cur.ifEdit = true;
-            return this.plotAni as DataMapPlot<typeof type>;
-        };
-        /**不加的话将会每次都删除 */
+            return cur;
+        }
+        /**新建 不加的话将会每次都删除 */
         if (this.plotList[i] && this.plotList[i].latLngs.length > 0) i++;
-        this.plotList[i] = this.plotAni = { latLngs: [], type: type, ifEdit: true } as DataMapPlot;
+        const newplot = this.createPlot(type);
+        this.plotList[i] = this.plotAni = newplot;
         this.renderAnimation();
-        return this.plotAni as DataMapPlot<typeof type>;
+        return this.plotAni;
     }
-    /**关闭绘制 */
-    public close() {
+    /**关闭绘制 
+     * @returns MapPluginPlot实例
+    */
+    public close(): MapPluginPlot {
         this.eventSwitch(false);
         return this;
     }
-    /**保存标绘 */
-    public savePlot() {
+    /**保存标绘
+     * @returns MapPluginPlot实例
+    */
+    public savePlot(): MapPluginPlot {
         if (this.plotAni) {
             let plot = this.plotAni;
             plot.ifEdit = false;
@@ -78,33 +99,45 @@ export class MapPluginPlot extends MapCanvasLayer {
         }
         return this;
     }
-    /**删除标绘 */
-    public delPlot(plot?: DataMapPlot) {
+    /**删除标绘
+     * @param plot 标绘实例
+     * @returns MapPluginPlot实例
+     */
+    public delPlot(plot?: DataMapPlot): MapPluginPlot {
         plot = plot || this.plotAni;
         this.plotList = this.plotList.filter(info => info !== plot);
         this._redraw();
         return this;
     }
-    /**设置所有区域数据 */
-    public setPlotList(plotList: DataMapPlot[]) {
+    /**设置所有区域数据
+     * @param plotList 标绘集合
+     * @returns MapPluginPlot实例
+     */
+    public setPlotList(plotList: DataMapPlot[]): MapPluginPlot {
         this.plotList = plotList;
         this.renderFixedData();
         return this;
     }
-    /**设置编辑区域数据 */
-    public setEditPlot(plot: DataMapPlot) {
+    /**设置编辑区域数据
+     * @param plot 标绘实例
+     * @returns MapPluginPlot实例
+     */
+    public setEditPlot(plot: DataMapPlot): MapPluginPlot {
         let info = this.plotList.find(info => info === plot);
         info && (info.ifEdit = true);
         this.eventSwitch(false);
         this._redraw();
         return this;
     }
-    /**重绘 */
-    public redraw() {
+    /**重绘
+     * @returns MapPluginPlot实例
+     */
+    public redraw(): MapPluginPlot {
         this._redraw();
         return this;
     }
-    protected renderFixedData() {
+    /**渲染静态标绘图层 */
+    protected renderFixedData(): void {
         if (!this.map) return;
         this.ctrMapDraw.delAll();
         this.ctrMapDraw.reSetCanvas();
@@ -115,12 +148,30 @@ export class MapPluginPlot extends MapCanvasLayer {
         });
         this.ctrMapDraw.drawMapAll();
     }
-    protected renderAnimation() {
+    /**渲染动态绘制图层 */
+    protected renderAnimation(): void {
         if (!this.map) return;
         this.genAniPlot();
     }
+    /**创建标绘
+     * @param type 标绘类型
+     * @returns 标绘数据
+     */
+    private createPlot(type: MapPlotType): DataMapPlot {
+        switch (type) {
+            case 'point':
+                return { type: 'point', latLngs: [[0, 0]], ifEdit: true, url: '', points: [] };
+            case 'circle':
+                return { type: 'circle', latLngs: [], ifEdit: true };
+            case 'rect':
+                return { type: 'rect', latLngs: [], ifEdit: true };
+            case 'line':
+            case 'polygon':
+                return { type, latLngs: [], ifEdit: true };
+        }
+    }
     /**生成动态绘制图层 */
-    private genAniPlot() {
+    private genAniPlot(): void {
         this.ctrMapAniDraw.delAll();
         this.ctrMapAniDraw.resetCanvas();
         this.ctrEvent.clearAllEvents();
@@ -139,27 +190,26 @@ export class MapPluginPlot extends MapCanvasLayer {
             return;
         }
     }
-    /**绘制标绘 */
-    private drawPlot(layer: MapCanvasDraw | MapPluginDraw, plotInfo: DataMapPlot, type: MapPlotType) {
+    /**绘制标绘
+     * @param layer 绘制图层
+     * @param plotInfo 标绘数据
+     * @param type 标绘类型
+     */
+    private drawPlot(layer: MapCanvasDraw | MapPluginDraw, plotInfo: DataMapPlot, type: MapPlotType): void {
         let info = Object.assign({}, this.options, plotInfo);
         info.colorFill = info.colorFill;
         info.colorLine = info.colorLine || info.colorFill;
-        let latlngs: [number, number][];
-        switch (type) {
+        switch (info.type) {
             case 'line':
-                info = info as DataMapPlot<'line'>
                 layer.addLine({ ...info, latlngs: info.latLngs });
                 break;
             case 'polygon':
-                info = info as DataMapPlot<'polygon'>
-                latlngs = info.latLngs;
-                let polygon: MapRect = { ...info, latlngs };
+                let polygon: MapRect = { ...info, latlngs: info.latLngs };
                 layer.addRect(polygon);
                 break;
             case 'circle':
-                info = info as DataMapPlot<'circle'>
                 if (info.latLngs.length == 0) break;
-                let slatlng = info.latLngs[0], elatlng = info.latLngs[1], rail = info?.rail || 0;
+                let slatlng = info.latLngs[0], elatlng = info.latLngs[1], rail = info.rail || 0;
                 if (!elatlng) {
                     let [lat, lng] = slatlng;
                     let lngDis = u_mapGetLngDiffByDistance(this.map, rail, [[lat, lng]])
@@ -169,24 +219,26 @@ export class MapPluginPlot extends MapCanvasLayer {
                 layer.addArc({ ...info, size, latlng: slatlng });
                 break;
             case 'rect':
-                info = info as DataMapPlot<'rect'>
-                latlngs = this.calcRect(info.latLngs);
+                const latlngs = this.calcRect(info.latLngs);
                 let rect: MapRect = { ...info, latlngs };
                 layer.addRect(rect);
                 break;
             case 'point':
-                latlngs = info.latLngs;
-                if (!latlngs || latlngs.length == 0) break;
-                const { url, size: pSize = [16, 16] } = info = info as DataMapPlot<'point'>
+                if (!info.latLngs.length) break;
+                const { url, size: pSize = [16, 16] } = info
                 if (url) {
-                    layer.addImg({ ...info, latlng: latlngs[0], size: pSize })
+                    layer.addImg({ ...info, latlng: info.latLngs[0], size: pSize })
                 }
                 break;
         }
         let name: MapText = { text: info.name || '', colorFill: "#2C9B8A", widthLine: 2, colorLine: '#FFFFFF', ifShadow: true, latlng: this.calcCenter(info.latLngs, type) }
         layer.addText(name);
     }
-    /**各个点的平均值计算中心点 */
+    /**各个点的平均值计算中心点
+     * @param points 纬度经度点数组
+     * @param type 标绘类型
+     * @returns 中心点[number, number]
+     */
     private calcCenter(points: [number, number][], type: MapPlotType): [number, number] {
         let len = points.length
         if (len < 2 || type === 'circle' || type == 'point') return (points[0] || [0, 0]);
@@ -219,7 +271,10 @@ export class MapPluginPlot extends MapCanvasLayer {
         center = [center[0] / len, center[1] / len];
         return center;
     }
-    /**直接最大最小计算中心点 */
+    /**直接最大最小计算中心点
+     * @param points 纬度经度点数组
+     * @returns 中心点[number, number]
+     */
     private calcCenter2(points: [number, number][]): [number, number] {
         let len = points.length
         if (len < 2) return (points[0] || [0, 0]);
@@ -235,7 +290,10 @@ export class MapPluginPlot extends MapCanvasLayer {
         let [maxLat, minLat, maxLng, minLng] = maxmin;
         return [(maxLat + minLat) / 2, (maxLng + minLng) / 2];
     }
-    /**计算多边形的重心*/
+    /**计算多边形的重心
+     * @param points 纬度经度点数组
+     * @returns 中心点[number, number]
+     */
     private calcCenter3(points: [number, number][]): [number, number] {
         let xSum = 0;
         let ySum = 0;
@@ -251,7 +309,10 @@ export class MapPluginPlot extends MapCanvasLayer {
         const center: [number, number] = [xSum / areaSum, ySum / areaSum];
         return center;
     }
-    /**计算矩形的四个点 */
+    /**计算矩形的四个点
+     * @param latLngs 纬度经度点数组
+     * @returns 矩形四个点[number, number]
+     */
     private calcRect(latLngs: [number, number][]): [number, number][] {
         if (latLngs.length < 2) return latLngs;
         let latlngs: [number, number][] = [];
@@ -263,7 +324,10 @@ export class MapPluginPlot extends MapCanvasLayer {
         latlngs.push([latlng2[0], latlng1[1]]);
         return latlngs;
     }
-    /**计算圆的半径 */
+    /**计算圆的半径
+     * @param latLngs 纬度经度点数组
+     * @returns 圆的半径
+     */
     private calcRadius(latLngs: [number, number][]): number {
         if (latLngs.length < 2) return 0;
         let point1 = u_mapGetPointByLatlng(this.map, latLngs[0]);
@@ -272,8 +336,10 @@ export class MapPluginPlot extends MapCanvasLayer {
         let y = Math.abs(point1[1] - point2[1]);
         return Math.sqrt(x * x + y * y);
     }
-    /**开启鼠标编辑功能 */
-    private openMouseEdit(plotInfo: DataMapPlot) {
+    /**开启鼠标编辑功能
+     * @param plotInfo 标绘数据
+     */
+    private openMouseEdit(plotInfo: DataMapPlot): void {
         let type = plotInfo.type;
         switch (type) {
             case 'point':
@@ -288,7 +354,9 @@ export class MapPluginPlot extends MapCanvasLayer {
                 return this.setRectEditPoint(plotInfo);
         }
     }
-    /**设置圆的编辑点 */
+    /**设置圆的编辑点
+     * @param plotInfo 标绘数据
+     */
     private setCircleEditPoint(plotInfo: DataMapPlot): void {
         let { latLngs } = plotInfo;
         let eves: MapEvent[] = [];
@@ -300,7 +368,9 @@ export class MapPluginPlot extends MapCanvasLayer {
         this.ctrMapAniDraw.addLine(line);
         this.ctrEvent.setEventsByKey(eves, 'circleEdit');
     }
-    /**设置多边形的编辑点 */
+    /**设置多边形的编辑点
+     * @param plotInfo 标绘数据
+     */
     private setPolygonEditPoint(plotInfo: DataMapPlot): void {
         let { latLngs } = plotInfo;
         let eves: MapEvent[] = [];
@@ -320,7 +390,9 @@ export class MapPluginPlot extends MapCanvasLayer {
         }
         this.ctrEvent.setEventsByKey(eves, 'polygonEdit');
     }
-    /**点标绘仍可编辑移动位置 */
+    /**点标绘仍可编辑移动位置
+     * @param plotInfo 标绘数据
+     */
     private setPointEdit(plotInfo: DataMapPlot): void {
         let { latLngs } = plotInfo
         if (!latLngs) return;
@@ -328,7 +400,9 @@ export class MapPluginPlot extends MapCanvasLayer {
         this.addEvent(latLngs[0], 0, plotInfo, eves);
         this.ctrEvent.setEventsByKey(eves, 'pointEdit')
     }
-    /**设置线段的编辑点 */
+    /**设置线段的编辑点
+     * @param plotInfo 标绘数据
+     */
     private setLineEditPoint(plotInfo: DataMapPlot): void {
         let { latLngs } = plotInfo;
         let eves: MapEvent[] = [];
@@ -338,7 +412,9 @@ export class MapPluginPlot extends MapCanvasLayer {
         }
         this.ctrEvent.setEventsByKey(eves, 'lineEdit');
     }
-    /**设置矩形的编辑点 */
+    /**设置矩形的编辑点
+     * @param plotInfo 标绘数据
+     */
     private setRectEditPoint(plotInfo: DataMapPlot): void {
         /**存储的两个点 */
         let { latLngs } = plotInfo;
@@ -354,11 +430,11 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**添加响应事件 
      * @param latLng 经纬度
      * @param i 索引
-     * @param plotInfo 绘制信息
+     * @param plotInfo 标绘数据
      * @param eves 事件
      * @param ifVirtual 是否为虚拟点
     */
-    private addEvent(latLng: [number, number], i: number, plotInfo: DataMapPlot, eves: MapEvent[], ifVirtual?: boolean) {
+    private addEvent(latLng: [number, number], i: number, plotInfo: DataMapPlot, eves: MapEvent[], ifVirtual?: boolean): void {
         const that = this, { map } = that;
         let circle: MapArc = { ...this.editArc, latlng: latLng }, { latLngs, type } = plotInfo, { } = this;
         if (ifVirtual) { circle.size = 3, circle.fillAlpha = 0.9 };
@@ -409,7 +485,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**事件开关方法 
     * @param flag true开启 false关闭
     */
-    private eventSwitch(flag: boolean) {
+    private eventSwitch(flag: boolean): void {
         let key: 'on' | 'off' = flag ? 'on' : 'off';
         /**开启事件前需关闭事件防止多次添加 */
         if (flag) this.eventSwitch(false);
@@ -417,13 +493,22 @@ export class MapPluginPlot extends MapCanvasLayer {
         this.map[key]('dblclick', this.eventDblclick);
         this.map[key]('mousemove', this.eventMousemove);
     }
-    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent) => {
+    /**鼠标点击事件
+     * @param e 鼠标事件对象
+     */
+    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent): void => {
         this.eventClickTimer = setTimeout(() => {
-            let len = this.plotAni!.latLngs.length, type = this.plotAni!.type;
+            const plot = this.plotAni;
+            if (!plot) return;
             const { latlng } = u_mapGetMapMouseEvent(e, this.map);
-            if (type === 'polygon' || type === 'line' || len < 2) (this.plotAni!.latLngs as any).push([latlng.lat, latlng.lng]);
+            const point: [number, number] = [latlng.lat, latlng.lng];
+            if (plot.type === 'polygon' || plot.type === 'line') {
+                plot.latLngs.push(point);
+            } else if (plot.latLngs.length < 2) {
+                plot.latLngs = [...plot.latLngs, point];
+            }
             /**矩形和圆形只需要两个点 */
-            if ((type === 'rect' || type === 'circle') && this.plotAni!.latLngs.length >= 2) {
+            if ((plot.type === 'rect' || plot.type === 'circle') && plot.latLngs.length >= 2) {
                 this.eventDblclick();
             } else {
                 this._redraw();
@@ -432,14 +517,16 @@ export class MapPluginPlot extends MapCanvasLayer {
             this.cbPointChange && this.cbPointChange(this.plotAni!);
         }, 50);
     }
-    /** 鼠标移动事件 */
-    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent) => {
+    /**鼠标移动事件
+     * @param e 鼠标事件对象
+     */
+    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent): void => {
         const { latlng } = u_mapGetMapMouseEvent(e, this.map);
         this.curPoint = [latlng.lat, latlng.lng];
         this.renderAnimation();
     }
-    /** 双击关闭事件 */
-    private eventDblclick = () => {
+    /**双击关闭事件 */
+    private eventDblclick = (): void => {
         if (this.eventClickTimer) {
             clearTimeout(this.eventClickTimer);
             this.eventClickTimer = null;
@@ -452,29 +539,44 @@ export class MapPluginPlot extends MapCanvasLayer {
         this._redraw();
     }
     /**移除所有的监听函数 */
-    private clearCb() {
+    private clearCb(): void {
         this.cbPointAdd = undefined;
         this.cbPointMove = undefined;
         this.cbPointChange = undefined;
     }
-    /**绘制时添加了新点位时的回调*/
+    /**绘制时添加了新点位时的回调
+     * @param plotAni 绘制的点位数据
+    */
     private cbPointChange?: (plotAni: DataMapPlot) => void;
-    /**绘制时添加了新点位时的回调*/
+    /**绘制时添加了新点位时的回调
+     * @param plotAni 绘制的点位数据
+    */
     private cbPointAdd?: (plotAni: DataMapPlot) => void;
-    /**绘制时移动已有点位时的回调*/
+    /**绘制时移动已有点位时的回调
+     * @param plotAni 绘制的点位数据
+    */
     private cbPointMove?: (plotAni: DataMapPlot) => void;
-    /**添加新增点位时的监听函数 */
-    public addCbPointChange(cb: (plotAni: DataMapPlot) => void) {
+    /**添加新增点位时的监听函数
+     * @param cb 回调函数
+     * @returns MapPluginPlot实例
+     */
+    public addCbPointChange(cb: (plotAni: DataMapPlot) => void): MapPluginPlot {
         this.cbPointChange = cb;
         return this
     }
-    /**添加新增点位时的监听函数 */
-    public addCbPointAdd(cb: (plotAni: DataMapPlot) => void) {
+    /**添加新增点位时的监听函数
+     * @param cb 回调函数
+     * @returns MapPluginPlot实例
+     */
+    public addCbPointAdd(cb: (plotAni: DataMapPlot) => void): MapPluginPlot {
         this.cbPointAdd = cb;
         return this
     }
-    /**添加新增点位时的监听函数 */
-    public addCbPointMove(cb: (plotAni: DataMapPlot) => void) {
+    /**添加新增点位时的监听函数
+     * @param cb 回调函数
+     * @returns MapPluginPlot实例
+     */
+    public addCbPointMove(cb: (plotAni: DataMapPlot) => void): MapPluginPlot {
         this.cbPointMove = cb;
         return this
     }

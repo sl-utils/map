@@ -1,6 +1,8 @@
-import { AMapMapsEvent, MapEvent, MapEventResponse, MapEventType, MapMouseEvent, MapPoint, MapPoints, MapPosition, MapSize, MapType, TypeToMap } from "@sl-utils/map";
+import { AMapMapsEvent, MapMouseEvent, MapPosition, MapEventType, MapSize, MapBounds } from "@sl-utils/map";
 import * as L from "leaflet";
-import { LeafletMouseEvent } from "leaflet";
+import { LeafletMouseEvent, Layer, Map } from "leaflet";
+import { MAP_EVENT } from "../const";
+import { u_mathGetPoint } from "./slu-math";
 declare var AMap: any;
 const a = 6378245.0;
 const pi = 3.1415926535897932384626;
@@ -126,7 +128,7 @@ function getAngle(map: AMAP.Map | L.Map, latLngA: [number, number], latLngB: [nu
  * @params map 地图实例
  * @params mapType=0  0天地图  1高德地图 2 百度 暂不支持
  *  */
-function getBounds(map: AMAP.Map | L.Map) {
+function getBounds(map: AMAP.Map | L.Map): MapBounds {
     if (tsMapisLeaflet(map)) {
         let bounds = map.getBounds();
         return {
@@ -208,10 +210,12 @@ function getPointByLatlng(map: AMAP.Map | L.Map, latlng: [number, number] | unde
     if (!latlng) return [-1000, -1000];
     let [lat = 90, lng = 180] = latlng, p: AMAP.Pixel | L.Point;
     if (isNaN(lat) || isNaN(lng)) return [-1000, -1000];
-    if ((map as L.Map).latLngToContainerPoint) {
-        p = (map as L.Map).latLngToContainerPoint([lat, lng]);
+    if (tsMapisLeaflet(map)) {
+        p = map.latLngToContainerPoint([lat, lng]);
+    } else if (tsMapisAmap(map)) {
+        p = map.lngLatToContainer([lng, lat]);
     } else {
-        p = (map as AMAP.Map).lngLatToContainer([lng, lat]);
+        throw new Error('百度地图暂时不支持！')
     }
     return [p.x, p.y]
 }
@@ -260,21 +264,24 @@ function getMapSize(map: AMAP.Map | L.Map): { w: number, h: number } {
 */
 function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent, map: L.Map | AMAP.Map): MapMouseEvent {
     let latlng, point, page, originalEvent, type;
-    type = e.type as MapEventType;
-    if (tsMapisLeaflet(map)) {
-        const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e as LeafletMouseEvent;
+    tsisMapEventType(e.type)
+    type = e.type;
+    if (tsMapisLeaflet(map) && tsEventisLeaflet(e)) {
+        const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e;
         const { lat, lng } = Llatlng;
         latlng = { lat, lng };
         const { x, y } = containerPoint;
         point = { x, y };
         originalEvent = LorginalEvent;
-    } else if (tsMapisAmap(map)) {
-        const { pixel, originEvent, lnglat } = e as AMapMapsEvent;
+    } else if (tsMapisAmap(map) && tsEventisAmap(e)) {
+        const { pixel, originEvent, lnglat } = e;
         const { lat, lng } = lnglat;
         latlng = { lat, lng };
         const { x, y } = pixel;
         point = { x, y };
         originalEvent = originEvent;
+    } else {
+        throw new Error('百度地图暂时不支持！')
     }
     return {
         type,
@@ -318,8 +325,10 @@ function setViewCenter(map: L.Map | AMAP.Map, center: [number, number], zoom: nu
     }
     if (tsMapisLeaflet(map)) {
         map.setView(center, zoom);
-    } else if (tsMapisBaidu(map)) {
-        map.setCenter(center.reverse() as [number, number]);
+    } else if (tsMapisAmap(map)) {
+        const [lng, lat] = center;
+        const amapCenter: [number, number] = [lat, lng];
+        map.setCenter(amapCenter);
         map.setZoom(zoom);
     } else {
         throw new Error('百度地图暂时不支持！')
@@ -362,6 +371,46 @@ function setFitBounds(map: L.Map | AMAP.Map, point: [number, number] | [number, 
     }
 }
 
+/**将数值转换为经纬度字符串
+ * @param value 数值
+ * @param ifLng 是否是经度
+ * @param ifDMS 是否是DMS度分秒格式，否则显示度格式，默认精度为5
+ * @returns 经纬度字符串
+ */
+function getLatlngByValue(value: number, ifLng: boolean, ifDMS?: boolean): string {
+    let unit = "N";
+    if (value < 0) unit = "S"
+    if (ifLng) {
+        unit = "E";
+        while (value < 0) { value = value + 360 }
+        value = value % 360;
+        if (value > 180) {
+            unit = 'W'; value = 360 - value
+        }
+    }
+    value = Math.abs(value)
+    if (!ifDMS) return u_mathGetPoint(value, 5) + '°' + unit;
+    let f = value % 1 * 60
+    let m = (f % 1 * 60).toFixed(2)
+    let d = Math.floor(value);
+    f = Math.floor(f);
+    return `${d}°${f}'${m}"${unit}`
+}
+/**根据地图事件获取经纬度
+ * @param e 事件
+ * @returns 经纬度[lat, lng]
+ */
+function getLatLngByEvent(e: LeafletMouseEvent | AMapMapsEvent): [number, number] | null {
+    if (!e) return null;
+    if (tsEventisLeaflet(e)) {
+      const { lat, lng } = e.latlng;
+      return [lat, lng];
+    } else if (tsEventisAmap(e)) {
+      const { lat, lng } = e.lnglat;
+      return [lat, lng];
+    }
+    return null;
+  }
 
 /**移除数组指定item，会改变原数组，不改变引用地址
  * @param arr 要操作的数组
@@ -384,6 +433,12 @@ function delItem<T>(arr: T[] | undefined, item: T, key?: keyof T): T[] {
 /**判断参数是否是二维数组*/
 function tsIfTwoArr(value: [number, number] | [number, number][]): value is [number, number][] {
     return value && Array.isArray(value[0]);
+}
+/**判断参数是否是长度为2的一维数组
+ * @param value 参数
+ */
+function tsIfOneArrTwoLen(value: number | [number, number]): value is [number, number] {
+    return value && Array.isArray(value) && value.length == 2;
 }
 /**判断地图是否是Leaflet */
 function tsMapisLeaflet(map: AMAP.Map | L.Map): map is L.Map {
@@ -409,6 +464,45 @@ function tsMapisBaidu(map: AMAP.Map | L.Map): map is L.Map {
         return false
     }
 }
+/**判断地图事件是否是Leaflet
+ * @param e 地图事件
+ */
+function tsEventisLeaflet(e: AMapMapsEvent | LeafletMouseEvent): e is LeafletMouseEvent {
+    return e && 'latlng' in e && 'containerPoint' in e;
+}
+/**判断地图事件是否是高德
+ * @param e 地图事件
+ */
+function tsEventisAmap(e: AMapMapsEvent | LeafletMouseEvent): e is AMapMapsEvent {
+    return e && 'lnglat' in e && 'pixel' in e;
+}
+/**判断地图图层是否是Leaflet
+ * @param e 地图图层
+ */
+function tsLayerisLeaflet(e: Layer | AMAP.CustomLayer): e is Layer {
+    return e instanceof Layer
+}
+/**判断地图图层是否是高德
+ * @param e 地图图层
+ */
+function tsLayerisAmap(e: Layer | AMAP.CustomLayer): e is AMAP.CustomLayer {
+    return e instanceof AMap.CustomLayer
+}
+/**判断对象的key是否是对象的属性名
+ * @param obj 对象
+ * @param key 键
+ */
+function tsisKeyOf<T extends object>(obj: T, key: PropertyKey): key is keyof T {
+    return key in obj;
+}
+/**判断参数是否是地图事件类型
+ * @param type 参数
+ */
+function tsisMapEventType(type: string): asserts type is MapEventType {
+    if (!(type in MAP_EVENT)) {
+        throw new Error(`Invalid MapEventType: ${type}`);
+    }
+}
 
 export {
     delItem as u_arrItemDel,
@@ -432,9 +526,17 @@ export {
     getMapMouseEvent as u_mapGetMapMouseEvent,
     setFitBounds as u_mapSetFitBounds,
     setViewCenter as u_mapSetViewCenter,
+    getLatlngByValue as u_mapGetLatlngByValue,
+    getLatLngByEvent as u_mapGetLatLngByEvent,
 
     tsMapisLeaflet as u_tsMapisLeaflet,
     tsMapisAmap as u_tsMapisAmap,
     tsMapisBaidu as u_tsMapisBaidu,
-
+    tsEventisLeaflet as u_tsEventisLeaflet,
+    tsEventisAmap as u_tsEventisAmap,
+    tsLayerisLeaflet as u_tsLayerisLeaflet,
+    tsLayerisAmap as u_tsLayerisAmap,
+    tsIfOneArrTwoLen as u_tsIfOneArrTwoLen,
+    tsisKeyOf as u_tsIsKeyOf,
+    tsisMapEventType as u_tsIsMapEventType,
 };

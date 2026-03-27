@@ -3,8 +3,10 @@ import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
 import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
 
 /**
+ * 地图canvas动态箭头线插件
+ * @extends MapCanvasLayer
  * @constructor
- * @param {L.Map | AMAP.Map} map
+ * @param {SLUMap} sluMap
  * @param {OptMapPluginArrowLine} arrowLineOption
  */
 export class MapPluginArrowLine extends MapCanvasLayer {
@@ -12,8 +14,12 @@ export class MapPluginArrowLine extends MapCanvasLayer {
     super(sluMap.map, options);
     this.arrowLine = new MapCanvasArrowLine(sluMap.map, this.ctx, options);
   }
+  /**箭头线实例 */
   private arrowLine: MapCanvasArrowLine;
-  public setAllLines(lines: MapLine[]) {
+  /**设置所有线数据
+   * @param lines 箭头线数据
+   */
+  public setAllLines(lines: MapLine[]): void {
     this.arrowLine.setAllLines(lines);
   }
   /**
@@ -23,12 +29,16 @@ export class MapPluginArrowLine extends MapCanvasLayer {
    * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
    * */
   private isDrag: boolean = false;
+  /**渲染静态图层 */
   protected override renderFixedData(): void {
     // 拖拽更新坐标
     // this.arrowLine.updateArrowLine();
     this.arrowLine.update();
   }
-  protected override renderAnimation(time?: number) {
+  /**渲染动态数据
+   * @param time 时间戳
+   */
+  protected override renderAnimation(time?: number): void {
     this.resetCanvas();
     this.arrowLine.draw();
     this.flagAnimation && cancelAnimationFrame(this.flagAnimation);
@@ -38,17 +48,22 @@ export class MapPluginArrowLine extends MapCanvasLayer {
       this.renderAnimation(time);
     });
   }
-  /**拖拽不允许更新动画 */
-  protected addMapEvents(map: L.Map|AMAP.Map, key: "on" | "off") {    
+  /**控制地图监听事件 拖拽不允许更新动画
+   * @param map 地图实例
+   * @param key 事件类型
+   */
+  protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void {
     map[key]("dragstart", this.drawEnd, this);
     // map[key]('dragend', this.drawStart, this);
     map[key]("movestart", this.drawEnd, this);
     map[key]("moveend", this.drawStart, this);
   }
-  private drawStart() {
+  /**拖拽结束，开始绘制 */
+  private drawStart(): void {
     this.isDrag = false;
   }
-  private drawEnd() {
+  /**拖拽开始，结束绘制 */
+  private drawEnd(): void {
     this.isDrag = true;
   }
 }

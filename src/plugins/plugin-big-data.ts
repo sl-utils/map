@@ -1,49 +1,59 @@
-import rbush from "rbush";
+import rbush, { BBox } from "rbush";
 import { MapPluginDraw } from "./plugin-draw";
-import { SLUCanvasImg } from "../canvas";
+import { SLUCanvasImg, SLUCanvasText } from "../canvas";
 import { u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUMap } from "../map";
-import { OptMapCanvas, BigDataOption, MapRbush, MapImage, MapImageEvent } from "@sl-utils/map";
-/**
- * 大数据绘制 优化处理
+import { OptMapCanvas, OptBigData, MapRbush, MapImage, MapImageEvent, MapImageRender } from "@sl-utils/map";
+import RBush from "rbush";
+/**大数据绘制 优化处理
+ * @extends MapPluginDraw
+ * @param sluMap 地图实例
+ * @param options 大数据绘制选项
  * 划分网格 同网格内设置最大图标数量
  * 超出不绘制 减少画布渲染次数
  */
 export class MapPluginBigData extends MapPluginDraw {
-  constructor(sluMap: SLUMap, options: Partial<OptMapCanvas> & BigDataOption) {
+  constructor(sluMap: SLUMap, options: Partial<OptMapCanvas> & OptBigData) {
     super(sluMap, options);
     this.bigDataOption = options;
     // this.map.on('moveend', this.resetRbush);
     // this.map.on('zoomend', this.resetRbush);
   }
   /**R树搜索 绘制 */
-  private rbush = new rbush();
+  private rbush: RBush<MapRbush<MapImageRender>> = new rbush();
+  /**R树搜索 矩形 */
+  private readonly rbush_search: BBox = Object.create({});
+  /**R树搜索 数据 */
   private rbushData: MapRbush[] = [];
   /**大数据绘制图标 */
   private bigDataImgs: MapImage[] = [];
   /**已渲染的图标 用于事件添加 */
   private _renderBigDataImgs: MapImageEvent[] = [];
-  private bigDataOption: BigDataOption;
-  get renderBigDataList() {
+  /**大数据绘制选项 */
+  private bigDataOption: OptBigData;
+  /**大数据绘制图标 用于事件添加 */
+  get renderBigDataList(): MapImageEvent[] {
     return this._renderBigDataImgs;
   }
-  /**绘制大量图标 rbush筛选重叠优化 */
-  public setbigDataImgs(imgs: MapImage[]) {
+  /**绘制大量图标 rbush筛选重叠优化
+   * @param imgs 图标数组
+   */
+  public setbigDataImgs(imgs: MapImage[]): void {
     this.rbush.clear();
-    this.rbushData = [];
+    this.rbushData.length = 0;
     this.bigDataImgs = imgs;
     this.rbushData = imgs.map((el) => {
       this._draw.transformImageSize(el);
-
       return this.transformRbush(el);
     });
     // this._draw.setAllImgs(imgs)
     this.rbush.load(this.rbushData);
+    this.drawMapAll();
   }
   /**重设rbush */
-  private resetRbush = () => {
+  private resetRbush = (): void => {
     if (this.rbush) this.rbush.clear();
-    this.rbushData = [];
+    this.rbushData.length = 0;
     this.bigDataImgs.forEach((el) => {
       this.transformRbush(el);
     });
@@ -53,7 +63,7 @@ export class MapPluginBigData extends MapPluginDraw {
    * 将画布划分为多个矩形
    * 矩形内限制最大重叠图形，超出不绘制
    */
-  handleOverlapImage() {
+  private handleOverlapImage(): void {
     const that = this,
       { canvas, rbush, ctx, _draw, map } = that,
       zoom = map.getZoom(),
@@ -62,21 +72,21 @@ export class MapPluginBigData extends MapPluginDraw {
       [boundWidth, boundHeight] = minBound;
     // 缓存已绘制的图片
     const drawCached = new Set();
+    // SLUCanvasText.openDrawText();
     for (let i = 0; i < width; i += boundWidth / 2) {
       for (let j = 0; j < height; j += boundHeight / 2) {
         const center = [i + boundWidth / 2, j + boundHeight / 2];
-        const rects = rbush.search({
-          minX: center[0] - boundWidth / 2,
-          minY: center[1] - boundHeight / 2,
-          maxX: center[0] + boundWidth / 2,
-          maxY: center[1] + boundHeight / 2,
-        }) as MapRbush<MapImageEvent>[];
+        const search = this.rbush_search;
+        search.maxX = center[0] + boundWidth / 2, search.minX = center[0] - boundWidth / 2,
+          search.maxY = center[1] + boundHeight / 2, search.minY = center[1] - boundHeight / 2;
+        const rects = rbush.search(search);
         rects.forEach((el, idx) => {
           const { data } = el;
           if ((idx < maxCount || maxCount == -1) && !drawCached.has(data)) {
-            _draw.transformXY(data as any);
+            _draw.transformXY(data);
             drawCached.add(data);
-            SLUCanvasImg.drawImg(data as any, ctx);
+            SLUCanvasImg.drawImg(data, ctx);
+            // SLUCanvasText.drawText({ ...data, text: data.info.mmsi, overlap: { type: 'py' } }, ctx);
             this._renderBigDataImgs.push(data);
           }
         });
@@ -86,9 +96,9 @@ export class MapPluginBigData extends MapPluginDraw {
   /**
    * 根据图层缩放 获取配置
    * @param zoom
-   * @returns
+   * @returns { maxCount: number; minBound?: [number, number]; }
    */
-  private getZoomOption(zoom: number) {
+  private getZoomOption(zoom: number): { maxCount: number; minBound?: [number, number]; } {
     const that = this,
       { bigDataOption } = that,
       { zoomOption } = bigDataOption;
@@ -106,7 +116,10 @@ export class MapPluginBigData extends MapPluginDraw {
     }
     return zoomOption[zooms[len - 1]];
   }
-  /**图片转化为rbush数据格式 */
+  /**图片转化为rbush数据格式
+   * @param img 图标
+   * @returns rbush数据格式
+   */
   private transformRbush(img: MapImage): MapRbush<MapImage> {
     const { latlng, size = [0, 0], left = 0, top = 0 } = img;
     let sizeX: number = size[0],
@@ -121,8 +134,10 @@ export class MapPluginBigData extends MapPluginDraw {
       latlng: latlng
     };
   }
-  /**绘制所有需要绘制的类 */
-  public drawMapAll() {
+  /**绘制所有需要绘制的类
+   * @returns MapPluginBigData实例
+   */
+  public drawMapAll(): this {
     console.time("start");
     this._renderBigDataImgs = [];
     this._draw.drawMapAll();

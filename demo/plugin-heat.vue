@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**热力图 */
-import { SLUMap, MapPluginHeat } from "@sl-utils/map";
+import { SLUMap, MapPluginHeat, DataMapHeat } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
 let heat_: MapPluginHeat | undefined;
 /**是否显示热力图数据 */

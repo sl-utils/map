@@ -17,9 +17,13 @@ export function LeafletTilelayersWMTS(L: any) {
             // format: "image/jpeg",
         },
 
-        initialize: function (url:any, options:any) { // (String, Object)
+        /**初始化WMTS图层
+         * @param url WMTS服务URL
+         * @param options WMTS图层选项
+         */
+        initialize: function (url: string, options: any): void { // (String, Object)
             this._url = url;
-            var lOptions: any = {};
+            var lOptions: any = Object.assign({});
             var cOptions = Object.keys(options);
             cOptions.forEach(element => {
                 lOptions[element.toLowerCase()] = options[element];
@@ -42,12 +46,20 @@ export function LeafletTilelayersWMTS(L: any) {
             L.setOptions(this, options);
         },
 
-        onAdd: function (map:any) {
+        /**添加到地图
+         * @param map 地图实例
+         */
+        onAdd: function (map: L.Map): void {
             this._crs = this.options.crs || map.options.crs;
             L.TileLayer.prototype.onAdd.call(this, map);
         },
 
-        getTileUrl: function (coords:any) { // (Point, Number) -> String
+        /**获取WMTS图层的URL
+         * @param coords 矩阵坐标
+         * @param zoom 缩放级别
+         * @returns WMTS图层的URL
+         */
+        getTileUrl: function (coords: any, zoom: any): string { // (Point, Number) -> String
             var tileSize = this.options.tileSize;
             var nwPoint = coords.multiplyBy(tileSize);
             nwPoint.x += 1;
@@ -68,7 +80,12 @@ export function LeafletTilelayersWMTS(L: any) {
             return url + L.Util.getParamString(this.wmtsParams, url) + "&tilematrix=" + tilematrix + "&tilerow=" + tilerow + "&tilecol=" + tilecol;
         },
 
-        setParams: function (params:any, noRedraw:any) {
+        /**设置WMTS图层的参数
+         * @param params WMTS图层的参数
+         * @param noRedraw 是否不重新绘制图层
+         * @returns WMTS图层实例
+         */
+        setParams: function (params: any, noRedraw: boolean): void {
             L.extend(this.wmtsParams, params);
             if (!noRedraw) {
                 this.redraw();
@@ -76,6 +93,9 @@ export function LeafletTilelayersWMTS(L: any) {
             return this;
         },
 
+        /**获取默认的WMTS图层的矩阵ID
+         * @returns 默认的WMTS图层的矩阵ID
+         */
         getDefaultMatrix: function () {
             /**
              * the matrix3857 represents the projection 

@@ -2,8 +2,12 @@ import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent, SLUMap } from "../map";
 import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "@sl-utils/map";
+/**轨迹绘制类
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 配置项
+ */
 export class MapPluginTrack {
-  /**轨迹绘制类 */
   constructor(sluMap: SLUMap, options?: Partial<OptMapPluginTrack>) {
     const map = sluMap.map;
     this.map = map;
@@ -13,24 +17,24 @@ export class MapPluginTrack {
     this.layerAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { zIndex, className: "track ani" }));
     this.allEvents = new MapCanvasEvent(map);
   }
+  /**地图实例 */
   private map: L.Map | AMAP.Map;
   /**默认配置 */
   private options: OptMapPluginTrack = {
     pane: "canvas",
-    ifLine: true,
-    ifArc: true,
-    arcInterval: 1,
     className: "track",
     zIndex: 100,
+    ifArc: true,
+    arcInterval: 1,
     sizeArc: 3,
     colorArc: "#FFFFFF",
     colorArcFill: "#D9AF3B",
     widthLine: 1,
     colorLine: "#525b65",
-    textEnd: "终点",
     textStart: "起点",
-    colorTextEnd: "#D85151",
+    textEnd: "终点",
     colorTextStart: "#8D4CC3",
+    colorTextEnd: "#D85151",
     colorArcStart: "#8D4CC3",
     colorArcEnd: "#D85151",
   };
@@ -44,21 +48,27 @@ export class MapPluginTrack {
   private time: number = 0;
   /**事件集合 */
   private allEvents: MapCanvasEvent;
-  /** */
+  /**轨迹图层 */
   private layerDraw: MapPluginDraw;
   /**动态画船的图层 */
   private layerAniDraw: MapPluginDraw;
   /**指针点击所对应的点*/
   private cursorData!: MapPoint[];
-  /**点击圆点时的回调*/
+  /**点击圆点时的回调
+   * @param plotAni 点击事件数据
+  */
   private cbClickPoint?: (plotAni: MapEventResponse) => void;
+  /**是否显示轨迹 */
+  private ifShow: boolean = false;
   /**zoom变化 重设arc数据 */
-  public onRemove() {
+  public onRemove(): void {
     this.layerDraw.onRemove();
     this.layerAniDraw.onRemove();
   }
-  /**设置添加轨迹数据(并重新绘制) */
-  public setTracks(tracks: DataMapTrackGroup[]) {
+  /**设置添加轨迹数据(并重新绘制)
+   * @param tracks 轨迹数据
+   */
+  public setTracks(tracks: DataMapTrackGroup[]): void {
     const that = this,
       { allTracks } = that;
     /**添加数据到轨迹 */
@@ -80,7 +90,10 @@ export class MapPluginTrack {
     })
     this.setAniImage([]);
   }
-  /**获取指定时间各轨迹点的位置信息集合 */
+  /**获取指定时间各轨迹点的位置信息集合
+   * @param time 时间点
+   * @returns 指定时间各轨迹点的位置信息集合
+   */
   public getInfosByTime<T = any>(time: Date): ({ orginData: T } & MapTrackTimePosition)[] {
     const that = this,
       { allTracks } = that,
@@ -97,16 +110,19 @@ export class MapPluginTrack {
     return curTimeDatas;
   }
   /**获取下一时间段的数据 */
-  private getNextTrack() {
+  private getNextTrack(): void {
     let { earlyTime, intervalTime, time } = this;
     if (!earlyTime || time - earlyTime < intervalTime) return;
     this.earlyTime = 0;
     /**通知外部获取下一段数据 */
-    console.log("获取下一段数据");
+    // console.log("获取下一段数据");
     this.trigger("next");
   }
-  /**设置轨迹上的动点船 */
-  public setAniImage(imgs: MapImage[], texts: MapText[] = []) {
+  /**设置轨迹上的动点船
+   * @param imgs 图片数据
+   * @param texts 文本数据
+   */
+  public setAniImage(imgs: MapImage[], texts: MapText[] = []): void {
     const { layerAniDraw } = this;
     /**动态渲染需要时刻重新设置canvas 不然会导致错位 */
     layerAniDraw.resetCanvas();
@@ -114,29 +130,34 @@ export class MapPluginTrack {
     layerAniDraw.setAllTexts(texts);
     layerAniDraw.drawMapAll();
   }
-  /**添加点击圆点时的监听函数 */
-  public addCbClickPoint(cb: (plotAni: MapEventResponse<any>) => void) {
+  /**添加点击圆点时的监听函数
+   * @param cb 点击事件回调 
+   * @returns MapPluginTrack实例
+   */
+  public addCbClickPoint(cb: (plotAni: MapEventResponse<any>) => void): MapPluginTrack {
     this.cbClickPoint = cb;
     this._drawTracks();
     return this;
   }
-  /**设置轨迹的显示和隐藏 */
-  public setOpt(opt: Partial<OptMapPluginTrack>) {
-    Object.assign(this.options, opt);
+  /**设置轨迹的显示和隐藏
+   * @param ifShow 是否显示轨迹
+   */
+  public setIfShow(ifShow: boolean): void {
+    this.ifShow = ifShow;
     this._drawTracks();
   }
   /**绘制轨迹数据 */
-  private _drawTracks() {
+  private _drawTracks(): void {
     const that = this,
       { layerDraw, layerAniDraw, allEvents, allTracks, options, time } = that,
-      { ifArc, ifLine } = options;
+      { ifArc } = options;
     layerDraw.resetCanvas();
     layerDraw.setAllLines([]);
     layerDraw.setAllArcs([]);
     layerDraw.setAllTexts([]);
     allEvents.clearEventsByKey("track");
     /**不绘制线就不进行绘制 */
-    if (!ifLine) {
+    if (!this.ifShow) {
       layerDraw.drawMapAll();
       return;
     }
@@ -151,14 +172,18 @@ export class MapPluginTrack {
     allEvents.setEventsByKey(eves, "track");
     layerDraw.drawMapAll();
   }
-  /**单条轨迹绘制 （并给点添加事件）*/
-  private drawHistoryTrack(track: DataMapTrackGroup) {
+  /**单条轨迹绘制 （并给点添加事件）
+   * @param track 轨迹数据
+  */
+  private drawHistoryTrack(track: DataMapTrackGroup): void {
     this.drawLine(track);
     this.drawArc(track);
     this.drawStartEnd(track);
   }
-  /**绘制轨迹线 */
-  private drawLine(track: DataMapTrackGroup) {
+  /**绘制轨迹线
+   * @param track 轨迹数据
+   */
+  private drawLine(track: DataMapTrackGroup): void {
     let { widthLine, colorLine } = this.options,
       { data } = track,
       time = this.time;
@@ -176,8 +201,10 @@ export class MapPluginTrack {
     };
     this.layerDraw.addLine(line);
   }
-  /**绘制轨迹点 */
-  private drawArc(track: DataMapTrackGroup) {
+  /**绘制轨迹点
+   * @param track 轨迹数据
+   */
+  private drawArc(track: DataMapTrackGroup): void {
     let { sizeArc, colorArcFill, colorArc, arcInterval = 0, ifArc } = this.options,
       { data } = track;
     if (!ifArc) return;
@@ -189,7 +216,7 @@ export class MapPluginTrack {
         return [e.lat, e.lng];
       }
       return undefined;
-    }).filter((e) => e) as [number, number][];
+    }).filter((e): e is [number, number] => e !== undefined);
     let arc: MapArc = Object.assign(
       {},
       {
@@ -202,15 +229,10 @@ export class MapPluginTrack {
     );
     this.layerDraw.addArc(arc);
   }
-  /**实现移除数组第一个和最后一个元素得到新的数组 */
-  private removeFirstLast(arr: any[]) {
-    let len = arr.length;
-    if (len <= 2) return [];
-    let newArr = arr.slice(1, len - 1);
-    return newArr;
-  }
-  /**绘制轨迹起点终点 */
-  private drawStartEnd(track: DataMapTrackGroup) {
+  /**绘制轨迹起点终点
+   * @param track 轨迹数据
+   */
+  private drawStartEnd(track: DataMapTrackGroup): void {
     return;
     const that = this,
       { layerDraw } = that,
@@ -230,8 +252,11 @@ export class MapPluginTrack {
     layerDraw.addArc(sPoint);
     layerDraw.addArc(ePoint);
   }
-  /**添加轨迹点事件*/
-  private addPointEvent(track: DataMapTrackGroup, eves: MapEvent[]) {
+  /**添加轨迹点事件
+   * @param track 轨迹数据
+   * @param eves 事件数组
+  */
+  private addPointEvent(track: DataMapTrackGroup, eves: MapEvent[]): void {
     if (!this.cbClickPoint) return;
     let latlngs: [number, number][] = track.data.map((e) => [e.lat, e.lng])!;
     eves.push({
@@ -240,12 +265,16 @@ export class MapPluginTrack {
       latlngs: latlngs,
       info: track,
       range: [3, 3],
-      cb: (e) => {
-        this.cbClickPoint && this.cbClickPoint(e as any);
+      cb: (e: MapEventResponse) => {
+        this.cbClickPoint && this.cbClickPoint(e);
       },
     });
   }
-  /**获得指定时间的位置信息 */
+  /**获得指定时间的位置信息
+   * @param epoch 时间戳
+   * @param infos 轨迹数据数组
+   * @returns 位置信息
+  */
   private getInfoByTime(epoch: number, infos: DataMapTrack[]): MapTrackTimePosition {
     let len = infos.length,
       sData: DataMapTrack = infos[0],
@@ -266,7 +295,12 @@ export class MapPluginTrack {
     }
     return this.computeDate(sData, eData, epoch);
   }
-  /**计算位置信息 */
+  /**计算位置信息
+   * @param sData 起点轨迹数据
+   * @param eData 终点轨迹数据
+   * @param time 时间戳
+   * @returns 位置信息
+   */
   private computeDate(sData: DataMapTrack, eData: DataMapTrack, time: number): MapTrackTimePosition {
     let { lat: sLat, lng: sLng, timeStamp: sTime, course: rotate, speed: SPEED } = sData;
     let { lat: eLat, lng: eLng, timeStamp: eTime } = eData;
@@ -291,17 +325,23 @@ export class MapPluginTrack {
     return { lat, lng, time: new Date(time * 1000), rotate: angleY, speed, SPEED };
   }
   /**移除所有的监听函数 */
-  private clearCb() {
+  private clearCb(): void {
     this.cbClickPoint = undefined;
   }
 
-  private cbs = Object.create(null);
-  /** */
-  public on(key: string, cb: Function) {
+  /**监听函数对象 */
+  private cbs: Record<string, Function> = Object.create(null);
+  /**添加监听函数
+   * @param key 事件键
+   * @param cb 监听函数
+  */
+  public on(key: string, cb: Function): void {
     this.cbs[key] = cb;
   }
-  /** */
-  public trigger(key: string) {
+  /**触发监听函数
+   * @param key 事件键
+  */
+  public trigger(key: string): void {
     this.cbs[key] && this.cbs[key]();
   }
 }

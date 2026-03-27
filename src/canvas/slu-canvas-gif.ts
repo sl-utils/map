@@ -14,9 +14,9 @@ export class SLUCanvasGif {
     private TRANSPARENCY: any = null;
     private CTX: CanvasRenderingContext2D;
     /**缓存的数据 */
-    private gifCache: { [url: string]: GifCache } = {};
+    private gifCache: { [url: string]: GifCache } = Object.assign({});
     /**存放动画id用于停止之前绘制的动画 */
-    private aniIds: { [id: string]: number | null } = {};
+    private aniIds: { [id: string]: number | null } = Object.assign({});
     private opts: CanvasGif[] = [];
     private timeId: number;
     /**加载gif并进行缓存 , 避免重复请求 url */
@@ -472,10 +472,10 @@ export class SLUCanvasGif {
     /**获取全局颜色列表
      * @param size 全局颜色列表大小
      */
-    private parseCT(size: number, stream: Stream): [number, number, number][] { // Each entry is 3 bytes, for RGB.
-        let ct: [number, number, number][] = [];
+    private parseCT(size: number, stream: Stream): number[][] { // Each entry is 3 bytes, for RGB.
+        let ct: number[][] = [];
         for (let i = 0; i < size; i++) {
-            ct.push(stream.readBytes(3) as [number, number, number]);
+            ct.push(stream.readBytes(3));
         }
         return ct;
     };

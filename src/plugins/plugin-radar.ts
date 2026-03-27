@@ -1,7 +1,12 @@
 import { OptMapCanvas, OptMapPluginRadar } from "@sl-utils/map";
 import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
 
-/**地图插件(更换地图只需要更换继承的父类类型)----绘制 */
+/**雷达绘制插件
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap 地图实例
+ * @param options 雷达绘制配置
+ * */
 export class MapPluginRadar extends MapCanvasLayer {
     constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | OptMapCanvas) {
         super(sluMap.map, options);
@@ -16,20 +21,30 @@ export class MapPluginRadar extends MapCanvasLayer {
      * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
      * */
     private isDrag: boolean = false;
-    /**重设雷达绘制类 */
-    public setAllRadars(radars: OptMapPluginRadar[]) {
+    /**重设雷达绘制类
+     * @param radars 雷达绘制数据
+     * @returns MapPluginRadar实例
+     */
+    public setAllRadars(radars: OptMapPluginRadar[]): MapPluginRadar {
         this.canvasRadar.setAllRadars(radars)
         return this;
     }
-    /**添加雷达绘制类 */
-    public addRadar(radar: OptMapPluginRadar) {
+    /**添加雷达绘制类
+     * @param radar 雷达绘制数据
+     * @returns MapPluginRadar实例
+     */
+    public addRadar(radar: OptMapPluginRadar): MapPluginRadar {
         this.canvasRadar.addRadar(radar)
         return this;
     }
+    /**渲染静态标绘图层 */
     protected override renderFixedData(): void {
 
     }
-    protected override renderAnimation(time?: number) {
+    /**渲染动画
+     * @param time 时间戳
+     */
+    protected override renderAnimation(time?: number): void {
         this.resetCanvas();
         this.canvasRadar.drawRadarStatic();
         this.canvasRadar.drawRadarAmi(time)
@@ -40,19 +55,22 @@ export class MapPluginRadar extends MapCanvasLayer {
             this.renderAnimation(time);
         });
     }
-    /**拖拽不允许更新动画 */
-    protected addMapEvents(map: L.Map, key: 'on' | 'off') {
+    /**控制地图监听事件 拖拽不允许更新动画
+   * @param map 地图实例
+   * @param key 事件类型
+   */
+    protected addMapEvents(map: L.Map, key: 'on' | 'off'): void {
         map[key]('dragstart', this.drawEnd, this);
         // map[key]('dragend', this.drawStart, this);
         map[key]('movestart', this.drawEnd, this);
         map[key]('moveend', this.drawStart, this);
     }
-    private drawStart() {
-        console.log('drawStart')
+    /**拖拽结束，开始绘制 */
+    private drawStart(): void {
         this.isDrag = false;
     }
-    private drawEnd() {
-        console.log('drawEnd')
+    /**拖拽开始，结束绘制 */
+    private drawEnd(): void {
         this.isDrag = true;
     }
 }

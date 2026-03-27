@@ -5,6 +5,11 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
 /**坐标转换关键代码(加载后GridLayer自行转换) */
 (function (window, document) {
     L.GridLayer.include({
+        /**设置缩放转换
+         * @param level 矩阵等级
+         * @param _center 中心坐标
+         * @param zoom 缩放级别
+         */
         _setZoomTransform: function (level: any, _center: { lng: number, lat: number }, zoom: number) {
             var center = _center;
             if (center != undefined && this.options) {
@@ -24,7 +29,11 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
                 L.DomUtil.setPosition(level.el, translate);
             }
         },
-        _getTiledPixelBounds: function (_center: { lng: number, lat: number }) {
+        /**获取瓦片的像素边界
+         * @param _center = { lng: number, lat: number } 中心坐标
+         * @returns 矩形边界
+         */
+        _getTiledPixelBounds: function (_center: { lng: number, lat: number }): L.Bounds {
             var center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
@@ -47,32 +56,54 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
  * Normal 矢量地图 Satellite 卫星图
  * Map地图 Annotion地名
  */
-export enum SLEMap {
+export enum MapNameType {
+    /**天地图 */
+    /**天地图 矢量地图 */
     tianDiTuNormalMap = 'TianDiTu.Normal.Map',
+    /**天地图 矢量地图 地名 */
     tianDiTuNormalAnnotion = 'TianDiTu.Normal.Annotion',
+    /**天地图 卫星图 */
     tianDiTuSatelliteMap = 'TianDiTu.Satellite.Map',
+    /**天地图 卫星图 地名 */
     tianDiTuSatelliteAnnotion = 'TianDiTu.Satellite.Annotion',
+    /**天地图 地形图 */
     tianDiTuTerrainMap = 'TianDiTu.Terrain.Map',
+    /**天地图 地形图 地名 */
     tianDiTuTerrainAnnotion = 'TianDiTu.Terrain.Annotion',
     /**gaoDe 高德*/
+    /**高德 矢量地图 */
     gaoDeNormalMap = 'GaoDe.Normal.Map',
+    /**高德 卫星图 */
     gaoDeSatelliteMap = 'GaoDe.Satellite.Map',
+    /**高德 卫星图 地名 */
     gaoDeSatelliteAnnotion = 'GaoDe.Satellite.Annotion',
     /**百度 */
+    /**百度 矢量地图 */
     baiDuNormalMap = 'Baidu.Normal.Map',
+    /**百度 卫星图 */
     baiDuSatelliteMap = 'Baidu.Satellite.Map',
+    /**百度 卫星图 地名 */
     baiDuSatelliteAnnotion = 'Baidu.Satellite.Annotion',
     /**谷歌 */
+    /**谷歌 矢量地图 */
     googleNormalMap = 'Google.Normal.Map',
+    /**谷歌 卫星图 */
     googleSatelliteMap = 'Google.Satellite.Map',
+    /**谷歌 卫星图 地名 */
     googleSatelliteAnnotion = 'Google.Satellite.Annotion',
 
+    /**Geoq 矢量地图 */
     geoqNormalMap = 'Geoq.Normal.Map',
+    /**Geoq 午夜蓝/紫蓝色地图 */
     geoqNormalPurplishBlue = 'Geoq.Normal.PurplishBlue',
+    /**Geoq 灰色地图 */
     geoqNormalGray = 'Geoq.Normal.Gray',
+    /**Geoq 暖色地图 */
     geoqNormalWarm = 'Geoq.Normal.Warm',
+    /**Geoq 水系主题地图 */
     geoqThemeHydro = 'Geoq.Theme.Hydro',
 
+    /**OSM 矢量地图 */
     oSMNormalMap = 'OSM.Normal.Map',
 }
 /**网络地图图层配置项 */
@@ -83,38 +114,52 @@ export interface SLPMapLeafletLayer extends L.TileLayerOptions {
     corrdType?: string;
 }
 /**加载网络地图 并通过坐标转换使瓦片偏移解决地图偏移问题 
+ * @constructor
  * @param name 网络地图名称SLEMap
  * @param options 地图配置
  */
 export class SLULeafletNetMap {
-    constructor(name: SLEMap, options?: SLPMapLeafletLayer) {
+    constructor(name: MapNameType, options?: SLPMapLeafletLayer) {
         this.setMapProvider(name, options);
     }
+    /**地图实例 */
     private map!: L.Map;
     /**地图图层 */
     private mapLayer!: L.Layer;
-    /**将图层添加到map显示在页面 */
+    /**将图层添加到map显示在页面
+     * @param map 地图实例
+     * @returns SLULeafletNetMap实例
+     */
     public addTo(map: L.Map) {
         if (!map) return this;
         this.map = map;
         this.mapLayer?.addTo(this.map)
         return this;
     }
-    /**从map中移除当前图层 */
+    /**从map中移除当前图层
+     * @returns SLULeafletNetMap实例
+     */
     public remove() {
         this.mapLayer?.remove();
         return this;
     }
-    /**变更当前图层并添加到map中 */
-    public changeMap(name: SLEMap, options?: SLPMapLeafletLayer) {
+    /**变更当前图层并添加到map中
+     * @param name 网络地图名称SLEMap
+     * @param options 地图配置
+     * @returns SLULeafletNetMap实例
+     */
+    public changeMap(name: MapNameType, options?: SLPMapLeafletLayer) {
         this.remove();
         this.setMapProvider(name, options);
         this.addTo(this.map);
         return this;
     }
-    /**设置map的地图来源，名称，类型 */
-    private setMapProvider(name: SLEMap, options?: SLPMapLeafletLayer) { // (type, Object)
-        options = options || {}
+    /**设置map的地图来源，名称，类型
+     * @param name 网络地图名称SLEMap
+     * @param options 地图配置
+     */
+    private setMapProvider(name: MapNameType, options?: SLPMapLeafletLayer): void { // (type, Object)
+        options = options || Object.assign({})
         let parts = name.split('.'), mapSource = parts[0], mapName = parts[1], mapType = parts[2];
         let url = MAPINFO[mapSource][mapName][mapType];
         options.subdomains = MAPINFO[mapSource].Subdomains;
@@ -125,8 +170,11 @@ export class SLULeafletNetMap {
         }
         this.mapLayer = new L.TileLayer(url, options);
     }
-    /**获取坐标转换类型*/
-    private getCorrdType(name: string) {
+    /**获取坐标转换类型
+     * @param name 地图来源
+     * @returns 坐标转换类型
+     */
+    private getCorrdType(name: string):string {
         var zbName = "wgs84"
         switch (name) {
             case "Geoq":

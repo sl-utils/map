@@ -1,14 +1,14 @@
 <script setup lang="ts">
 /**风场 */
-import { SLUMap, MapPluginWind } from "../src";
 import { onMounted, ref } from "vue";
 import windjson from "./assets/json/wind-global.json";
+import { MapPluginWind, SLUMap, Image, OptMapPluginWind } from "@sl-utils/map";
 const iconUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
 let wind_: MapPluginWind | undefined;
 let map: SLUMap;
 /**是否显示风场数据 */
 const ifShow = ref(false);
-const iconResolver = (speed: number) => {
+const iconResolver: (speed: number) => Image = (speed: number) => {
   const level =
     speed < 0.3
       ? 0
@@ -45,7 +45,7 @@ const iconResolver = (speed: number) => {
     posY: pos[1] * (size[1] + 1),
   };
 };
-const options = {
+const options: OptMapPluginWind = {
   size: [28, 28],
   zooMsize: [
     [6, 6],
