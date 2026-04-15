@@ -14,19 +14,12 @@ export class MapCanvasLayer {
     constructor(map: AMAP.Map | LMap, opt?: AMAP.CustomLayerOption | OptMapCanvas) {
         this.map = map;
         Object.assign(this.options, opt);
-        if (u_tsMapisLeaflet(map)) {
-            let layer = this.layer = new Layer(this.options);
-            this.layer.onAdd = () => { this.onAdd(); return layer }
-        } else if (u_tsMapisAmap(map)) {
-            opt = Object.assign({
-                zooms: [3, 18],
-                alwaysRender: false,//缩放过程中是否重绘，复杂绘制建议设为false
-                zIndex: 200,
-                render: () => this._redraw()
-            }, opt);
-            this.layer = new AMap.CustomLayer(this.canvas, opt);
-        }
         this.initCanvas();
+        if (u_tsMapisLeaflet(map)) {
+            this._initLeaflet();
+        } else if (u_tsMapisAmap(map)) {
+            this._initAMap();
+        }
         this.onAdd();
     }
     /**地图实例*/
@@ -49,18 +42,20 @@ export class MapCanvasLayer {
     protected flagAnimation: number = 0;
     /**移除图层 */
     public onRemove(): MapCanvasLayer {
-        const { flagAnimation } = this;
         this._eventSwitch(false);
-        if (flagAnimation) cancelAnimationFrame(flagAnimation);
-        this._onAmapRemove();
-        this._onLeafletRemove();
+        if (this.flagAnimation) cancelAnimationFrame(this.flagAnimation);
+        if (u_tsMapisAmap(this.map)) {
+            this._onAmapRemove();
+        } else if (u_tsMapisLeaflet(this.map)) {
+            this._onLeafletRemove();
+        }
         return this;
     }
     /**清空并重新设置画布 */
     public resetCanvas(): void {
         const { canvas, map } = this;
-        if (map instanceof LMap) {
-            var topLeft = map.containerPointToLayerPoint([0, 0]);
+        if (u_tsMapisLeaflet(map)) {
+            const topLeft = map.containerPointToLayerPoint([0, 0]);
             DomUtil.setPosition(canvas, topLeft);
         }
         const { w, h } = u_mapGetMapSize(map);
@@ -98,7 +93,7 @@ export class MapCanvasLayer {
     }
     /**初始化canvas */
     private initCanvas(): void {
-        const { canvas, map, options, layer } = this;
+        const { canvas, options } = this;
         canvas.className = `sl-layer ${options.className || 'sl-canvas-map'}`;
         canvas.style['zIndex'] = `${options.zIndex || 100}`;
         canvas.style['transformOrigin'] = '50% 50%';
@@ -108,12 +103,15 @@ export class MapCanvasLayer {
      * @returns MapCanvasLayer实例
      */
     private onAdd(): MapCanvasLayer {
-        this._onAmapAdd();
+        if (u_tsMapisAmap(this.map)) {
+            this._onAmapAdd();
+        }
         this._eventSwitch(true);
         return this;
     }
     /**基础的监听事件   
-    * @param flag true开启重绘事件监听 false 关闭重绘事件监听
+    * @param flag @default true
+    *  true开启重绘事件监听; false关闭重绘事件监听
     **/
     private _eventSwitch(flag: boolean = true): void {
         let map = this.map;
@@ -127,13 +125,23 @@ export class MapCanvasLayer {
      ** ①高德地图渲染配置alwaysRender:true后拖动缩放会多次渲染
      */
     protected _redraw = (): void => {
-        console.log('##########--------MapCanvasLayer=>_redraw--------##########')
+        // console.log('##########--------MapCanvasLayer=>_redraw--------##########')
         if (!this.map) return;
         this.resetCanvas();
         this.renderFixedData();
         this.renderAnimation();
     };
     /**------------------------------高德地图的实现------------------------------*/
+    /**初始化高德地图的图层 */
+    private _initAMap(): void {
+        const opt = Object.assign({
+            zooms: [3, 18],
+            alwaysRender: false,//缩放过程中是否重绘，复杂绘制建议设为false
+            zIndex: 200,
+            render: () => this._redraw()
+        }, this.options);
+        this.layer = new AMap.CustomLayer(this.canvas, opt);
+    }
     /**将图层添加到map实例中显示 */
     private _onAmapAdd(): void {
         const { map, layer } = this;
@@ -151,6 +159,11 @@ export class MapCanvasLayer {
         }
     }
     /**------------------------------Leaflet地图的实现------------------------------*/
+    /**初始化Leaflet地图的图层 */
+    private _initLeaflet(): void {
+        const layer = this.layer = new Layer(this.options);
+        this.layer.onAdd = () => { this.onAdd(); return layer }
+    }
     /**初始化画布并添加到Pane中 */
     private initLeafletCanvas(): void {
         const { canvas, map, options } = this;
@@ -177,14 +190,15 @@ export class MapCanvasLayer {
         }
     }
     /**添加Leaflet地图事件监听
-     * @param flag true开启事件监听 false 关闭事件监听
+     *  @param flag @default true
+     *  true开启重绘事件监听; false关闭重绘事件监听
      */
     private addLeafletEvent(flag: boolean = true): void {
-        let map = this.map;
-        if (map instanceof LMap) {
+        const map = this.map;
+        if (u_tsMapisLeaflet(map)) {
             /**为了和高德保持一致，初始化后渲染一次 */
             requestAnimationFrame(() => this._reset());
-            let key: 'on' | 'off' = flag ? 'on' : 'off';
+            const key: 'on' | 'off' = flag ? 'on' : 'off';
             map[key]('viewreset', this._reset, this);
             map[key]('resize', this._reset, this);
             map[key]('moveend', this._reset, this);
@@ -204,7 +218,7 @@ export class MapCanvasLayer {
      */
     private _animateZoom(e: ZoomAnimEvent): void {
         let map: any = this.map;
-        var scale = map.getZoomScale(e.zoom),
+        const scale = map.getZoomScale(e.zoom),
             offset = map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(map._getMapPanePos());
         DomUtil.setTransform(this.canvas, offset, scale);
     }

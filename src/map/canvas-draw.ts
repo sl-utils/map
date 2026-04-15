@@ -264,41 +264,41 @@ export class MapCanvasDraw {
     return this;
   }
   /**清空
-   * @param type 不填清空所有内容数据
+   * @param type @default 'all' ,不填清空所有内容数据
    * @returns MapCanvasDraw实例
    */
   public delAll(type: 'all' | 'text' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif' = 'all'): MapCanvasDraw {
     const that = this;
     switch (type) {
       case 'arc':
-        that._allArcs = [];
+        that._allArcs.length = 0;
         break;
       case 'line':
-        that._allLines = [];
+        that._allLines.length = 0;
         break;
       case 'bezier':
-        that._allBLins = [];
+        that._allBLins.length = 0;
         break;
       case 'rect':
-        that._allRects = [];
+        that._allRects.length = 0;
         break;
       case 'img':
-        that._allImgs = [];
+        that._allImgs.length = 0;
         break;
       case 'gif':
-        that._allGifs = [];
+        that._allGifs.length = 0;
         break;
       case 'text':
-        that._allTexts = [];
+        that._allTexts.length = 0;
         break;
       case 'all':
-        that._allArcs = [];
-        that._allLines = [];
-        that._allBLins = [];
-        that._allRects = [];
-        that._allImgs = [];
-        that._allGifs = [];
-        that._allTexts = [];
+        that._allArcs.length = 0;
+        that._allLines.length = 0;
+        that._allBLins.length = 0;
+        that._allRects.length = 0;
+        that._allImgs.length = 0;
+        that._allGifs.length = 0;
+        that._allTexts.length = 0;
     }
     return that;
   }

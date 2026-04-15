@@ -11,7 +11,7 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
          * @param zoom 缩放级别
          */
         _setZoomTransform: function (level: any, _center: { lng: number, lat: number }, zoom: number) {
-            var center = _center;
+            let center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
                     center = u_mapTogps84gcj02(_center.lng, _center.lat);
@@ -19,7 +19,7 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
                     center = u_mapTogps84bd09(_center.lng, _center.lat);
                 }
             }
-            var scale = this._map.getZoomScale(zoom, level.zoom),
+            const scale = this._map.getZoomScale(zoom, level.zoom),
                 translate = level.origin.multiplyBy(scale)
                     .subtract(this._map._getNewPixelOrigin(center, zoom)).round();
 
@@ -34,7 +34,7 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
          * @returns 矩形边界
          */
         _getTiledPixelBounds: function (_center: { lng: number, lat: number }): L.Bounds {
-            var center = _center;
+            let center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
                     center = u_mapTogps84gcj02(_center.lng, _center.lat);
@@ -42,7 +42,7 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
                     center = u_mapTogps84bd09(_center.lng, _center.lat);
                 }
             }
-            var map = this._map,
+            const map = this._map,
                 mapZoom = map._animatingZoom ? Math.max(map._animateToZoom, map.getZoom()) : map.getZoom(),
                 scale = map.getZoomScale(mapZoom, this._tileZoom),
                 pixelCenter = map.project(center, this._tileZoom).floor(),
@@ -175,7 +175,7 @@ export class SLULeafletNetMap {
      * @returns 坐标转换类型
      */
     private getCorrdType(name: string):string {
-        var zbName = "wgs84"
+        let zbName = "wgs84"
         switch (name) {
             case "Geoq":
             case "GaoDe":

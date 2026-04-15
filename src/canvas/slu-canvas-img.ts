@@ -24,7 +24,7 @@ export class SLUCanvasImg {
         if (point) points.length ? points.push(point) : (points = [point]);
         const rad = (rotate * Math.PI) / 180, cos = Math.cos(rad), sin = Math.sin(rad);
         ctx.globalAlpha = alpha;
-        for (let i = 0; i < points.length; i++) {
+        for (let i = 0, len = points.length; i < len; i++) {
             const [x, y] = points[i];
             ctx.save();
             ctx.setTransform(cos, sin, -sin, cos, x, y);

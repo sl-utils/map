@@ -1,13 +1,12 @@
 import { CRS, Map as LMap, LatLng, LeafletMouseEvent, MapOptions, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapSetFitBounds, u_mapSetViewCenter, u_tsIsKeyOf, u_tsMapisLeaflet } from "../utils/slu-map";
+import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_tsIsKeyOf, u_tsMapisLeaflet } from "../utils/slu-map";
 import { AMapMapsEvent, MapBounds, MapControlInfo, MapLatLng, OptMap } from "@sl-utils/map";
 declare var AMap: any;
 /**地图
  * @constructor
  * @param ele 地图容器元素
- * @param options 地图初始化参数
  */
 export class SLUMap {
     constructor(ele: string) {
@@ -32,7 +31,7 @@ export class SLUMap {
     /**当前正在显示的网络图层 */
     private curs: Partial<{ [key in MapNameType]: SLULeafletNetMap | undefined }> = Object.create(null);
     /**初始实例化地图
-     * @param options 地图初始化参数
+     * @param options @default {} 地图初始化参数
      */
     public async init(options: Partial<OptMap> = {}): Promise<void> {
         const { type } = options, ele = this.ele;
@@ -87,7 +86,7 @@ export class SLUMap {
         return u_mapGetMapSize(this._map);
     }
     /**显示指定的网络图层
-     * @param names 网络图层名称数组
+     * @param names @default [] 网络图层名称数组
      * @returns SLUMap实例
      */
     public showMap(names: Array<MapNameType> = []): SLUMap {
@@ -117,7 +116,7 @@ export class SLUMap {
         return this
     }
     /**打开地图控件
-     * @param ifDMS=true 是否使用度分秒格式，否则显示度格式，默认精度为5
+     * @param ifDMS @default true 是否使用度分秒格式，否则显示度格式，默认精度为5
      * @returns 地图控件信息
      */
     public openControl(ifDMS: boolean = true): MapControlInfo {
@@ -220,6 +219,7 @@ export class SLUMap {
         if (flag) this.eventSwitch(false);
         this.map[key]('mousemove', (e) => this.setLatlng(e));
         this.map[key]('zoomend', () => this.setZoomAndScale());
+        this.map[key]('moveend', () => this.setScale());
     }
     /**设置经纬度信息
      * @param e 鼠标事件
@@ -237,29 +237,41 @@ export class SLUMap {
     private setZoomAndScale(): void {
         if (!this.map) return;
         this.controlInfo.zoom = this.getZoom();
-        const bounds = u_mapGetBounds(this.map);
-        let width = u_mapGetMapSize(this.map).w;
-        let disLng = Math.abs(bounds.lngRight - bounds.lngLeft);
-        let averLat = (bounds.latTop + bounds.latBottom) / 2;
-        let distance = u_mapGetDistance([averLat, 0], [averLat, disLng], this.map);
-        distance = distance / width * 50;
+        this.setScale();
+    }
+    /**设置地图比例尺 */
+    private setScale(): void {
+        if (!this.map) return;
+        const { lat: averLat, lng: averLng } = this.getCenter();
+        const [x, y] = u_mapGetPointByLatlng(this.map, [averLat, averLng]);
+        const point: [number, number] = [x + 50, y];
+        const targetLatLng = u_mapGetLatLngByPoint(this.map, point);
+        /**计算距离中心点 50px 对应的实际距离（米） */
+        let dis = u_mapGetDistance([averLat, averLng], targetLatLng, this.map);
         let text = '';
-        if (distance > 2000) {
-            distance = distance / 1852
-            text = ' nm'
+        if (dis > 2000) {
+            dis = dis / 1852;
+            text = 'nm';
         } else {
-            text = ' m'
+            text = 'm';
         }
-        let num = distance;
-        let power = 1;
-        while (num > 10) {
-            power = power * 10;
-            num = Math.ceil(num / 10)
-        }
-        num = Math.ceil(num) * power;
-        this.controlInfo.width = 50 * num / distance + 'px';
-        this.controlInfo.scale = num + text;
+        const num = this.getScaleNum(dis);
+        this.controlInfo.width = Math.round(50 * num / dis) + 'px';
+        this.controlInfo.scale = Math.round(num) + text;
         if (this.controlCb) this.controlCb(this.controlInfo);
+    }
+    /**取整比例尺
+     * @param num 距离（米）
+     * @returns 取整后的比例尺（米）
+     */
+    private getScaleNum(num: number): number {
+        if (num < 1) return 1;
+        if (num <= 10) return Math.ceil(num / 2) * 2;
+        const power = Math.pow(10, Math.floor(Math.log10(num)));
+        let leading = num / power;
+        if (leading <= 2) return Math.ceil(leading * 2) / 2 * power;
+        if (leading <= 5) return Math.ceil(leading) * power;
+        return Math.ceil(leading / 5) * 5 * power;
     }
 }
 

@@ -6,12 +6,25 @@ let plot_: MapPluginPlot;
 onMounted(async () => {
   const map = new SLUMap("map");
   const opt: OptMapPluginPlot = {
-    zIndex: 200,
-    widthLine: 2,
-    colorFill: "rgba(137,185,138,0.5)",
-    colorLine: "#2c9b8a",
-    dash: [5, 5],
-    className: "plot",
+    plotOpt: {
+      zIndex: 200,
+      widthLine: 4,
+      colorFill: "rgba(137,85,38,0.5)",
+      colorLine: "#9c9b8a",
+      dash: [15, 15],
+      className: "plot",
+    },
+    editOpt: {
+      colorFill: "#dc3926",
+      colorLine: "#7C9B8A",
+      size: 4,
+    },
+    textOpt: {
+      colorFill: "#ee3e16",
+      widthLine: 5,
+      colorLine: "#0fe62b",
+      ifShadow: true,
+    },
   };
   await map.init({ type: "L" });
   plot_ = new MapPluginPlot(map, opt);
@@ -26,6 +39,7 @@ onMounted(async () => {
         [22.7442, 114.1474],
         [22.6742, 113.6374],
       ],
+      name: "这是一个多边形",
     },
   ]);
 });

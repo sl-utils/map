@@ -23,19 +23,19 @@ export function LeafletTilelayersWMTS(L: any) {
          */
         initialize: function (url: string, options: any): void { // (String, Object)
             this._url = url;
-            var lOptions: any = Object.assign({});
-            var cOptions = Object.keys(options);
+            const lOptions: any = Object.assign({});
+            const cOptions = Object.keys(options);
             cOptions.forEach(element => {
                 lOptions[element.toLowerCase()] = options[element];
             });
-            var wmtsParams = L.extend({}, this.defaultWmtsParams);
-            var tileSize = lOptions.tileSize || this.options.tileSize;
+            const wmtsParams = L.extend({}, this.defaultWmtsParams);
+            const tileSize = lOptions.tileSize || this.options.tileSize;
             if (lOptions.detectRetina && L.Browser.retina) {
                 wmtsParams.width = wmtsParams.height = tileSize * 2;
             } else {
                 wmtsParams.width = wmtsParams.height = tileSize;
             }
-            for (var i in lOptions) {
+            for (const i in lOptions) {
                 // all keys that are in defaultWmtsParams options go to WMTS params
                 if (wmtsParams.hasOwnProperty(i) && i != "matrixIds") {
                     wmtsParams[i] = lOptions[i];
@@ -60,23 +60,23 @@ export function LeafletTilelayersWMTS(L: any) {
          * @returns WMTS图层的URL
          */
         getTileUrl: function (coords: any, zoom: any): string { // (Point, Number) -> String
-            var tileSize = this.options.tileSize;
-            var nwPoint = coords.multiplyBy(tileSize);
+            const tileSize = this.options.tileSize;
+            const nwPoint = coords.multiplyBy(tileSize);
             nwPoint.x += 1;
             nwPoint.y -= 1;
-            var sePoint = nwPoint.add(new L.Point(tileSize, tileSize));
+            const sePoint = nwPoint.add(new L.Point(tileSize, tileSize));
             var zoom = this._tileZoom;
-            var nw = this._crs.project(this._map.unproject(nwPoint, zoom));
-            var se = this._crs.project(this._map.unproject(sePoint, zoom));
-            var tilewidth = se.x - nw.x;
-            var ident = this.matrixIds[zoom].identifier;
-            // var tilematrix =  this.wmtsParams.tilematrixset + ":" + ident;
-            var tilematrix = ident;
-            var X0 = this.matrixIds[zoom].topLeftCorner.lng;
-            var Y0 = this.matrixIds[zoom].topLeftCorner.lat;
-            var tilecol = Math.floor((nw.x - X0) / tilewidth);
-            var tilerow = -Math.floor((nw.y - Y0) / tilewidth);
-            var url = L.Util.template(this._url, { s: this._getSubdomain(coords) });
+            const nw = this._crs.project(this._map.unproject(nwPoint, zoom));
+            const se = this._crs.project(this._map.unproject(sePoint, zoom));
+            const tilewidth = se.x - nw.x;
+            const ident = this.matrixIds[zoom].identifier;
+            // const tilematrix =  this.wmtsParams.tilematrixset + ":" + ident;
+            const tilematrix = ident;
+            const X0 = this.matrixIds[zoom].topLeftCorner.lng;
+            const Y0 = this.matrixIds[zoom].topLeftCorner.lat;
+            const tilecol = Math.floor((nw.x - X0) / tilewidth);
+            const tilerow = -Math.floor((nw.y - Y0) / tilewidth);
+            const url = L.Util.template(this._url, { s: this._getSubdomain(coords) });
             return url + L.Util.getParamString(this.wmtsParams, url) + "&tilematrix=" + tilematrix + "&tilerow=" + tilerow + "&tilecol=" + tilecol;
         },
 
@@ -101,8 +101,8 @@ export function LeafletTilelayersWMTS(L: any) {
              * the matrix3857 represents the projection 
              * for in the IGN WMTS for the google coordinates.
              */
-            var matrixIds3857 = new Array(22);
-            for (var i = 0; i < 22; i++) {
+            const matrixIds3857 = new Array(22);
+            for (let i = 0; i < 22; i++) {
                 matrixIds3857[i] = {
                     identifier: "" + i,
                     topLeftCorner: new L.LatLng(20037508.3428, -20037508.3428)

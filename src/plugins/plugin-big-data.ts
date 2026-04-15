@@ -13,7 +13,7 @@ import RBush from "rbush";
  * 超出不绘制 减少画布渲染次数
  */
 export class MapPluginBigData extends MapPluginDraw {
-  constructor(sluMap: SLUMap, options: Partial<OptMapCanvas> & OptBigData) {
+  constructor(sluMap: SLUMap, options: OptBigData) {
     super(sluMap, options);
     this.bigDataOption = options;
     // this.map.on('moveend', this.resetRbush);
@@ -109,7 +109,7 @@ export class MapPluginBigData extends MapPluginDraw {
       .sort((a, b) => Number(a) - Number(b));
     const len = zooms.length;
     // 取前区域配置 若无取后区域配置
-    for (let i = 0; i < len - 1; i++) {
+    for (let i = 0, len = zooms.length - 1; i < len; i++) {
       if (zoom > zooms[i] && zoom < zooms[i + 1]) {
         return zoomOption[zooms[i]];
       }
@@ -139,7 +139,7 @@ export class MapPluginBigData extends MapPluginDraw {
    */
   public drawMapAll(): this {
     console.time("start");
-    this._renderBigDataImgs = [];
+    this._renderBigDataImgs.length = 0;
     this._draw.drawMapAll();
     this.handleOverlapImage();
     console.timeEnd("start");

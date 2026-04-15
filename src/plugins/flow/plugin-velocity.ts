@@ -106,8 +106,8 @@ export class PluginVelocity {
    */
   public start(width: number, height: number, extent: [[number, number], [number, number]]): void {
     this.stop();
-    console.time('start');
-    var mapBounds = {
+    // console.time('PluginVelocity start');
+    const mapBounds = {
       south: this.deg2rad(extent[0][1]),
       north: this.deg2rad(extent[1][1]),
       east: this.deg2rad(extent[1][0]),
@@ -125,7 +125,7 @@ export class PluginVelocity {
     };
     this.buildGrid(this.gridData);
     this.interpolateField(buildBounds, mapBounds);
-    console.timeEnd('start');
+    // console.timeEnd('PluginVelocity start');
   }
   /**构建网格数据
    * @param data 数据
@@ -134,24 +134,24 @@ export class PluginVelocity {
     /**数据太少不支持 */
     if (data.length < 2) console.log("Windy Error: data must have at least two components (u,v)");
     let builder = this.createBuilder(data);
-    var header = builder.header;
-    let lng0 = (this.lng0 = header.lo1);
-    let lat0 = (this.lat0 = header.la1); // the grid's origin (e.g., 0.0E, 90.0N)
-    let Δlng = (this.Δlng = header.dx);
-    let Δlat = (this.Δlat = header.dy); // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
-    let nx = header.nx;
-    let ny = header.ny; // number of grid points W-E and N-S (e.g., 144 x 73)
-    let date = new Date(header.refTime);
+    const header = builder.header;
+    const lng0 = (this.lng0 = header.lo1);
+    const lat0 = (this.lat0 = header.la1); // the grid's origin (e.g., 0.0E, 90.0N)
+    const Δlng = (this.Δlng = header.dx);
+    const Δlat = (this.Δlat = header.dy); // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
+    const nx = header.nx;
+    const ny = header.ny; // number of grid points W-E and N-S (e.g., 144 x 73)
+    const date = new Date(header.refTime);
     date.setHours(date.getHours() + header.forecastTime);
     // Scan modes 0, 64 allowed.
     // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml
     let grid: [number, number][][] = (this.grid = []);
-    var p = 0;
-    var isContinuous = Math.floor(nx * Δlng) >= 360;
-    for (var j = 0; j < ny; j++) {
+    let p = 0;
+    const isContinuous = Math.floor(nx * Δlng) >= 360;
+    for (let j = 0; j < ny; j++) {
       /** [开始的数据,结束的数据] [x序号]   */
-      var row: [number, number][] = [];
-      for (var i = 0; i < nx; i++, p++) {
+      const row: [number, number][] = [];
+      for (let i = 0; i < nx; i++, p++) {
         row[i] = builder.data(p);
       }
       // For wrapped grids, duplicate first column as last column to simplify interpolation logic
@@ -182,25 +182,24 @@ export class PluginVelocity {
    */
   private interpolateField(bounds: WindBounds, extent: WindMapBounds): void {
     /**数据地图面积 */
-    var mapArea = (extent.south - extent.north) * (extent.west - extent.east);
+    const mapArea = (extent.south - extent.north) * (extent.west - extent.east);
     /**得到与可视区域的面积相关联的风速刻度*/
-    var velocityScale = this.VELOCITY_SCALE * Math.pow(mapArea, 0.4) * 0.01;
-    var columns: [number, number, number][][] = [];
-    var x = bounds.x;
+    const velocityScale = this.VELOCITY_SCALE * Math.pow(mapArea, 0.4) * 0.01;
+    const columns: [number, number, number][][] = [];
     this.allThreatIds.forEach(id => {
       cancelIdleCallback(id);
     })
-    this.allThreatIds = [];
+    this.allThreatIds.length = 0;
     for (let x = bounds.x, len = bounds.width; x < len; x += 2) {
       let column: [number, number, number][] = [];
       const id = requestIdleCallback(() => {
-        for (let y = bounds.y; y <= bounds.yMax; y += 2) {
+        for (let y = bounds.y, len = bounds.yMax; y <= len; y += 2) {
           //得到X , Y 点对应地图上的经纬度
           let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
           /**是否是有效数字 */
           if (isFinite(lng)) {
             //获得指定经纬度的信息 [ 开始值 , 结束值 , 平均值 ]
-            var wind = this.interpolate(lng, lat);
+            let wind = this.interpolate(lng, lat);
             if (wind) {
               //根据地图的缩放级别调整粒子的大小
               wind = this.distort(lng, lat, x, y, velocityScale, wind);
@@ -235,15 +234,13 @@ export class PluginVelocity {
       nx = fx + 1,
       fy = Math.floor(j),
       ny = fy + 1;
-    var row: [number, number][];
+    let row: [number, number][];
     /** Y轴第fy个数据 赋值并且不为undefined */
     if ((row = grid[fy])) {
-      let g00 = row[fx],
-        g10 = row[nx];
+      const g00 = row[fx], g10 = row[nx];
       if (this.isValue(g00) && this.isValue(g10) && (row = grid[ny])) {
         //X轴第fy+1个数据
-        var g01 = row[fx],
-          g11 = row[nx];
+        const g01 = row[fx], g11 = row[nx];
         if (this.isValue(g01) && this.isValue(g11)) {
           return this.bilinearInterpolateVector(i - fx, j - fy, g00, g10, g01, g11);
         }
@@ -307,7 +304,7 @@ export class PluginVelocity {
     /**纬度加上指定H后的像素点位置 */
     let pφ = this.project(lat + hφ, lng);
     /**纬度的弧度值*/
-    var k = Math.cos((lat / 360) * 2 * Math.PI);
+    const k = Math.cos((lat / 360) * 2 * Math.PI);
     return [
       (pλ[0] - x) / hλ / k,
       0, //(pλ[1] - y) / hλ / k,
@@ -329,29 +326,23 @@ export class PluginVelocity {
    * @param field 风场数据
    */
   private animate(bounds: WindBounds, field: PluginVelocityField): void {
-    var colorStyles = this.colorScale;
-    var buckets: any[][] = colorStyles.map(function (): any[] {
+    const colorStyles = this.colorScale;
+    const buckets: any[][] = colorStyles.map(function (): any[] {
       return [];
     });
     /**粒子数量*/
-    var count = Math.round(bounds.width * bounds.height * this.PARTICLE_MULTIPLIER);
+    let count = Math.round(bounds.width * bounds.height * this.PARTICLE_MULTIPLIER);
     if (this.isMobile()) count *= this.PARTICLE_REDUCTION;
-    var fadeFillStyle = `rgba(0, 0, 0, ${this.OPACITY})`;
+    const fadeFillStyle = `rgba(0, 0, 0, ${this.OPACITY})`;
     /**粒子组 */
     let particles: WindParticle[] = [];
-    for (var i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       particles.push(
-        field.randomize({
-          age: Math.floor(Math.random() * this.MAX_PARTICLE_AGE) + 0,
-          x: 0,
-          y: 0,
-        })
+        field.randomize({ age: Math.floor(Math.random() * this.MAX_PARTICLE_AGE) + 0, x: 0, y: 0, })
       );
     }
     let evolve = () => {
-      buckets.forEach((bucket) => {
-        bucket.length = 0;
-      });
+      buckets.forEach((bucket) => { bucket.length = 0; });
       particles.forEach((particle) => {
         /**重新生成新的粒子 */
         if (particle.age > this.MAX_PARTICLE_AGE) field.randomize(particle).age = 0;
@@ -383,7 +374,7 @@ export class PluginVelocity {
       });
     };
 
-    var g = this.canvas.getContext("2d")!;
+    const g = this.canvas.getContext("2d")!;
     g.lineWidth = this.PARTICLE_LINE_WIDTH;
     // g.fillStyle = "rgba(0, 0, 0, 0.15)";
     g.globalAlpha = 0.6;
@@ -412,11 +403,11 @@ export class PluginVelocity {
         }
       });
     };
-    var then = Date.now();
+    let then = Date.now();
     let frame = () => {
       this.animationLoop = requestAnimationFrame(frame);
-      var now = Date.now();
-      var delta = now - then;
+      const now = Date.now();
+      const delta = now - then;
       if (delta > this.FRAME_TIME) {
         then = now - (delta % this.FRAME_TIME);
         evolve();
@@ -486,7 +477,7 @@ class PluginVelocityField {
   private NULL_WIND_VECTOR: WindVector = [NaN, NaN, null];
   /**释放内存 */
   public release(): void {
-    this.columns = [];
+    this.columns.length = 0;
   }
   /**获取随机的  x , y 有数据的点(一个糟糕的未完成方法)
    * @param o 粒子
@@ -510,7 +501,7 @@ class PluginVelocityField {
    * @returns 风矢量
    */
   public run(x: number, y: number): WindVector {
-    var column = this.columns[Math.round(x)];
+    const column = this.columns[Math.round(x)];
     return (column && column[Math.round(y)]) ?? this.NULL_WIND_VECTOR;
   }
 }

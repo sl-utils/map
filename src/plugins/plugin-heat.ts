@@ -120,7 +120,7 @@ export class MapPluginHeat extends MapCanvasLayer {
                 x = Math.floor((p[0] - offsetX) / cellSize) + 2;
                 y = Math.floor((p[1] - offsetY) / cellSize) + 2;
                 /**阴影等级（热力等级）*/
-                var alt = heat.weight !== undefined ? heat.weight : 1;
+                const alt = heat.weight !== undefined ? heat.weight : 1;
                 k = alt * v;
                 grid[y] = grid[y] || [];
                 cell = grid[y][x];
@@ -184,12 +184,12 @@ export class MapPluginHeat extends MapCanvasLayer {
         if (!this._grad) this.genGradient(this.options.gradient);
         let minOpacity = this.options.minOpacity || 0.05;
         //根据点位创建颜色深度不一的黑色遮罩
-        for (var i = 0, len = this.heatDatas.length, p; i < len; i++) {
+        for (let i = 0, len = this.heatDatas.length, p; i < len; i++) {
             p = this.heatDatas[i];
             ctx.globalAlpha = Math.min(Math.max(p[2]!, minOpacity), 1);
             ctx.drawImage(this._circleShadow, p[0] - this._r, p[1] - this._r);
         }
-        var colored = ctx.getImageData(0, 0, this.width, this.height);
+        const colored = ctx.getImageData(0, 0, this.width, this.height);
         /**根据遮罩的深度不同添加不同的渐变颜色 */
         this._colorize(colored.data, this._grad);
         ctx.putImageData(colored, 0, 0);
@@ -197,7 +197,7 @@ export class MapPluginHeat extends MapCanvasLayer {
     }
     /**生成单个的阴影半径
      * @param r 半径
-     * @param blur 模糊半径
+     * @param blur @default 15 模糊半径
      */
     private genShadowRadius(r: number, blur: number = 15): void {
         /**优化建议,不同zoom下影响的半径不一样 */
@@ -223,7 +223,7 @@ export class MapPluginHeat extends MapCanvasLayer {
             gradient = ctx.createLinearGradient(0, 0, 0, 256);
         canvas.width = 1;
         canvas.height = 256;
-        for (var i in grad) {
+        for (let i in grad) {
             gradient.addColorStop(+i, grad[i]);
         }
         ctx.fillStyle = gradient;
@@ -236,7 +236,7 @@ export class MapPluginHeat extends MapCanvasLayer {
      * @param gradient 渐变色
      */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void {
-        for (var i = 0, len = pixels.length, j; i < len; i += 4) {
+        for (let i = 0, len = pixels.length, j; i < len; i += 4) {
             j = pixels[i + 3] * 4;
             if (j) {
                 pixels[i] = gradient[j];

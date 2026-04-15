@@ -1,4 +1,4 @@
-import { OptMapPluginWind, CanvasImage, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "@sl-utils/map";
+import { OptMapPluginWind, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "@sl-utils/map";
 import { MapCanvasDraw, SLUMap } from "../map";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/plugin-grid-base";
@@ -62,23 +62,23 @@ export class MapPluginWind extends MapPluginGridBase {
     }
     /**获取视图范围内的(指定像素间隔的数据)
      * @param bounds 视图范围
-     * @param pixelInterval 像素间隔
+     * @param pixelInterval @default 2 像素间隔
      * @returns 风速风向数据
      */
     protected getViewBoundsGridWind(bounds: GridBounds, pixelInterval: number = 2): DataMapWind[] {
-        var columns: DataMapWind[] = [];
+        const columns: DataMapWind[] = [];
         /**获取经纬度为[0,0]的点相对于容器的像素点(假设经纬度为[0,0]的点为必须渲染的点) */
         let [x0, y0] = u_mapGetPointByLatlng(this.map, [0, 0]);
         /**获取可视范围内需要渲染数据的起点x,y */
         let j = y0 % pixelInterval, k = x0 % pixelInterval;
         for (let y = j, len = bounds.height; y < len; y += pixelInterval) {
-            for (let x = k; x <= bounds.width; x += pixelInterval) {
+            for (let x = k, len2 = bounds.width; x < len2; x += pixelInterval) {
                 //得到可视区X , Y 点对应地图上的经纬度
                 let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
-                    var wind = this.interpolate(lng, lat);
+                    const wind = this.interpolate(lng, lat);
                     if (wind) columns.push({ latlng: [lat, lng], speed: wind[0], direction: wind[1] })
                 }
             }
@@ -89,10 +89,10 @@ export class MapPluginWind extends MapPluginGridBase {
     protected renderAnimation(): void { }
     /**渲染静态图层 */
     protected renderFixedData(): void {
-        var size = u_mapGetMapSize(this.map); // bounds, width, height, extent
+        const size = u_mapGetMapSize(this.map); // bounds, width, height, extent
         let columns = this.getViewBoundsGridWind({ x: 10, y: 10, width: size.w, height: size.h }, 60);
         let options = this.options, i = 1, imgs: MapImage[] = [];
-        for (let index = 0; index < columns.length;) {
+        for (let index = 0, len = columns.length; index < len;) {
             const item = columns[index];
             index = index + i;
             const res = this.iconResolver(item.speed);

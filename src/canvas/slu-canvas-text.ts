@@ -116,7 +116,7 @@ export class SLUCanvasText {
       const DIR_MAP = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
       const testRect = { x: 0, y: 0, width, height };
       for (let total = querySpace; total <= maxDistance; total += querySpace) {
-        for (let i = 0; i < dirs.length; i++) {
+        for (let i = 0, len = dirs.length; i < len; i++) {
           const dir = dirs[i];
           const [dirX, dirY] = DIR_MAP[dir];
           let px = total * dirX, py = total * dirY;
@@ -204,9 +204,9 @@ export class SLUCanvasText {
    */
   private static isTextOverlap(rect: CanvasTextRect, minSpacing: number = 0): boolean {
     const nearbyRects = this.getNearbyRects(rect);
+    const { x, y, width = 0, height = 0 } = rect;
     for (const eRect of nearbyRects) {
       if (rect === eRect) continue;
-      const { x, y, width = 0, height = 0 } = rect;
       const { x: ex, y: ey = 0, width: ew = 0, height: eh = 0 } = eRect;
       if (!(ex > x + width + minSpacing || ex + ew + minSpacing < x || ey > y + height + minSpacing || ey + eh + minSpacing < y)) {
         return true;

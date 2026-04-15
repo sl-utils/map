@@ -53,7 +53,7 @@ export class SLUCanvas {
     let { point, points = [], width = 0, height = 0, radius = [0, 0, 0, 0] } = rect;
     if (point) { points.length ? points.push(point) : points = [point]; }
     this.setCtxPara(ctx, rect);
-    for (let i = 0; i < points.length; i++) {
+    for (let i = 0, len = points.length; i < len; i++) {
       const [x, y] = points[i] || [0, 0];
       ctx.beginPath();
       ctx['roundRect'](x, y, width, height, radius);

@@ -718,7 +718,7 @@ declare module '@sl-utils/map' {
   type MapPlotType = 'point' | 'line' | 'polygon' | 'circle' | 'rect';
   /**细分标绘类型 */
   type MapPlotDetailType =
-    | ({ type: 'point'; latLngs: [[number, number]]; } & CanvasImage)
+    | ({ type: 'point'; latLngs: [[number, number]] | []; } & CanvasImage)
     | { type: 'circle'; latLngs: [[number, number], [number, number]] | [[number, number]] | []; rail?: number; }
     | { type: 'rect'; latLngs: [[number, number], [number, number]] | []; }
     | { type: 'line' | 'polygon'; latLngs: [number, number][]; };
@@ -733,7 +733,19 @@ declare module '@sl-utils/map' {
   } & MapPlotDetailType;
 
   /**配置--插件标绘类的配置项 */
-  export interface OptMapPluginPlot extends OptMapCanvas, OptCanvas { }
+  export interface OptMapPluginPlotBase extends OptMapCanvas, OptCanvas { }
+  /**配置--插件标绘类编辑点的配置项 */
+  export type OptMapPluginPlotEdit = Partial<MapArc>;
+  /**配置--插件标绘类文字的配置项 */
+  export type OptMapPluginPlotText = Partial<MapText>;
+  export interface OptMapPluginPlot {
+    /**标绘形状配置 */
+    plotOpt?: OptMapPluginPlotBase,
+    /**标绘编辑点配置 */
+    editOpt?: OptMapPluginPlotEdit,
+    /**标绘文字配置 */
+    textOpt?: OptMapPluginPlotText
+  }
   /**配置--插件热力图类的配置项*/
   export interface OptMapPluginHeat extends OptMapCanvas, OptCanvas {
     /**半径 @default 20*/
@@ -1092,7 +1104,7 @@ declare module '@sl-utils/map' {
 
   /**-----------------------------大数据渲染类-------------------------start--- */
   /**配置项--大数据渲染类对象 */
-  interface OptBigData {
+  interface OptBigData extends OptMapCanvas {
     /**缩放级别 */
     zoomOption: {
       [key: number]: {
@@ -1171,9 +1183,9 @@ declare module '@sl-utils/map' {
     /**当前正在显示的网络图层 */
     private curs: Partial<{ [key in MapNameType]: SLULeafletNetMap | undefined }>;
     /**初始实例化地图
-     * @param options 地图初始化参数
+     * @param options @default {} 地图初始化参数
      */
-    public init(options: Partial<OptMap>): Promise<void>;
+    public init(options?: Partial<OptMap>): Promise<void>;
     /**设置合适的视图范围
      * @param latlngs 纬度经度数组
      * @returns SLUMap实例
@@ -1203,12 +1215,12 @@ declare module '@sl-utils/map' {
      */
     public getSize(): { w: number; h: number };
     /**显示指定的网络图层
-     * @param names 网络图层名称数组
+     * @param names @default [] 网络图层名称数组
      * @returns SLUMap实例
      */
-    public showMap(names: Array<MapNameType>): SLUMap;
+    public showMap(names?: Array<MapNameType>): SLUMap;
     /**打开地图控件
-     * @param ifDMS=true 是否使用度分秒格式，否则显示度格式，默认精度为5
+     * @param ifDMS @default true 是否使用度分秒格式，否则显示度格式，默认精度为5
      * @returns 地图控件信息
      */
     public openControl(ifDMS?: boolean): MapControlInfo;
@@ -1248,6 +1260,13 @@ declare module '@sl-utils/map' {
     private setLatlng(e: LeafletMouseEvent | AMapMapsEvent): void;
     /**设置地图层级和比例尺 */
     private setZoomAndScale(): void;
+    /**设置地图比例尺 */
+    private setScale(): void;
+    /**取整比例尺
+     * @param num 距离（米）
+     * @returns 取整后的比例尺（米）
+     */
+    private getScaleNum(num: number): number;
   }
   /** 地图canvas基础图形绘制类
  * @constructor
@@ -1386,10 +1405,10 @@ declare module '@sl-utils/map' {
      */
     public delImg(img: MapImage): MapCanvasDraw;
     /**清空
-     * @param type 不填清空所有内容数据
+     * @param type @default 'all' ,不填清空所有内容数据
      * @returns MapCanvasDraw实例
      */
-    public delAll(type: 'all' | 'text' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif'): MapCanvasDraw;
+    public delAll(type?: 'all' | 'text' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif'): MapCanvasDraw;
     /**将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
      * latlngs为undefined,points也为undefined
      * latlng为undefined,point为[0,0]
@@ -1726,9 +1745,10 @@ declare module '@sl-utils/map' {
      */
     private onAdd(): MapCanvasLayer;
     /**基础的监听事件   
-    * @param flag true开启重绘事件监听 false 关闭重绘事件监听
+    * @param flag @default true
+    *  true开启重绘事件监听; false关闭重绘事件监听
     **/
-    private _eventSwitch(flag: boolean): void;
+    private _eventSwitch(flag?: boolean): void;
     /**基础绘制 */
     /** 重绘(子类重写也无效)
      ** 清空之前的绘制
@@ -1736,25 +1756,32 @@ declare module '@sl-utils/map' {
      */
     protected _redraw(): void;
     /**------------------------------高德地图的实现------------------------------*/
+    /**初始化高德地图的图层 */
+    private _initAMap(): void;
     /**将图层添加到map实例中显示 */
     private _onAmapAdd(): void;
     /**移除图层 */
     private _onAmapRemove(): void;
     /**------------------------------Leaflet地图的实现------------------------------*/
+    /**初始化Leaflet地图的图层 */
+    private _initLeaflet(): void;
     /**初始化画布并添加到Pane中 */
     private initLeafletCanvas(): void;
     /**移除图层 */
     private _onLeafletRemove(): void;
     /**添加Leaflet地图事件监听
-     * @param flag true开启事件监听 false 关闭事件监听
+     *  @param flag @default true
+     *  true开启重绘事件监听; false关闭重绘事件监听
      */
-    private addLeafletEvent(flag: boolean): void;
+    private addLeafletEvent(flag?: boolean): void;
     /**重设画布,并重新渲染*/
     private _reset(): void;
     /**缩放动画
      * @param e 缩放事件对象
      */
     private _animateZoom(e: ZoomAnimEvent): void;
+    /**画布加载完成 */
+    private _onCanvasLoad(): void;
   }
 
   /**地图插件----绘制类
@@ -1869,7 +1896,7 @@ declare module '@sl-utils/map' {
      */
     public delImg(img: MapImage): MapPluginDraw;
     /**清空
-     * @param type 默认all ,不填清空所有内容数据
+     * @param type @default 'all' ,不填清空所有内容数据
      * @returns MapPluginDraw实例
      */
     public delAll(type?: 'all' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif'): MapPluginDraw;
@@ -1883,7 +1910,7 @@ declare module '@sl-utils/map' {
   export class MapPluginPlot extends MapCanvasLayer {
     constructor(sluMap: SLUMap, options?: OptMapPluginPlot);
     /**默认配置 */
-    public options: OptMapPluginPlot;
+    public options: OptMapPluginPlotBase;
     /**动态绘制图层 */
     private ctrMapAniDraw: MapPluginDraw;
     /**静态标绘图层 */
@@ -1892,6 +1919,8 @@ declare module '@sl-utils/map' {
     private ctrEvent: MapCanvasEvent;
     /**编辑圆点样式 */
     private editArc: MapArc;
+    /**标绘文字样式 */
+    private plotText: OptMapPluginPlotText;
     /**所有的标绘集合 */
     private plotList: DataMapPlot[];
     /**正在动态绘制的标(仅仅改变图形不会动态改变原始数据) */
@@ -2080,7 +2109,7 @@ declare module '@sl-utils/map' {
      */
     public open(): MapPluginRange;
     /** 关闭测距功能
-     * @param flag 默认true 是否关闭事件监听
+     * @param flag @default true 是否关闭事件监听
      */
     public close(flag?: boolean): void;
     /** 测距结束回调函数 */
@@ -2171,7 +2200,7 @@ declare module '@sl-utils/map' {
     private getNextTrack(): void;
     /**设置轨迹上的动点船
      * @param imgs 图片数据
-     * @param texts 默认texts=[] 文本数据
+     * @param texts @default [] 文本数据
      */
     public setAniImage(imgs: MapImage[], texts?: MapText[]): void;
     /**添加点击圆点时的监听函数
@@ -2287,7 +2316,7 @@ declare module '@sl-utils/map' {
     protected interpolateField(bounds: GridBounds): void;
     /**获取视图范围内的(指定像素间隔的数据)
      * @param bounds 可视区域的像素范围
-     * @param pixelInterval 默认pixelInterval=2 像素间隔
+     * @param pixelInterval @default 2 像素间隔
      * @returns 可视区域的网格数据
      */
     protected getViewBoundsGrid(bounds: GridBounds, pixelInterval?: number): [number, number, number][][];
@@ -2345,7 +2374,7 @@ declare module '@sl-utils/map' {
     protected getColorByValue(value: number): string;
     /**生成单个的阴影半径(圆形) 
      * @param r 半径
-     * @param blur 默认blur=15 模糊度
+     * @param blur @default 15 模糊度
      * @returns 画布元素
     */
     protected genShadowRadius(r: number, blur?: number): HTMLCanvasElement;
@@ -2413,7 +2442,7 @@ declare module '@sl-utils/map' {
     public setData(data: DataMapGrid[]): void;
     /**获取视图范围内的(指定像素间隔的数据)
      * @param bounds 视图范围
-     * @param pixelInterval 默认pixelInterval=2 像素间隔
+     * @param pixelInterval @default 2 像素间隔
      * @returns 风速风向数据
      */
     protected getViewBoundsGridWind(bounds: GridBounds, pixelInterval?: number): DataMapWind[];
@@ -2738,7 +2767,7 @@ declare module '@sl-utils/map' {
     private drawByheatData(): MapPluginHeat;
     /**生成单个的阴影半径
      * @param r 半径
-     * @param blur 默认15,模糊半径
+     * @param blur @default 15 模糊半径
      */
     private genShadowRadius(r: number, blur?: number): void;
     /**创建渐变色
@@ -2798,7 +2827,7 @@ declare module '@sl-utils/map' {
    * 超出不绘制 减少画布渲染次数
    */
   export class MapPluginBigData extends MapPluginDraw {
-    constructor(sluMap: SLUMap, options: Partial<OptMapCanvas> & OptBigData);
+    constructor(sluMap: SLUMap, options: OptBigData);
     /**R树搜索 绘制 */
     private rbush: RBush<MapRbush<MapImageRender>>;
     /**R树搜索 矩形 */

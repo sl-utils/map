@@ -120,7 +120,7 @@ export class MapPluginTrack {
   }
   /**设置轨迹上的动点船
    * @param imgs 图片数据
-   * @param texts 文本数据
+   * @param texts @default [] 文本数据
    */
   public setAniImage(imgs: MapImage[], texts: MapText[] = []): void {
     const { layerAniDraw } = this;
@@ -188,7 +188,7 @@ export class MapPluginTrack {
       { data } = track,
       time = this.time;
     let latlngs: [number, number][] = [];
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 0, len = data.length; i < len; i++) {
       let e = data[i];
       latlngs.push([e.lat, e.lng]);
       if (e.timeStamp > time && i > 1) break;

@@ -17,7 +17,7 @@ export class MapCanvasRadar {
     /**上一动画时间(毫秒) */
     private pertime: number;
     /**雷达的默认设置 */
-    private radarDefault: OptMapPluginRadar = {
+    private options: OptMapPluginRadar = {
         animeId: '0',
         angle: [0, 90],
         ifClockwise: true,
@@ -42,7 +42,7 @@ export class MapCanvasRadar {
      * @returns MapCanvasRadar实例
      */
     public setAllRadars(radars: OptMapPluginRadar[]): MapCanvasRadar {
-        this.allRadars = radars.filter(e => e).map(e => Object.assign({}, this.radarDefault, e));
+        this.allRadars = radars.filter(e => e).map(e => Object.assign({}, this.options, e));
         return this;
     }
     /**添加雷达绘制类
@@ -50,7 +50,7 @@ export class MapCanvasRadar {
      * @returns MapCanvasRadar实例
      */
     public addRadar(radar: OptMapPluginRadar): MapCanvasRadar {
-        this.allRadars.push(Object.assign({}, this.radarDefault, radar));
+        this.allRadars.push(Object.assign({}, this.options, radar));
         return this;
     }
     /**开始绘制所有雷达静态部分 */
@@ -110,7 +110,7 @@ export class MapCanvasRadar {
         /**直径加补齐的偏差 */
         const diameter = radius * 2 + d;
         /**当前网格 */
-        for (let i = 1; i < total * 2; i++) {
+        for (let i = 1, len = total * 2; i < len; i++) {
             // 垂直方向
             const [v0, v1]: [number, number] = [leftTopX + i * diff, leftTopY];
             // 水平方向
@@ -150,7 +150,7 @@ export class MapCanvasRadar {
         ctx.strokeStyle = colorRadar;
         ctx.fillStyle = colorRadar;
         ctx.textAlign = "center";
-        for (let i = 1; i <= Math.floor(radius / diff); i++) {
+        for (let i = 1, len = Math.floor(radius / diff); i <= len; i++) {
             ctx.beginPath();
             const r = diff * i;
             ctx.arc(x, y, r, 0, Math.PI * 2);

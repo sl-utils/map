@@ -284,30 +284,30 @@ export class MapCanvasArrowLine {
     this.patternPathInit();
     ctx.lineCap = "round";
     ctx.lineWidth = opt.lineWidth;
-    for (let i = 0; i < this.allPoints.length; i++) {
+    for (let i = 0, len = this.allPoints.length; i < len; i++) {
       let validPoints = this.getValidPoints(this.allPoints[i]);
       if (isBezier) {
-        for (let j = 1; j < this.allPoints[i].length; j++) {
+        for (let j = 1, len2 = this.allPoints[i].length; j < len2; j++) {
           const bezierPoints: [number, number][] = [];
           let prev = this.allPoints[i][j - 1];
           let cur = this.allPoints[i][j];
           const ctrl = SLUCanvas.getBezierCtrlPoint(prev, cur, degree);
           const maxSlice = 50;
           const lineLen = Math.sqrt(Math.pow(prev[0] - cur[0], 2) + Math.pow(prev[1] - cur[1], 2));
-          const sliceCount = Math.floor(maxSlice * (lineLen / this.ctx.canvas.width)) || 1;
+          const sliceCount = Math.floor(maxSlice * (lineLen / ctx.canvas.width)) || 1;
           for (let i = 0; i <= sliceCount; i++) {
             const bezierP = this.getQuadraticBezierPoint(i / sliceCount, prev, ctrl, cur);
             bezierPoints.push(bezierP);
           }
           let validPoints = this.getValidPoints(bezierPoints);
           if (validPoints.length < 2) continue;
-          for (let i = 0; i < validPoints.length; i += 2) {
+          for (let i = 0, len3 = validPoints.length; i < len3; i += 2) {
             this.drawPath([validPoints[i], validPoints[i + 1]]);
           }
         }
       } else {
         if (validPoints.length < 2) continue;
-        for (let i = 0; i < validPoints.length; i += 2) {
+        for (let i = 0, len4 = validPoints.length; i < len4; i += 2) {
           this.drawPath([validPoints[i], validPoints[i + 1]]);
         }
       }
@@ -323,7 +323,7 @@ export class MapCanvasArrowLine {
   private getValidPoints(points: [number, number][]): [number, number][] {
     let validPoints = [];
     let prev = points[0];
-    for (let j = 1; j < points.length; j++) {
+    for (let j = 1, len = points.length; j < len; j++) {
       const validPoint = this.validLine([prev, points[j]]);
       prev = points[j];
       if (validPoint) {
@@ -344,7 +344,7 @@ export class MapCanvasArrowLine {
     ctx.beginPath();
     ctx.translate(prev[0], prev[1]);
     ctx.moveTo(0, 0);
-    for (let j = 1; j < points.length; j++) {
+    for (let j = 1, len = points.length; j < len; j++) {
       const cur = points[j];
       prev = points[j - 1];
       ctx.lineTo(cur[0] - prev[0], cur[1] - prev[1]);

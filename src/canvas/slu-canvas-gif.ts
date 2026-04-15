@@ -170,7 +170,7 @@ export class SLUCanvasGif {
             sizeOX = sizeo && sizeo[0],
             sizeOY = sizeo && sizeo[1];
         if (point) points = [...points, point];
-        for (let i = 0; i < points.length; i++) {
+        for (let i = 0, len = points.length; i < len; i++) {
             const e = points[i],
                 x = e[0],
                 y = e[1];
@@ -201,7 +201,7 @@ export class SLUCanvasGif {
         let STREAM = stream
         let parseGCExt = (block: any) => {
             STREAM.readByte(); // Always 4 这个必须得这样执行一次
-            var bits = this.byteToBitArr(STREAM.readByte());
+            const bits = this.byteToBitArr(STREAM.readByte());
             block.reserved = bits.splice(0, 3); // Reserved; should be 000.
             block.disposalMethod = this.bitsToNum(bits.splice(0, 3));
             this.LAST_DISPOSA_METHOD = block.disposalMethod
@@ -224,13 +224,13 @@ export class SLUCanvasGif {
             block.ptData = this.readSubBlocks(stream);
         };
         let parseAppExt = (block: any) => {
-            var parseNetscapeExt = function (block: any) {
+            const parseNetscapeExt = function (block: any) {
                 STREAM.readByte(); // Always 3 这个必须得这样执行一次
                 block.unknown = STREAM.readByte(); // ??? Always 1? What is this?
                 block.iterations = STREAM.readUnsigned();
                 block.terminator = STREAM.readByte();
             };
-            var parseUnknownAppExt = (block: any) => {
+            const parseUnknownAppExt = (block: any) => {
                 block.appData = this.readSubBlocks(stream);
                 // FIXME: This won't work if a handler wants to match on any identifier.
                 // handler.app && handler.app[block.identifier] && handler.app[block.identifier](block);
@@ -302,8 +302,8 @@ export class SLUCanvasGif {
                 steps = [8, 8, 4, 2];
 
             let fromRow = 0;
-            for (var pass = 0; pass < 4; pass++) {
-                for (var toRow = offsets[pass]; toRow < rows; toRow += steps[pass]) {
+            for (let pass = 0; pass < 4; pass++) {
+                for (let toRow = offsets[pass]; toRow < rows; toRow += steps[pass]) {
                     cpRow(toRow, fromRow)
                     fromRow++;
                 }
@@ -366,7 +366,7 @@ export class SLUCanvasGif {
             dict: any[] = [];
 
         function clear() {
-            dict = [];
+            dict.length = 0;
             codeSize = minCodeSize + 1;
             for (let i = 0; i < clearCode; i++) {
                 dict[i] = [i];

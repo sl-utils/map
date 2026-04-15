@@ -179,7 +179,7 @@ export class MapPluginDraw extends MapCanvasLayer {
         return this;
     }
     /**清空
-     * @param type 不填清空所有内容数据
+     * @param type @default 'all' ,不填清空所有内容数据
      * @returns MapPluginDraw实例
      */
     public delAll(type: 'all' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif' = 'all'): MapPluginDraw {

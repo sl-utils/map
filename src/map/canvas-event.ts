@@ -16,7 +16,7 @@ export class MapCanvasEvent {
     /**R树搜索 事件 */
     private rbush: rbush<MapRbush<MapEvent>> = new rbush();
     /**R树查找对象 */
-    private readonly rbush_search: BBox = Object.create(null)
+    private readonly rbush_search: BBox = Object.create(null);
     /**是否重新开始事件指针变化(使不同canvas的事件指针能正确显示)*/
     private static ifInitCursor: boolean = true;
     /**是否开启事件控制类初始化 */
@@ -92,7 +92,7 @@ export class MapCanvasEvent {
         if (cb) {
             u_arrItemDel(cbs, cb);
         } else {
-            this._listenCbs[type] = [];
+            this._listenCbs[type].length = 0;
         }
     }
     /**清空之前设置的统一监听事件 */
@@ -108,7 +108,7 @@ export class MapCanvasEvent {
     public setEventsByKey<T extends MapEvent>(evs: T[], key: string): void {
         /**ifHide不显示,事件就不添加 */
         this._allMapEvents.set(key, evs.filter(ev => !ev.ifHide));
-        this._allRbush = [];
+        this._allRbush.length = 0;
         this.rbush.clear();
         // map所有事件
         this._allMapEvents.forEach((evs) => {
@@ -256,7 +256,7 @@ export class MapCanvasEvent {
         //     if (latlng && latlng.length === 2) latlngs = [...latlngs, latlng];
         //     let sizeX = range[0], sizeY = range[1];
         //     /**判断是否在范围内 */
-        //     for (let p = 0; p < latlngs.length; p++) {
+        //     for (let p = 0, len2 = latlngs.length; p < len2; p++) {
         //         let latlng = latlngs[p];
         //         let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
         //         if ((onX - sizeX + left) <= x && x <= (onX + sizeX + left) && (onY - sizeY + top) <= y && y <= (onY + sizeY + top)) {

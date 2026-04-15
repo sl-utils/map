@@ -28,7 +28,7 @@ export class MapPluginPartial extends MapCanvasLayer {
    */
   public setAllParticles(particles: (DataMapParticle & CanvasPosition)[]): void {
     /**渲染内部会添加CanvasPosition到数据 */
-    this._allParticle = particles ;
+    this._allParticle = particles;
     this._redraw();
   }
   /**渲染动态数据
@@ -40,7 +40,7 @@ export class MapPluginPartial extends MapCanvasLayer {
       particle.curPoints = [];
       particle.curve = [];
       let points = (particle.points = u_mapGetPointsByLatlngs(this.map, particle.latlngs) || []);
-      for (let i = 0, len = points.length; i < len - 1; i++) {
+      for (let i = 0, len = points.length - 1; i < len; i++) {
         const e0 = points[i],
           e1 = points[i + 1];
         let curve = SLUCanvas.getBezierCtrlPoint(e0, e1, particle.degree);
@@ -141,7 +141,7 @@ export class MapPluginPartial extends MapCanvasLayer {
    * @param particle 粒子数据
    */
   private drawParticle(particle: DataMapParticle): void {
-    var ctx = this.ctx;
+    let ctx = this.ctx;
     let points = particle.curPoints || [];
     for (let i = 0, len = points.length; i < len; i++) {
       let xy = points[i];
@@ -158,7 +158,7 @@ export class MapPluginPartial extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-  protected addMapEvents(map: L.Map, key: "on" | "off"): void {
+  protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void {
     map[key]("dragstart", this.drawEnd, this);
     // map[key]('dragend', this.drawStart, this);
     map[key]("movestart", this.drawEnd, this);
@@ -170,7 +170,7 @@ export class MapPluginPartial extends MapCanvasLayer {
     this.isDrag = false;
   }
   /**拖拽开始，结束绘制 */
- private drawEnd(): void {
+  private drawEnd(): void {
     console.log("drawEnd");
     this.isDrag = true;
   }

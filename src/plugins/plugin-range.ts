@@ -56,7 +56,7 @@ export class MapPluginRange extends MapCanvasLayer {
         return this;
     }
     /** 关闭测距功能
-     * @param flag 是否关闭事件监听
+     * @param flag @default true 是否关闭事件监听
      */
     public close(flag: boolean = true): void {
         this.eventSwitch(false);
@@ -237,7 +237,6 @@ export class MapPluginRange extends MapCanvasLayer {
      * @param e 事件对象
      */
     private eventClick = (e: LeafletMouseEvent | AMapMapsEvent): void => {
-        console.log(e)
         this.eventClickTimer = setTimeout(() => {
             const { latlng } = u_mapGetMapMouseEvent(e, this.map);
             let lnglat = new L.LatLng(latlng.lat, latlng.lng);

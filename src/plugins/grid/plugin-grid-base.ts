@@ -79,7 +79,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
         let [lat, lng] = u_mapGetLatLngByPoint(this.map, [0, 0]);
         let [, lng1] = u_mapGetLatLngByPoint(this.map, [1, bounds.height]);
         let lats: number[] = [];
-        for (let i = 0; i <= bounds.height; i++) lats[i] = u_mapGetLatLngByPoint(this.map, [0, i])[0];
+        for (let i = 0, len = bounds.height; i <= len; i++) lats[i] = u_mapGetLatLngByPoint(this.map, [0, i])[0];
         this.worker.post({
             id: this.workerId++,
             width: bounds.width,
@@ -97,16 +97,16 @@ export class MapPluginGridBase extends MapCanvasLayer {
      * @param bounds 可视区域的像素范围
     */
     protected interpolateField(bounds: GridBounds): void {
-        var columns: [number, number, number][][] = [];
+        const columns: [number, number, number][][] = [];
         for (let y = bounds.x, len = bounds.height; y < len; y += 2) {
-            let column: [number, number, number][] = [];
-            for (let x = bounds.x; x <= bounds.width; x += 2) {
+            const column: [number, number, number][] = [];
+            for (let x = bounds.x, len2 = bounds.width; x <= len2; x += 2) {
                 //得到可视区X , Y 点对应地图上的经纬度
                 let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
-                    var wind = this.interpolate(lng, lat);
+                    const wind = this.interpolate(lng, lat);
                     if (wind) column[x + 1] = column[x] = wind;
                 }
             }
@@ -117,20 +117,20 @@ export class MapPluginGridBase extends MapCanvasLayer {
     };
     /**获取视图范围内的(指定像素间隔的数据)
      * @param bounds 可视区域的像素范围
-     * @param pixelInterval 像素间隔
+     * @param pixelInterval @default 2 像素间隔
      * @returns 可视区域的网格数据
      */
     protected getViewBoundsGrid(bounds: GridBounds, pixelInterval: number = 2): [number, number, number][][] {
-        var columns: [number, number, number][][] = [];
+        const columns: [number, number, number][][] = [];
         for (let y = bounds.x, len = bounds.height; y < len; y += pixelInterval) {
             let column: [number, number, number][] = [];
-            for (let x = bounds.x; x <= bounds.width; x += pixelInterval) {
+            for (let x = bounds.x, len2 = bounds.width; x <= len2; x += pixelInterval) {
                 //得到可视区X , Y 点对应地图上的经纬度
                 let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
-                    var wind = this.interpolate(lng, lat);
+                    const wind = this.interpolate(lng, lat);
                     if (wind) column[x + 1] = column[x] = wind;
                 }
             }
@@ -152,10 +152,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
         let uData = grids[0].data || [], vData = grids[1]?.data || [];
         let p = 0;
         /** [开始的数据,结束的数据] [x序号] [y序号]   */
-        for (var j = 0; j < ny; j++) {
+        for (let j = 0; j < ny; j++) {
             /** [开始的数据,结束的数据] [x序号]   */
             let row: [number, number][] = [], xUData = uData[j], xVdata = vData[j];
-            for (var i = 0; i < nx; i++, p++) {
+            for (let i = 0; i < nx; i++, p++) {
                 let u = uData[p], v = vData[p];
                 u = u === this.invalid || v === undefined ? u : u * scale;
                 v = v === this.invalid || v === undefined ? v : v * scale;
@@ -183,13 +183,13 @@ export class MapPluginGridBase extends MapCanvasLayer {
             nx = fx + 1,
             fy = Math.floor(j),
             ny = fy + 1;
-        var row: [number, number][];
+        let row: [number, number][];
         /** Y轴第fy个数据 赋值并且不为undefined */
         if (row = grid[fy]) {
-            let g00 = row[fx], g10 = row[nx];
+            const g00 = row[fx], g10 = row[nx];
             if (this.isValue(g00) && this.isValue(g10) && (row = grid[ny])) {
                 //X轴第fy+1个数据
-                var g01 = row[fx], g11 = row[nx];
+                const g01 = row[fx], g11 = row[nx];
                 if (this.isValue(g01) && this.isValue(g11)) {
                     return this.bilinearInterpolateVector(i - fx, j - fy, g00, g10, g01, g11);
                 }
@@ -294,7 +294,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
 
     /**生成单个的阴影半径(圆形) 
      * @param r 半径
-     * @param blur 模糊度
+     * @param blur @default 15 模糊度
      * @returns 画布元素
     */
     protected genShadowRadius(r: number, blur: number = 15): HTMLCanvasElement {
@@ -322,7 +322,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
             gradient = ctx.createLinearGradient(0, 0, 0, 256);
         canvas.width = 1;
         canvas.height = 256;
-        for (var i in grad) gradient.addColorStop(+i, grad[i]);
+        for (const i in grad) gradient.addColorStop(+i, grad[i]);
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 10, 256);
         this.gradient = ctx.getImageData(0, 0, 1, 256).data;
@@ -333,7 +333,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
      * @param gradient 渐变颜色
      */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void {
-        for (var i = 0, len = pixels.length, j; i < len; i += 4) {
+        for (let i = 0, len = pixels.length, j; i < len; i += 4) {
             j = pixels[i + 3] * 4;
             if (j) {
                 pixels[i] = gradient[j];

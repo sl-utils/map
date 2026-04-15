@@ -84,10 +84,7 @@ export class MapPluginFlow extends MapCanvasLayer {
     }
     /**初始化windy对象 */
     private initWindy(): void {
-        var options = Object.assign({
-            canvas: this.canvas,
-            map: this.map
-        }, this.options);
+        const options = Object.assign({ canvas: this.canvas, map: this.map }, this.options);
         this.windy = new PluginVelocity(options); // prepare context global var, start drawing
         this.canvas.classList.add("velocity-overlay");
     }
@@ -95,11 +92,8 @@ export class MapPluginFlow extends MapCanvasLayer {
     private startWindy(): void {
         const size = u_mapGetMapSize(this.map);
         const { lngLeft, latTop, lngRight, latBottom } = u_mapGetBounds(this.map);
-        var sw: [number, number] = [lngLeft, latBottom], ne: [number, number] = [lngRight, latTop];
-        this.windy?.start(
-            size.w, size.h,
-            [sw, ne]
-        );
+        const sw: [number, number] = [lngLeft, latBottom], ne: [number, number] = [lngRight, latTop];
+        this.windy?.start(size.w, size.h, [sw, ne]);
     }
     /**停止动画 */
     private stopWindy(): void {
@@ -110,10 +104,10 @@ export class MapPluginFlow extends MapCanvasLayer {
      */
     private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent): void {
         if (!this.windy) return;
-        var self = this;
+        const self = this;
         const { containerPoint } = u_mapGetMapMouseEvent(e, this.map);
-        var [lat, lng] = u_mapGetLatLngByPoint(this.map, [containerPoint.x, containerPoint.y]);
-        var gridValue = this.windy.interpolate(lng, lat);
+        const [lat, lng] = u_mapGetLatLngByPoint(this.map, [containerPoint.x, containerPoint.y]);
+        const gridValue = this.windy.interpolate(lng, lat);
         let degrees = 0, speed = 0;
         if (gridValue && !isNaN(gridValue[0]) && !isNaN(gridValue[1]) && gridValue[2]) {
             degrees = self.vectorToDegrees(gridValue[0], gridValue[1], this.options.angleConvention);
@@ -133,9 +127,9 @@ export class MapPluginFlow extends MapCanvasLayer {
             // vMs comes out upside-down..
             vMs = vMs > 0 ? vMs = -vMs : Math.abs(vMs);
         }
-        var abs = Math.sqrt(Math.pow(uMs, 2) + Math.pow(vMs, 2));
-        var dir = Math.atan2(uMs / abs, vMs / abs);
-        var degrees = dir * 180 / Math.PI + 180;
+        const abs = Math.sqrt(Math.pow(uMs, 2) + Math.pow(vMs, 2));
+        const dir = Math.atan2(uMs / abs, vMs / abs);
+        let degrees = dir * 180 / Math.PI + 180;
         if (angleConvention === "bearingCW" || angleConvention === "meteoCCW") {
             degrees += 180;
             if (degrees >= 360) degrees -= 360;
@@ -149,7 +143,7 @@ export class MapPluginFlow extends MapCanvasLayer {
      * @returns 速度
      */
     private vectorToSpeed(uMs: number, vMs: number, unit: string): number {
-        var v = Math.sqrt(Math.pow(uMs, 2) + Math.pow(vMs, 2)); // Default is m/s
+        const v = Math.sqrt(Math.pow(uMs, 2) + Math.pow(vMs, 2)); // Default is m/s
         switch (unit) {
             case "k/h": return this.meterSec2kilometerHour(v);
             case "kt": return this.meterSec2Knots(v);

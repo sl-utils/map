@@ -59,7 +59,7 @@ export class MapPluginRadar extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-    protected addMapEvents(map: L.Map, key: 'on' | 'off'): void {
+    protected addMapEvents(map: L.Map | AMAP.Map, key: 'on' | 'off'): void {
         map[key]('dragstart', this.drawEnd, this);
         // map[key]('dragend', this.drawStart, this);
         map[key]('movestart', this.drawEnd, this);

@@ -12,16 +12,16 @@ const x_pi = pi * 3000.0 / 180.0;
 const R = 6378137;
 /** 百度转84 */
 function tobd09gps84(lng: number, lat: number) {
-    var gcj02 = tobd09cj02(lng, lat);
-    var map84 = togcj02gps84(gcj02.lng, gcj02.lat);
+    const gcj02 = tobd09cj02(lng, lat);
+    const map84 = togcj02gps84(gcj02.lng, gcj02.lat);
     return map84;
 }
 /** 火星转84 */
 function togcj02gps84(lng: number, lat: number) {
-    var coord = transform(lng, lat);
-    var lontitude = lng * 2 - coord.lng;
-    var latitude = lat * 2 - coord.lat;
-    var newCoord = {
+    const coord = transform(lng, lat);
+    const lontitude = lng * 2 - coord.lng;
+    const latitude = lat * 2 - coord.lat;
+    const newCoord = {
         lng: lontitude,
         lat: latitude
     };
@@ -29,23 +29,23 @@ function togcj02gps84(lng: number, lat: number) {
 }
 /** 84转百度 */
 function togps84bd09(lng: number, lat: number) {
-    var gcj02 = togps84gcj02(lng, lat);
-    var bd09 = togcj02bd09(gcj02.lng, gcj02.lat);
+    const gcj02 = togps84gcj02(lng, lat);
+    const bd09 = togcj02bd09(gcj02.lng, gcj02.lat);
     return bd09;
 }
 /** 84转火星 */
 function togps84gcj02(lng: number, lat: number) {
-    var dLat = transformLat(lng - 105.0, lat - 35.0);
-    var dLng = transformLng(lng - 105.0, lat - 35.0);
-    var radLat = lat / 180.0 * pi;
-    var magic = Math.sin(radLat);
+    let dLat = transformLat(lng - 105.0, lat - 35.0);
+    let dLng = transformLng(lng - 105.0, lat - 35.0);
+    const radLat = lat / 180.0 * pi;
+    let magic = Math.sin(radLat);
     magic = 1 - ee * magic * magic;
-    var sqrtMagic = Math.sqrt(magic);
+    const sqrtMagic = Math.sqrt(magic);
     dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * pi);
     dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
-    var mgLat = lat + dLat;
-    var mgLng = lng + dLng;
-    var newCoord = {
+    const mgLat = lat + dLat;
+    const mgLng = lng + dLng;
+    const newCoord = {
         lng: mgLng,
         lat: mgLat
     };
@@ -53,11 +53,11 @@ function togps84gcj02(lng: number, lat: number) {
 }
 /** 火星转百度 */
 function togcj02bd09(lng: number, lat: number) {
-    var z = Math.sqrt(lng * lng + lat * lat) + 0.00002 * Math.sin(lat * x_pi);
-    var theta = Math.atan2(lat, lng) + 0.000003 * Math.cos(lng * x_pi);
-    var bd_lng = z * Math.cos(theta) + 0.0065;
-    var bd_lat = z * Math.sin(theta) + 0.006;
-    var newCoord = {
+    const z = Math.sqrt(lng * lng + lat * lat) + 0.00002 * Math.sin(lat * x_pi);
+    const theta = Math.atan2(lat, lng) + 0.000003 * Math.cos(lng * x_pi);
+    const bd_lng = z * Math.cos(theta) + 0.0065;
+    const bd_lat = z * Math.sin(theta) + 0.006;
+    const newCoord = {
         lng: bd_lng,
         lat: bd_lat
     };
@@ -65,44 +65,44 @@ function togcj02bd09(lng: number, lat: number) {
 }
 /** 百度转火星 */
 function tobd09cj02(bd_lng: number, bd_lat: number) {
-    var x = bd_lng - 0.0065;
-    var y = bd_lat - 0.006;
-    var z = Math.sqrt(x * x + y * y) - 0.00002 * Math.sin(y * x_pi);
-    var theta = Math.atan2(y, x) - 0.000003 * Math.cos(x * x_pi);
-    var gg_lng = z * Math.cos(theta);
-    var gg_lat = z * Math.sin(theta);
-    var newCoord = {
+    const x = bd_lng - 0.0065;
+    const y = bd_lat - 0.006;
+    const z = Math.sqrt(x * x + y * y) - 0.00002 * Math.sin(y * x_pi);
+    const theta = Math.atan2(y, x) - 0.000003 * Math.cos(x * x_pi);
+    const gg_lng = z * Math.cos(theta);
+    const gg_lat = z * Math.sin(theta);
+    const newCoord = {
         lng: gg_lng,
         lat: gg_lat
     };
     return newCoord;
 }
 function transform(lng: number, lat: number) {
-    var dLat = transformLat(lng - 105.0, lat - 35.0);
-    var dLng = transformLng(lng - 105.0, lat - 35.0);
-    var radLat = lat / 180.0 * pi;
-    var magic = Math.sin(radLat);
+    let dLat = transformLat(lng - 105.0, lat - 35.0);
+    let dLng = transformLng(lng - 105.0, lat - 35.0);
+    const radLat = lat / 180.0 * pi;
+    let magic = Math.sin(radLat);
     magic = 1 - ee * magic * magic;
-    var sqrtMagic = Math.sqrt(magic);
+    const sqrtMagic = Math.sqrt(magic);
     dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * pi);
     dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
-    var mgLat = lat + dLat;
-    var mgLng = lng + dLng;
-    var newCoord = {
+    const mgLat = lat + dLat;
+    const mgLng = lng + dLng;
+    const newCoord = {
         lng: mgLng,
         lat: mgLat
     };
     return newCoord;
 }
 function transformLat(x: number, y: number) {
-    var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+    let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
     ret += (20.0 * Math.sin(6.0 * x * pi) + 20.0 * Math.sin(2.0 * x * pi)) * 2.0 / 3.0;
     ret += (20.0 * Math.sin(y * pi) + 40.0 * Math.sin(y / 3.0 * pi)) * 2.0 / 3.0;
     ret += (160.0 * Math.sin(y / 12.0 * pi) + 320 * Math.sin(y * pi / 30.0)) * 2.0 / 3.0;
     return ret;
 }
 function transformLng(x: number, y: number) {
-    var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+    let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
     ret += (20.0 * Math.sin(6.0 * x * pi) + 20.0 * Math.sin(2.0 * x * pi)) * 2.0 / 3.0;
     ret += (20.0 * Math.sin(x * pi) + 40.0 * Math.sin(x / 3.0 * pi)) * 2.0 / 3.0;
     ret += (150.0 * Math.sin(x / 12.0 * pi) + 300.0 * Math.sin(x / 30.0 * pi)) * 2.0 / 3.0;
@@ -259,8 +259,8 @@ function getMapSize(map: AMAP.Map | L.Map): { w: number, h: number } {
 }
 /**
 * 转化为通用地图事件
-* @param event LeafletMouseEvent | AMap.MouseEventArgs
-* @param mapType 0 | 1 | 2 对应leaflet | 高德 | 百度 （百度暂时不支持）
+* @param e LeafletMouseEvent | AMap.MouseEventArgs
+* @param map 地图实例
 */
 function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent, map: L.Map | AMAP.Map): MapMouseEvent {
     let latlng, point, page, originalEvent, type;
@@ -312,7 +312,7 @@ function setMapStatus(map: AMAP.Map | L.Map, key: 'dragEnable', flag: boolean) {
     }
 }
 /**
- * 
+ * 设置地图中心
  * @param map 
  * @param center 中心 latlng顺序
  * @param zoom 
@@ -326,9 +326,9 @@ function setViewCenter(map: L.Map | AMAP.Map, center: [number, number], zoom: nu
     if (tsMapisLeaflet(map)) {
         map.setView(center, zoom);
     } else if (tsMapisAmap(map)) {
-        const [lng, lat] = center;
-        const amapCenter: [number, number] = [lat, lng];
-        map.setCenter(amapCenter);
+        const [lat, lng] = center;
+        const mapcenter: [number, number] = [lng, lat];
+        map.setCenter(mapcenter);
         map.setZoom(zoom);
     } else {
         throw new Error('百度地图暂时不支持！')
