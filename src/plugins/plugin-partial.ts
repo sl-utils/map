@@ -3,7 +3,7 @@ import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUCanvas } from "../canvas";
 import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
 import { OptMapCanvas, DataMapParticle, CanvasPosition } from "@sl-utils/map";
-
+import { Map as MaplibreMap } from 'maplibre-gl';
 /**用于绘制地图上的粒子效果
  * @extends MapCanvasLayer
  * @constructor
@@ -158,20 +158,20 @@ export class MapPluginPartial extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-  protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void {
-    map[key]("dragstart", this.drawEnd, this);
-    // map[key]('dragend', this.drawStart, this);
-    map[key]("movestart", this.drawEnd, this);
-    map[key]("moveend", this.drawStart, this);
+  protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void {
+    const end = () => this.drawEnd();
+    const start = () => this.drawStart();
+    map[key]("dragstart", end);
+    map[key]('dragend', start);
+    // map[key]("movestart", end);
+    // map[key]("moveend", start);
   }
   /**拖拽结束，开始绘制 */
   private drawStart(): void {
-    console.log("drawStart");
     this.isDrag = false;
   }
   /**拖拽开始，结束绘制 */
   private drawEnd(): void {
-    console.log("drawEnd");
     this.isDrag = true;
   }
 }

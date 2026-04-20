@@ -5,6 +5,7 @@ import { u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMous
 import { SLUCanvas } from "../canvas";
 import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
+import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 /**测绘类
  * @extends MapCanvasLayer
  * @constructor
@@ -221,22 +222,18 @@ export class MapPluginRange extends MapCanvasLayer {
         this.map[key]('dblclick', this.eventDblclick);
         this.map[key]('mousemove', this.eventMousemove);
     }
-    /** 拖动事件
-     * @param e 事件对象
-     */
-    private eventDrag = (e: LeafletMouseEvent): void => {
+    /** 拖动事件 */
+    private eventDrag = (): void => {
         this.ifDrag = true;
     }
-    /** 拖动结束事件
-     * @param e 事件对象
-     */
-    private eventDragend = (e: LeafletMouseEvent): void => {
+    /** 拖动结束事件 */
+    private eventDragend = (): void => {
         this.ifDrag = false;
     }
     /** 单击事件
      * @param e 事件对象
      */
-    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent): void => {
+    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
         this.eventClickTimer = setTimeout(() => {
             const { latlng } = u_mapGetMapMouseEvent(e, this.map);
             let lnglat = new L.LatLng(latlng.lat, latlng.lng);
@@ -249,7 +246,7 @@ export class MapPluginRange extends MapCanvasLayer {
     /** 鼠标移动事件
      * @param e 事件对象
      */
-    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent): void => {
+    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
         if (this.ifDrag) return;
         const { latlng } = u_mapGetMapMouseEvent(e, this.map);
         this.lnglat = new L.LatLng(latlng.lat, latlng.lng);

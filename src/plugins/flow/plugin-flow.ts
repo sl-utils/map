@@ -4,6 +4,7 @@ import { MapCanvasLayer, SLUMap } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
 import { OptMapPluginFlow, DataMapVeloctiyWind, AMapMapsEvent } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
+import { Map as MaplibreMap } from 'maplibre-gl';
 /**流体动画(风速风向洋流动图)leaflet-velocity.js
  * @extends MapCanvasLayer
  * @constructor
@@ -77,10 +78,12 @@ export class MapPluginFlow extends MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
     */
-    protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void {
-        map[key]("zoomstart", this.stopWindy, this);
-        map[key]("dragstart", this.stopWindy, this);
-        map[key]("click", this.onMouseClick, this);
+    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void {
+        const stop = () => this.stopWindy();
+        const click = (e: LeafletMouseEvent | AMapMapsEvent) => this.onMouseClick(e);
+        map[key]("zoomstart", stop);
+        map[key]("dragstart", stop);
+        map[key]("click", click);
     }
     /**初始化windy对象 */
     private initWindy(): void {

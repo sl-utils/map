@@ -2,6 +2,7 @@ import { OptMapPluginRadar } from "@sl-utils/map";
 import { SLUCanvas } from "../canvas";
 import { u_mapGetPointByLatlng, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
 import { Map as LMap } from 'leaflet';
+import { Map as MaplibreMap } from 'maplibre-gl';
 
 /**地图canvas绘制雷达类
  * @constructor
@@ -9,7 +10,7 @@ import { Map as LMap } from 'leaflet';
  * @param ctx 画布上下文
  */
 export class MapCanvasRadar {
-    constructor(private map: AMAP.Map | LMap, private ctx: CanvasRenderingContext2D) { }
+    constructor(private map: AMAP.Map | LMap | MaplibreMap, private ctx: CanvasRenderingContext2D) { }
     /**当前地图缩放层级 */
     private get zoom(): number {
         return this.map.getZoom();

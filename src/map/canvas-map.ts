@@ -1,8 +1,9 @@
 import { CRS, Map as LMap, LatLng, LeafletMouseEvent, MapOptions, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_tsIsKeyOf, u_tsMapisLeaflet } from "../utils/slu-map";
+import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_tsIsKeyOf, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
 import { AMapMapsEvent, MapBounds, MapControlInfo, MapLatLng, OptMap } from "@sl-utils/map";
+import { Map as MaplibreMap, LngLat as MaplibreLngLat } from 'maplibre-gl';
 declare var AMap: any;
 /**地图
  * @constructor
@@ -15,9 +16,9 @@ export class SLUMap {
     /**地图容器元素 */
     private ele: string;
     /**地图实例 */
-    private _map: LMap | AMAP.Map;
+    private _map: LMap | AMAP.Map | MaplibreMap;
     /**地图实例 */
-    public get map(): LMap | AMAP.Map {
+    public get map(): LMap | AMAP.Map | MaplibreMap {
         return this._map
     }
     /**地图控件更新时的回调 */
@@ -37,6 +38,7 @@ export class SLUMap {
         const { type } = options, ele = this.ele;
         switch (type) {
             case "A": this._map = await this.initAmap(ele, options); break;
+            case "M": this._map = await this.initMaplibre(ele, options); break;
             default: this._map = await this.initLeaflet(ele, options);
                 this.showMap([MapNameType.tianDiTuNormalMap, MapNameType.tianDiTuNormalAnnotion]);
                 break;
@@ -70,7 +72,7 @@ export class SLUMap {
     /**获取地图中心
      * @returns 地图中心
      */
-    public getCenter(): LatLng | AMAP.LngLat {
+    public getCenter(): LatLng | AMAP.LngLat | MaplibreLngLat {
         return this.map.getCenter();
     }
     /**获取地图缩放级别
@@ -173,6 +175,46 @@ export class SLUMap {
         let map = new LMap(ele, param);
         return Promise.resolve(map)
     }
+    /**---------------maplibre地图的相关方法------------------- */
+    /**初始化maplibre地图
+     * @param ele 地图容器元素
+     * @param opt 地图初始化参数
+     * @returns maplibregl.Map实例
+     */
+    private async initMaplibre(ele: string, opt: Partial<OptMap>): Promise<MaplibreMap> {
+        const { style, zoom = 11, minZoom = 2, maxZoom = 20, center = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
+        let map = new MaplibreMap({
+            container: ele,
+            style,
+            center,
+            zoom,
+            minZoom,
+            maxZoom,
+            antialias: true,
+            dragRotate: dragging,
+            touchZoomRotate: false,
+            doubleClickZoom,
+            attributionControl: attributionControl ? undefined : false
+        });
+        return Promise.resolve(map);
+    }
+    /**切换中英文
+     * @param ifEn 是否切换英文
+     */
+    public changeLanguage(ifEn: boolean): void {
+        const map = this.map;
+        if (u_tsMapisMapLibre(map)) {
+            const layers = map.getStyle().layers || [];
+            const lang = ifEn ? 'en' : 'zh-Hans';
+            layers.forEach((layer) => {
+                if (layer.type === 'symbol' && layer.layout && 'text-field' in layer.layout) {
+                    try {
+                        map.setLayoutProperty(layer.id, 'text-field', ['get', `name:${lang}`]);
+                    } catch (e) { }
+                }
+            });
+        }
+    }
     /**---------------高德地图的相关方法------------------- */
     /**初始化高德地图
      * @param ele 地图容器元素
@@ -236,7 +278,9 @@ export class SLUMap {
     /**设置地图层级和比例尺 */
     private setZoomAndScale(): void {
         if (!this.map) return;
-        this.controlInfo.zoom = this.getZoom();
+        let zoom = this.getZoom();
+        zoom = Number.isInteger(zoom) ? zoom : Number(zoom.toFixed(2));
+        this.controlInfo.zoom = zoom;
         this.setScale();
     }
     /**设置地图比例尺 */

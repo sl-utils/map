@@ -1,6 +1,6 @@
 import { OptMapCanvas, OptMapPluginRadar } from "@sl-utils/map";
 import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
-
+import { Map as MaplibreMap } from 'maplibre-gl';
 /**雷达绘制插件
  * @extends MapCanvasLayer
  * @constructor
@@ -59,11 +59,13 @@ export class MapPluginRadar extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-    protected addMapEvents(map: L.Map | AMAP.Map, key: 'on' | 'off'): void {
-        map[key]('dragstart', this.drawEnd, this);
-        // map[key]('dragend', this.drawStart, this);
-        map[key]('movestart', this.drawEnd, this);
-        map[key]('moveend', this.drawStart, this);
+    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: 'on' | 'off'): void {
+        const end = () => this.drawEnd();
+        const start = () => this.drawStart();
+        map[key]("dragstart", end);
+        map[key]('dragend', start);
+        // map[key]("movestart", end);
+        // map[key]("moveend", start);
     }
     /**拖拽结束，开始绘制 */
     private drawStart(): void {

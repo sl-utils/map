@@ -1,6 +1,7 @@
 import * as L from "leaflet";
 import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
 import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "@sl-utils/map";
+import { Map as MaplibreMap } from 'maplibre-gl';
 /**运动粒子类
  * @constructor
  * @param options 配置项
@@ -23,7 +24,7 @@ export class PluginVelocity {
     data: [],
   };
   /**地图实例 */
-  private map!: L.Map | AMAP.Map;
+  private map!: L.Map | AMAP.Map | MaplibreMap;
   /**画布元素 */
   private canvas!: HTMLCanvasElement;
   /**粒子强度最低时的速度（米 / 秒） velocity at which particle intensity is minimum (m/s)*/

@@ -2,6 +2,7 @@ import * as L from 'leaflet';
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByLatlngs, u_mapGetSizeByMap } from '../utils/slu-map'
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
 import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '@sl-utils/map';
+import { Map as MaplibreMap } from 'maplibre-gl';
 
 /** 地图canvas基础图形绘制类
  * @constructor
@@ -13,7 +14,7 @@ import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, Ma
  *  设置图片/圆点的大小
  */
 export class MapCanvasDraw {
-  constructor(map: AMAP.Map | L.Map, canvas: HTMLCanvasElement) {
+  constructor(map: AMAP.Map | L.Map | MaplibreMap, canvas: HTMLCanvasElement) {
     this.map = map;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
@@ -23,7 +24,7 @@ export class MapCanvasDraw {
   /**画布上下文 */
   protected ctx: CanvasRenderingContext2D;
   /**地图实例 */
-  protected map: AMAP.Map | L.Map;
+  protected map: AMAP.Map | L.Map | MaplibreMap;
   /**Gif实例 */
   private gif: SLUCanvasGif;
   /**所有的小圆数据 */

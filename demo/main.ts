@@ -7,14 +7,14 @@ import './style.css'
 /**测距 */
 // import App from './plugin-range.vue';
 /**轨迹 */
-import App from './plugin-track.vue';
+// import App from './plugin-track.vue';
 /**风场 */
 // import App from './plugin-wind.vue';
 /**流场 */
 // import App from './plugin-flow.vue';
 /**浪场 */
 // import App from './plugin-wave.vue';
-/**热力图 */
+/**热力图-随缩放而变化 */
 // import App from './plugin-heat.vue';
 /**动态箭头线 */
 // import App from './plugin-arrow-line.vue';
@@ -24,7 +24,7 @@ import App from './plugin-track.vue';
 // import App from './plugin-partial.vue';
 /**雷达 */
 // import App from './plugin-radar.vue';
-/**地图控件-比例尺/当前层级/鼠标所在位置 */
-// import App from './plugin-control.vue';
+/**汇集所有插件 */
+import App from './plugin.vue';
 
 createApp(App).mount('#app')

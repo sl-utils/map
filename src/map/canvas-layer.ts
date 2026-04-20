@@ -1,6 +1,7 @@
 import { Browser, DomUtil, Map as LMap, Layer, Util, ZoomAnimEvent, bind, extend } from "leaflet";
-import { u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsMapisAmap, u_tsMapisLeaflet } from "../utils/slu-map";
+import { u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
 import { OptMapCanvas } from "@sl-utils/map";
+import { Map as MaplibreMap, CustomLayerInterface } from 'maplibre-gl';
 declare var AMap: any;
 /** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 
  * @constructor
@@ -9,9 +10,10 @@ declare var AMap: any;
 */
 export class MapCanvasLayer {
     constructor(MAP: LMap, opt?: OptMapCanvas)
+    constructor(MAP: MaplibreMap, opt?: OptMapCanvas)
     constructor(MAP: AMAP.Map, opt?: AMAP.CustomLayerOption)
-    constructor(MAP: AMAP.Map | LMap, opt?: AMAP.CustomLayerOption | OptMapCanvas)
-    constructor(map: AMAP.Map | LMap, opt?: AMAP.CustomLayerOption | OptMapCanvas) {
+    constructor(MAP: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas)
+    constructor(map: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas) {
         this.map = map;
         Object.assign(this.options, opt);
         this.initCanvas();
@@ -19,13 +21,14 @@ export class MapCanvasLayer {
             this._initLeaflet();
         } else if (u_tsMapisAmap(map)) {
             this._initAMap();
+        } else if (u_tsMapisMapLibre(map)) {
+            this._initMapLibreAsync();
         }
-        this.onAdd();
     }
     /**地图实例*/
-    public readonly map!: AMAP.Map | LMap;
+    public readonly map!: AMAP.Map | LMap | MaplibreMap;
     /**图层 */
-    private layer: Layer | AMAP.CustomLayer;
+    private layer: Layer | AMAP.CustomLayer | CustomLayerInterface;
     /**画布 */
     protected readonly canvas: HTMLCanvasElement = document.createElement('canvas');
     /**画布上下文 */
@@ -44,11 +47,9 @@ export class MapCanvasLayer {
     public onRemove(): MapCanvasLayer {
         this._eventSwitch(false);
         if (this.flagAnimation) cancelAnimationFrame(this.flagAnimation);
-        if (u_tsMapisAmap(this.map)) {
-            this._onAmapRemove();
-        } else if (u_tsMapisLeaflet(this.map)) {
-            this._onLeafletRemove();
-        }
+        this._onAmapRemove();
+        this._onLeafletRemove();
+        this._onMapLibreRemove();
         return this;
     }
     /**清空并重新设置画布 */
@@ -69,7 +70,7 @@ export class MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
      */
-    protected addMapEvents(map: AMAP.Map | LMap, key: 'on' | 'off'): void { };
+    protected addMapEvents(map: AMAP.Map | LMap | MaplibreMap, key: 'on' | 'off'): void { };
     /**绘制静态数据推荐使用此方法(固定的图) */
     protected renderFixedData(): void { };
     /** 推荐使用此方法绘制动态图(跟随鼠标拖动，移动时需要立刻绘制时)
@@ -103,9 +104,8 @@ export class MapCanvasLayer {
      * @returns MapCanvasLayer实例
      */
     private onAdd(): MapCanvasLayer {
-        if (u_tsMapisAmap(this.map)) {
-            this._onAmapAdd();
-        }
+        this._onAmapAdd();
+        this._onMapLibreAdd();
         this._eventSwitch(true);
         return this;
     }
@@ -117,6 +117,7 @@ export class MapCanvasLayer {
         let map = this.map;
         let key: 'on' | 'off' = flag ? 'on' : 'off';
         this.addLeafletEvent(flag);
+        this.addMaplibreEvent(flag);
         this.addMapEvents(map, key);
     }
     /**基础绘制 */
@@ -141,6 +142,7 @@ export class MapCanvasLayer {
             render: () => this._redraw()
         }, this.options);
         this.layer = new AMap.CustomLayer(this.canvas, opt);
+        this.onAdd();
     }
     /**将图层添加到map实例中显示 */
     private _onAmapAdd(): void {
@@ -162,7 +164,8 @@ export class MapCanvasLayer {
     /**初始化Leaflet地图的图层 */
     private _initLeaflet(): void {
         const layer = this.layer = new Layer(this.options);
-        this.layer.onAdd = () => { this.onAdd(); return layer }
+        this.layer.onAdd = () => { this.onAdd(); return layer };
+        this.onAdd();
     }
     /**初始化画布并添加到Pane中 */
     private initLeafletCanvas(): void {
@@ -225,5 +228,80 @@ export class MapCanvasLayer {
     /**画布加载完成 */
     private _onCanvasLoad(): void {
         if (u_tsLayerisLeaflet(this.layer)) this.layer.fire('load');
+    }
+    /**------------------------------MapLibre地图的实现------------------------------*/
+    /**异步初始化MapLibre地图的图层 */
+    private _initMapLibreAsync(): void {
+        const map = this.map;
+        if (u_tsMapisMapLibre(map)) {
+            const isReady = map.loaded?.() || map.isStyleLoaded?.() || !!map.getStyle?.();
+            if (isReady) {
+                this._initMapLibre();
+                this.onAdd();
+            } else {
+                map.once('load', () => {
+                    this._initMapLibre();
+                    this.onAdd();
+                });
+            }
+        }
+    }
+    /**添加MapLibre图层到地图上 */
+    private _initMapLibre(): void {
+        const map = this.map;
+        if (u_tsMapisMapLibre(map)) {
+            const layerId = `slu-canvas-${Math.random().toString(36).slice(2)}`;
+            const customLayer: CustomLayerInterface = {
+                id: layerId,
+                type: 'custom',
+                renderingMode: '2d',
+                onAdd: () => this._onMapLibreAdd(),
+                onRemove: () => this._onMapLibreRemove(),
+                render: () => { }
+            };
+            if (!map.getLayer(layerId)) {
+                map.addLayer(customLayer);
+            }
+            this.layer = customLayer;
+        }
+    }
+    /**将图层添加到容器 */
+    private _onMapLibreAdd(): void {
+        const map = this.map;
+        if (u_tsMapisMapLibre(map)) {
+            const container = map.getCanvasContainer();
+            this.canvas.style.position = 'absolute';
+            this.canvas.style.top = '0';
+            this.canvas.style.left = '0';
+            this.canvas.style.zIndex = String(this.options.zIndex || 100);
+            container.appendChild(this.canvas);
+        }
+    }
+    /**移除图层 */
+    private _onMapLibreRemove(): void {
+        if (u_tsMapisMapLibre(this.map) && u_tsLayerisMapLibre(this.layer)) {
+            if (this.canvas.parentNode) {
+                this.canvas.parentNode.removeChild(this.canvas);
+            }
+            if (this.layer?.id && this.map.getLayer(this.layer.id)) {
+                this.map.removeLayer(this.layer.id);
+            }
+        }
+    }
+    /**添加MapLibre地图事件监听
+     *  @param flag @default true
+     *  true开启事件监听; false关闭事件监听
+     */
+    private addMaplibreEvent(flag: boolean = true): void {
+        const map = this.map;
+        if (u_tsMapisMapLibre(map)) {
+            /**为了和高德保持一致，初始化后渲染一次 */
+            requestAnimationFrame(() => this._reset());
+            const key: 'on' | 'off' = flag ? 'on' : 'off';
+            map[key]('resize', () => this._reset());
+            map[key]('move', () => this._reset());
+            map[key]('zoom', () => this._reset());
+            map[key]('moveend', () => this._reset());
+        };
     }
 }

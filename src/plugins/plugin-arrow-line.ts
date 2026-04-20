@@ -1,7 +1,7 @@
 
 import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
 import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
-
+import { Map as MaplibreMap } from 'maplibre-gl';
 /**
  * 地图canvas动态箭头线插件
  * @extends MapCanvasLayer
@@ -43,6 +43,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
     this.arrowLine.draw();
     this.flagAnimation && cancelAnimationFrame(this.flagAnimation);
     this.flagAnimation = requestAnimationFrame((time) => {
+      // console.log('this.isDrag', this.isDrag);      
       // leaflet图层和高德不同，拖动结束才更新像素坐标 因此不影响 但是需要传isMapMove的值
       if (this.isDrag) return; // 拖动过程不允许更新动画 否则出现偏移可能出问题（动画图层每次拖动都会触发重绘，防止像素坐标计算的时候出现快速的偏移）
       this.renderAnimation(time);
@@ -52,11 +53,13 @@ export class MapPluginArrowLine extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-  protected addMapEvents(map: L.Map | AMAP.Map, key: "on" | "off"): void {
-    map[key]("dragstart", this.drawEnd, this);
-    // map[key]('dragend', this.drawStart, this);
-    map[key]("movestart", this.drawEnd, this);
-    map[key]("moveend", this.drawStart, this);
+  protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void {
+    const end = () => this.drawEnd();
+    const start = () => this.drawStart();
+    map[key]("dragstart", end);
+    map[key]('dragend', start);
+    // map[key]("movestart", end);
+    // map[key]("moveend", start);
   }
   /**拖拽结束，开始绘制 */
   private drawStart(): void {

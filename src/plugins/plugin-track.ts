@@ -2,6 +2,7 @@ import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent, SLUMap } from "../map";
 import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "@sl-utils/map";
+import { Map as MaplibreMap } from 'maplibre-gl';
 /**轨迹绘制类
  * @constructor
  * @param sluMap 地图实例
@@ -18,7 +19,7 @@ export class MapPluginTrack {
     this.allEvents = new MapCanvasEvent(map);
   }
   /**地图实例 */
-  private map: L.Map | AMAP.Map;
+  private map: L.Map | AMAP.Map | MaplibreMap;
   /**默认配置 */
   private options: OptMapPluginTrack = {
     pane: "canvas",

@@ -1,13 +1,15 @@
 import { MapEventType, MapEventResponse, MapEvent, MapRbush, AMapMapsEvent, MapCursorPosition, MapEventRange } from "@sl-utils/map";
-import { u_arrItemDel, u_mapGetPointByLatlng, u_tsEventisAmap, u_tsEventisLeaflet, u_tsIsMapEventType } from "../utils/slu-map";
+import { u_arrItemDel, u_mapGetPointByLatlng, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
 import rbush, { BBox } from 'rbush'
 import { LeafletMouseEvent, Map as LMap } from "leaflet";
+import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+
 /**地图事件控制类
  * @constructor
  * @param map 地图实例
  */
 export class MapCanvasEvent {
-    constructor(map: AMAP.Map | LMap) {
+    constructor(map: AMAP.Map | LMap | MaplibreMap) {
         this.map = map;
         this._eventSwitch(true);
         this.map.on('moveend', this.resetRbush);
@@ -26,7 +28,7 @@ export class MapCanvasEvent {
         MapCanvasEvent.ifInit = true;
     }
     /**地图实例 */
-    protected map: AMAP.Map | LMap;
+    protected map: AMAP.Map | LMap | MaplibreMap;
     /**监听事件 */
     protected _listenCbs: { [key in MapEventType]?: ((e: MapEventResponse<any>) => void)[] } = Object.create(null);
     /**key 防止setEvent清除其他事件 */
@@ -187,12 +189,18 @@ export class MapCanvasEvent {
     /**准备触发事件 
     * @param e 地图事件
     */
-    private triggerEvent = (e: AMapMapsEvent | LeafletMouseEvent): void => {
-        let allEvents: MapEvent<any, any>[] = []
+    private triggerEvent = (e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): void => {
+        let allEvents: MapEvent<any, any>[] = [], el: HTMLElement;
         this._allMapEvents.forEach(eves => {
             allEvents = allEvents.concat(eves);
         });
-        let style: any = document.querySelector<HTMLElement>('#map')!.style;
+        if (u_tsMapisMapLibre(this.map)) {
+            el = this.map.getCanvasContainer();
+        } else {
+            el = this.map.getContainer();
+        }
+        if (!el) return;
+        let style = el.style;
         style.cursor = MapCanvasEvent.ifInitCursor ? 'default' : style.cursor;
         if (allEvents.length === 0) return;
         let { curEvents, enterEvents, leaveEvents } = this.getEventsByRange(e);
@@ -210,7 +218,7 @@ export class MapCanvasEvent {
      * @param e 地图事件
      * @returns MapEventRange
      */
-    private getEventsByRange(e: AMapMapsEvent | LeafletMouseEvent): MapEventRange {
+    private getEventsByRange(e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): MapEventRange {
         let x: number, y: number, pageX: number, pageY: number, zoom: number = this.map.getZoom();
         if (u_tsEventisLeaflet(e)) {
             let event = e;
@@ -218,6 +226,8 @@ export class MapCanvasEvent {
         } else if (u_tsEventisAmap(e)) {
             let event = e;
             ({ x, y } = event.pixel, { pageX, pageY } = event.originEvent);
+        } else if (u_tsEventisMapLibre(e)) {
+            ({ x, y } = e.point, { pageX, pageY } = e.originalEvent);
         }
         /** curEvents 当前位置存在的所有事件  enterEvents 鼠标首次进入事件集合  leaveEvents 鼠标离开事件集合 */
         let curEvents: MapEventResponse[] = [], enterEvents: MapEventResponse[] = [], leaveEvents: MapEventResponse[] = this.perEvents;
