@@ -1,70 +1,91 @@
-const f = class f {
-  /**canvas画布的工具类*/
+const P = class P {
   constructor() {
   }
-  /**绘制小圆点 */
-  static drawArc(t, e = this.ctx) {
-    if (t.ifHide === !0) return this;
-    let { point: i, points: l = [], size: a = 10 } = t;
-    i && (l = [...l, i]), this.setCtxPara(e, t);
-    for (let s = 0, o = l.length; s < o; s++) {
-      e.beginPath();
-      const r = l[s];
-      e.arc(r[0], r[1], a, 0, 2 * Math.PI, !1), e.stroke(), e.globalAlpha = t.fillAlpha == null ? 1 : t.fillAlpha, e.fill();
+  /**绘制小圆点
+   * @param arc 圆数据
+   * @param ctx 画布上下文
+   * @returns SLUCanvas实例
+   */
+  static drawArc(e, t = this.ctx) {
+    if (e.ifHide === !0) return this;
+    let { point: i, points: s = [], size: r = 10 } = e;
+    i && (s.length ? s.push(i) : s = [i]), this.setCtxPara(t, e);
+    for (let a = 0, l = s.length; a < l; a++) {
+      t.beginPath();
+      const [h, o] = s[a] || [0, 0];
+      t.arc(h, o, r, 0, 2 * Math.PI, !1), t.stroke(), t.globalAlpha = e.fillAlpha ?? 1, t.fill();
     }
-    return this.setCtxPara(e), this;
+    return this.setCtxPara(t), this;
   }
-  /**绘制矩形 */
-  static drawRect(t, e = this.ctx) {
-    if (t.ifHide === !0) return this;
-    let { point: i, points: l = [i], width: a = 0, height: s = 0, radius: o = [0, 0, 0, 0] } = t;
-    this.setCtxPara(e, t);
-    for (let r = 0; r < l.length; r++) {
-      let [h, n] = l[r] || [0, 0];
-      e.beginPath(), e.roundRect(h, n, a, s, o), e.stroke(), e.globalAlpha = t.fillAlpha == null ? 1 : t.fillAlpha, e.fill(), e.closePath();
+  /**绘制矩形
+   * @param rect 矩形数据
+   * @param ctx 画布上下文
+   * @returns SLUCanvas实例
+   */
+  static drawRect(e, t = this.ctx) {
+    if (e.ifHide === !0) return this;
+    let { point: i, points: s = [], width: r = 0, height: a = 0, radius: l = [0, 0, 0, 0] } = e;
+    i && (s.length ? s.push(i) : s = [i]), this.setCtxPara(t, e);
+    for (let h = 0, o = s.length; h < o; h++) {
+      const [d, n] = s[h] || [0, 0];
+      t.beginPath(), t.roundRect(d, n, r, a, l), t.stroke(), t.globalAlpha = e.fillAlpha ?? 1, t.fill(), t.closePath();
     }
-    return this.setCtxPara(e), this;
+    return this.setCtxPara(t), this;
   }
-  /**画绘制多边形*/
-  static drawPolygon(t, e = this.ctx) {
-    let { points: i = [] } = t;
-    if (t.ifHide === !0 || i.length < 2) return this;
-    this.setCtxPara(e, t);
-    for (let l = 0, a = i.length; l < a; l++) {
-      let [s, o] = i[l];
-      l == 0 ? (e.beginPath(), e.moveTo(s, o)) : l == a - 1 ? (e.lineTo(s, o), e.closePath(), e.globalAlpha = t.fillAlpha == null ? 1 : t.fillAlpha, e.fill(), e.lineWidth > 0 && (e.globalAlpha = t.alpha || 1, e.stroke())) : e.lineTo(s, o);
+  /**绘制多边形
+   * @param polygon 多边形数据
+   * @param ctx 画布上下文
+   * @returns SLUCanvas实例
+   */
+  static drawPolygon(e, t = this.ctx) {
+    const { points: i = [] } = e;
+    if (e.ifHide === !0 || i.length < 2) return this;
+    this.setCtxPara(t, e);
+    for (let s = 0, r = i.length; s < r; s++) {
+      const [a, l] = i[s] || [0, 0];
+      s == 0 ? (t.beginPath(), t.moveTo(a, l)) : s == r - 1 ? (t.lineTo(a, l), t.closePath(), t.globalAlpha = e.fillAlpha ?? 1, t.fill(), t.lineWidth > 0 && (t.globalAlpha = e.alpha ?? 1, t.stroke())) : t.lineTo(a, l);
     }
-    return this.setCtxPara(e), this;
+    return this.setCtxPara(t), this;
   }
-  /**画线*/
-  static drawLine(t, e = this.ctx) {
-    if (t.ifHide === !0) return this;
-    let { points: i = [] } = t;
+  /**绘制线
+   * @param line 线数据
+   * @param ctx 画布上下文
+   * @returns SLUCanvas实例
+   */
+  static drawLine(e, t = this.ctx) {
+    if (e.ifHide === !0) return this;
+    const { points: i = [] } = e;
     if (i.length < 2) return this;
-    this.setCtxPara(e, t);
-    let l = i[0] || [];
-    t.widthLine, e.beginPath(), e.moveTo(l[0], l[1]);
-    for (let a = 1, s = i.length; a < s; a++) {
-      let o = i[a];
-      e.lineTo(o[0], o[1]);
+    this.setCtxPara(t, e);
+    const [s, r] = i[0] || [0, 0];
+    e.widthLine, t.beginPath(), t.moveTo(s, r);
+    for (let a = 1, l = i.length; a < l; a++) {
+      const [h, o] = i[a] || [0, 0];
+      t.lineTo(h, o);
     }
-    return e.stroke(), this.setCtxPara(e), this;
+    return t.stroke(), this.setCtxPara(t), this;
   }
-  /**画贝塞尔曲线*/
-  static drawBezierLine(t, e = this.ctx) {
-    if (t.ifHide === !0) return this;
-    let { points: i = [] } = t;
+  /**绘制贝塞尔曲线
+   * @param line 贝塞尔曲线数据
+   * @param ctx 画布上下文
+   * @returns SLUCanvas实例
+   */
+  static drawBezierLine(e, t = this.ctx) {
+    if (e.ifHide === !0) return this;
+    const { points: i = [] } = e;
     if (i.length < 2) return this;
-    this.setCtxPara(e, t);
-    let l = i[0], a = t.degree;
-    e.beginPath(), e.moveTo(l[0], l[1]);
-    for (let s = 1, o = i.length; s < o; s++) {
-      let r = i[s - 1], h = i[s], n = this.getBezierCtrlPoint(r, h, a);
-      e.quadraticCurveTo(n[0], n[1], h[0], h[1]);
+    this.setCtxPara(t, e);
+    const [s, r] = i[0] || [0, 0], a = e.degree ?? 1;
+    t.beginPath(), t.moveTo(s, r);
+    for (let l = 1, h = i.length; l < h; l++) {
+      let [o, d] = i[l - 1], [n, p] = i[l], [u, f] = this.getBezierCtrlPoint([o, d], [n, p], a);
+      t.quadraticCurveTo(u, f, n, p);
     }
-    return e.stroke(), this.setCtxPara(e), this;
+    return t.stroke(), this.setCtxPara(t), this;
   }
-  /**创建一个画布 */
+  /**创建一个画布
+   * @returns 画布元素
+   */
   static createCanvas() {
     return document.createElement("canvas");
   }
@@ -72,43 +93,49 @@ const f = class f {
    * @param s:起点
    * @param e:终点
    * @param degree：曲度等级（越大越弯曲）
+   * @returns 控制点
    */
-  static getBezierCtrlPoint(t, e, i = 1) {
-    const l = t, a = e, s = [(l[0] + a[0]) / 2, (l[1] + a[1]) / 2], o = i;
-    let r = s[0] - l[0], h = s[1] - l[1], n = Math.sqrt(r * r + h * h), u = Math.PI / 2 - Math.asin(h / n), d = o * Math.cos(u) * n, p = o * Math.sin(u) * n * r / Math.abs(r);
-    return d = isNaN(d) ? 0 : d, p = isNaN(p) ? 0 : p, [s[0] + d, s[1] - p];
+  static getBezierCtrlPoint(e, t, i = 1) {
+    const s = e, r = t, a = (s[0] + r[0]) / 2, l = (s[1] + r[1]) / 2, h = i;
+    let o = a - s[0], d = l - s[1], n = Math.sqrt(o * o + d * d);
+    if (n === 0) return [a, l];
+    let p = Math.PI / 2 - Math.asin(d / n), u = h * Math.cos(p) * n, f = h * Math.sin(p) * n * o / Math.abs(o);
+    return u = isNaN(u) ? 0 : u, f = isNaN(f) ? 0 : f, [a + u, l - f];
   }
   /**设置画布的相关配置
-   * @param fig 画布属性配置
    * @param ctx 2D画布渲染上下文
+   * @param fig 画布属性配置
+   * @returns 2D画布渲染上下文
    */
-  static setCtxPara(t, e = {}) {
-    return this.ctx = t, this.deletePara(e), e = Object.assign({}, this.ctxFig, e), t.globalAlpha = e.alpha, t.globalCompositeOperation = e.globalCompositeOperation, t.fillStyle = e.colorFill, t.strokeStyle = e.colorLine, t.lineWidth = e.widthLine, t.shadowColor = e.shadowColor, t.shadowBlur = e.shadowBlur, t.font = e.font, t.textBaseline = e.textBaseline, t.setLineDash(e.dash), t.lineDashOffset = e.dashOff, t;
+  static setCtxPara(e, t = {}) {
+    return this.ctx = e, this.deletePara(t), t = Object.assign({}, this.ctxFig, t), e.globalAlpha = t.alpha, e.globalCompositeOperation = t.globalCompositeOperation, e.fillStyle = t.colorFill, e.strokeStyle = t.colorLine, e.lineWidth = t.widthLine, e.shadowColor = t.shadowColor, e.shadowBlur = t.shadowBlur, e.font = t.font, e.textBaseline = t.textBaseline, e.setLineDash(t.dash), e.lineDashOffset = t.dashOff, e;
   }
-  /**移除掉值为 undefined 或 null 的属性，方便赋值 */
-  static deletePara(t = {}) {
-    for (const e in t)
-      if (Object.prototype.hasOwnProperty.call(t, e)) {
-        const i = t[e];
-        i == null && Reflect.deleteProperty(t, e);
+  /**移除掉值为 undefined 或 null 的属性，方便赋值
+   * @param obj 对象
+   */
+  static deletePara(e = {}) {
+    for (const t in e)
+      if (Object.prototype.hasOwnProperty.call(e, t)) {
+        const i = e[t];
+        i == null && Reflect.deleteProperty(e, t);
       }
   }
 };
-f.ctxFig = {
+P.ctxFig = {
   alpha: 1,
-  widthLine: 1,
-  colorLine: "#FFFFFF",
+  fillAlpha: 1,
   colorFill: "#EE3434",
+  colorLine: "#FFFFFF",
+  shadowColor: "#000000",
+  shadowBlur: 0,
+  widthLine: 1,
   dash: [10, 0],
   dashOff: 0,
-  fillAlpha: 1,
   font: "14px serif",
   textBaseline: "top",
-  globalCompositeOperation: "source-over",
-  shadowBlur: 0,
-  shadowColor: "#000000"
+  globalCompositeOperation: "source-over"
 };
-let P = f;
+let C = P;
 export {
-  P as SLUCanvas
+  C as SLUCanvas
 };

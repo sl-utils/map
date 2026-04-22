@@ -1,75 +1,79 @@
-import w from "../node_modules/rbush/index.js";
-import { MapPluginDraw as B } from "./plugin-draw.js";
+import B from "../node_modules/rbush/index.js";
+import { MapPluginDraw as _ } from "./plugin-draw.js";
 import "../canvas/slu-canvas.js";
 import { SLUCanvasImg as x } from "../canvas/slu-canvas-img.js";
+import "../canvas/slu-canvas-text.js";
 import { u_mapGetPointByLatlng as O } from "../utils/slu-map.js";
-class L extends B {
-  constructor(t, s) {
-    super(t, s), this.rbush = new w(), this.rbushData = [], this.bigDataImgs = [], this._renderBigDataImgs = [], this.resetRbush = () => {
-      this.rbush && this.rbush.clear(), this.rbushData = [], this.bigDataImgs.forEach((e) => {
-        this.transformRbush(e);
+class P extends _ {
+  constructor(t, a) {
+    super(t, a), this.rbush = new B(), this.rbush_search = /* @__PURE__ */ Object.create({}), this.rbushData = [], this.bigDataImgs = [], this._renderBigDataImgs = [], this.resetRbush = () => {
+      this.rbush && this.rbush.clear(), this.rbushData.length = 0, this.bigDataImgs.forEach((h) => {
+        this.transformRbush(h);
       }), this.rbush.load(this.rbushData);
-    }, this.bigDataOption = s;
+    }, this.bigDataOption = a;
   }
+  /**大数据绘制图标 用于事件添加 */
   get renderBigDataList() {
     return this._renderBigDataImgs;
   }
-  /**绘制大量图标 rbush筛选重叠优化 */
+  /**绘制大量图标 rbush筛选重叠优化
+   * @param imgs 图标数组
+   */
   setbigDataImgs(t) {
-    this.rbush.clear(), this.rbushData = [], this.bigDataImgs = t, this.rbushData = t.map((s) => (this._draw.transformImageSize(s), this.transformRbush(s))), this.rbush.load(this.rbushData);
+    this.rbush.clear(), this.rbushData.length = 0, this.bigDataImgs = t, this.rbushData = t.map((a) => (this._draw.transformImageSize(a), this.transformRbush(a))), this.rbush.load(this.rbushData), this.drawMapAll();
   }
   /**
    * 将画布划分为多个矩形
    * 矩形内限制最大重叠图形，超出不绘制
    */
   handleOverlapImage() {
-    const t = this, { canvas: s, rbush: e, ctx: r, _draw: i, map: h } = t, a = h.getZoom(), { width: n, height: o } = s, { minBound: f = [n, o], maxCount: c } = this.getZoomOption(a), [u, g] = f, p = /* @__PURE__ */ new Set();
-    for (let d = 0; d < n; d += u / 2)
-      for (let l = 0; l < o; l += g / 2) {
-        const b = [d + u / 2, l + g / 2];
-        e.search({
-          minX: b[0] - u / 2,
-          minY: b[1] - g / 2,
-          maxX: b[0] + u / 2,
-          maxY: b[1] + g / 2
-        }).forEach((D, I) => {
-          const { data: m } = D;
-          (I < c || c == -1) && !p.has(m) && (i.transformXY(m), p.add(m), x.drawImg(m, r), this._renderBigDataImgs.push(m));
+    const t = this, { canvas: a, rbush: h, ctx: e, _draw: r, map: n } = t, s = n.getZoom(), { width: i, height: o } = a, { minBound: D = [i, o], maxCount: p } = this.getZoomOption(s), [g, l] = D, f = /* @__PURE__ */ new Set();
+    for (let c = 0; c < i; c += g / 2)
+      for (let d = 0; d < o; d += l / 2) {
+        const b = [c + g / 2, d + l / 2], m = this.rbush_search;
+        m.maxX = b[0] + g / 2, m.minX = b[0] - g / 2, m.maxY = b[1] + l / 2, m.minY = b[1] - l / 2, h.search(m).forEach((I, w) => {
+          const { data: u } = I;
+          (w < p || p == -1) && !f.has(u) && (r.transformXY(u), f.add(u), x.drawImg(u, e), this._renderBigDataImgs.push(u));
         });
       }
   }
   /**
    * 根据图层缩放 获取配置
    * @param zoom
-   * @returns
+   * @returns { maxCount: number; minBound?: [number, number]; }
    */
   getZoomOption(t) {
-    const s = this, { bigDataOption: e } = s, { zoomOption: r } = e;
-    if (r[t]) return r[t];
-    const i = Object.keys(r).map((a) => Number(a)).sort((a, n) => Number(a) - Number(n)), h = i.length;
-    for (let a = 0; a < h - 1; a++)
-      if (t > i[a] && t < i[a + 1])
-        return r[i[a]];
-    return r[i[h - 1]];
+    const a = this, { bigDataOption: h } = a, { zoomOption: e } = h;
+    if (e[t]) return e[t];
+    const r = Object.keys(e).map((s) => Number(s)).sort((s, i) => Number(s) - Number(i)), n = r.length;
+    for (let s = 0, i = r.length - 1; s < i; s++)
+      if (t > r[s] && t < r[s + 1])
+        return e[r[s]];
+    return e[r[n - 1]];
   }
-  /**图片转化为rbush数据格式 */
+  /**图片转化为rbush数据格式
+   * @param img 图标
+   * @returns rbush数据格式
+   */
   transformRbush(t) {
-    const { latlng: s, size: e = [0, 0], left: r = 0, top: i = 0 } = t;
-    let h = e[0], a = e[1], [n, o] = O(this.map, s);
+    const { latlng: a, size: h = [0, 0], left: e = 0, top: r = 0 } = t;
+    let n = h[0], s = h[1], [i, o] = O(this.map, a);
     return {
-      minX: n - h / 2 + r,
-      minY: o - a / 2 + i,
-      maxX: n + h / 2 + r,
-      maxY: o + a / 2 + i,
+      minX: i - n / 2 + e,
+      minY: o - s / 2 + r,
+      maxX: i + n / 2 + e,
+      maxY: o + s / 2 + r,
       data: t,
-      latlng: s
+      latlng: a
     };
   }
-  /**绘制所有需要绘制的类 */
+  /**绘制所有需要绘制的类
+   * @returns MapPluginBigData实例
+   */
   drawMapAll() {
-    return console.time("start"), this._renderBigDataImgs = [], this._draw.drawMapAll(), this.handleOverlapImage(), console.timeEnd("start"), this;
+    return console.time("start"), this._renderBigDataImgs.length = 0, this._draw.drawMapAll(), this.handleOverlapImage(), console.timeEnd("start"), this;
   }
 }
 export {
-  L as MapPluginBigData
+  P as MapPluginBigData
 };

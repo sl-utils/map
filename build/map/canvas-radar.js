@@ -1,212 +1,265 @@
-import { SLUCanvas as M } from "../canvas/slu-canvas.js";
+import { SLUCanvas as y } from "../canvas/slu-canvas.js";
 import "../canvas/slu-canvas-img.js";
-import { u_mapGetSizeByMap as F, u_mapGetPointByLatlng as D } from "../utils/slu-map.js";
-class k {
+import "../canvas/slu-canvas-text.js";
+import { u_mapGetSizeByMap as I, u_mapGetPointByLatlng as b, u_tsIfOneArrTwoLen as R } from "../utils/slu-map.js";
+class z {
   constructor(r, t) {
-    this.map = r, this.ctx = t, this.radarDefault = { animeId: "0", angle: [0, 90], currentAngle: 0, ifClockwise: !0, time: 3, gridDensity: 8, arcDash: [100, 500], colorDash: ["#FF0000", "#00FF00"], dashDensity: 3, colorSector: "#00FF00", colorText: "#FFFF00", colorGrid: "#49EFEF66", colorRadar: "#00FFFF", sectorAngle: 30, sizeFix: [0, 0], latlng: [0, 0] }, this.allRadars = [];
+    this.map = r, this.ctx = t, this.options = {
+      animeId: "0",
+      angle: [0, 90],
+      ifClockwise: !0,
+      time: 3,
+      currentAngle: 0,
+      sectorAngle: 30,
+      colorSector: "#00FF00",
+      colorGrid: "#49EFEF66",
+      colorText: "#FFFF00",
+      colorRadar: "#00FFFF",
+      colorDash: ["#FF0000", "#00FF00"],
+      arcDash: [100, 500],
+      gridDensity: 8,
+      dashDensity: 3,
+      sizeFix: [0, 0],
+      latlng: [0, 0]
+    }, this.allRadars = [];
   }
+  /**当前地图缩放层级 */
   get zoom() {
     return this.map.getZoom();
   }
-  /**重设雷达绘制类 */
+  /**重设雷达绘制类
+   * @param radars 雷达数据集合
+   * @returns MapCanvasRadar实例
+   */
   setAllRadars(r) {
-    return this.allRadars = r.filter((t) => t).map((t) => Object.assign({}, this.radarDefault, t)), this;
+    return this.allRadars = r.filter((t) => t).map((t) => Object.assign({}, this.options, t)), this;
   }
-  /**添加雷达绘制类 */
+  /**添加雷达绘制类
+   * @param radar 雷达数据
+   * @returns MapCanvasRadar实例
+   */
   addRadar(r) {
-    return this.allRadars.push(Object.assign({}, this.radarDefault, r)), this;
+    return this.allRadars.push(Object.assign({}, this.options, r)), this;
   }
   /**开始绘制所有雷达静态部分 */
   drawRadarStatic() {
     const r = this, { zoom: t } = this;
-    r.allRadars.forEach((s) => {
-      const { maxZoom: e = 50, minZoom: c = 0 } = s;
-      t < c || t > e || (this.updatePoint(s), r.drawGrid(s), r.drawDashArc(s), r.drawCustomDashArc(s), r.drawOutline(s), r.drawOutlineUnit(s), r.drawBackground(s), r.drawText(s), r.drawScanRange(s));
+    r.allRadars.forEach((o) => {
+      const { maxZoom: e = 50, minZoom: c = 0 } = o;
+      t < c || t > e || (this.updatePoint(o), r.drawGrid(o), r.drawDashArc(o), r.drawCustomDashArc(o), r.drawOutline(o), r.drawOutlineUnit(o), r.drawBackground(o), r.drawText(o), r.drawScanRange(o));
     });
   }
-  /**开始绘制所有雷达动态扫描部分 */
+  /**开始绘制所有雷达动态扫描部分
+   * @param time 当前时间(毫秒)
+   */
   drawRadarAmi(r) {
-    const t = this.pertime && r ? r - this.pertime : 16.666666666666668, s = this.zoom;
+    const t = this.pertime && r ? r - this.pertime : 16.666666666666668, o = this.zoom;
     this.pertime = r, this.allRadars.forEach((e) => {
-      const { maxZoom: c = 50, minZoom: n = 0 } = e;
-      s < n || s > c || (this.updatePoint(e), this.updateAngle(e, t), this.drawScan(e));
+      const { maxZoom: c = 50, minZoom: a = 0 } = e;
+      o < a || o > c || (this.updatePoint(e), this.updateAngle(e, t), this.drawScan(e));
     });
   }
-  /**更新所有雷达位置和大小 */
+  /**更新所有雷达位置和大小
+   * @param radar 雷达数据
+   */
   updatePoint(r) {
     const { map: t } = this;
-    r.radius = F(t, r)[0], r.center = D(t, r.latlng);
+    r.radius = I(t, r)[0], r.center = b(t, r.latlng);
   }
-  /**绘制雷达网格 */
+  /**绘制雷达网格
+   * @param radar 雷达数据
+   */
   drawGrid(r) {
-    const { ctx: t } = this, { center: s, radius: e, gridDensity: c, colorGrid: n } = r, [o, a] = s;
-    t.save(), t.beginPath(), t.arc(o, a, e, 0, Math.PI * 2), t.clip();
-    const l = Math.max(Math.floor(e / c), 30), h = e / l + 1 | 0, i = l * h - e, [g, d] = [o - e - i, a - e - i], f = e * 2 + i;
-    for (let u = 1; u < h * 2; u++) {
-      const [p, x] = [g + u * l, d], [m, w] = [g, d + u * l];
-      M.drawLine(
+    const { ctx: t } = this, { center: o, radius: e, gridDensity: c, colorGrid: a } = r, [n, s] = o;
+    t.save(), t.beginPath(), t.arc(n, s, e, 0, Math.PI * 2), t.clip();
+    const l = Math.max(Math.floor(e / c), 30), h = e / l + 1 | 0, i = l * h - e, [g, d] = [n - e - i, s - e - i], u = e * 2 + i;
+    for (let f = 1, p = h * 2; f < p; f++) {
+      const [x, m] = [g + f * l, d], [M, w] = [g, d + f * l];
+      y.drawLine(
         {
-          points: [[p, x], [p, x + f]],
-          colorLine: n
+          points: [[x, m], [x, m + u]],
+          colorLine: a
         },
         t
-      ), M.drawLine(
+      ), y.drawLine(
         {
-          points: [[m, w], [m + f, w]],
-          colorLine: n
+          points: [[M, w], [M + u, w]],
+          colorLine: a
         },
         t
       );
     }
     t.restore();
   }
-  /**虚线圈到中心点距离 */
+  /**虚线圈到中心点距离
+   * @param radar 雷达数据
+   */
   drawDashArc(r) {
-    const { ctx: t } = this, { center: s, radius: e, colorRadar: c, dashDensity: n, arcDash: o } = r, [a, l] = s, h = r.sizeFix;
-    if (o.length > 0) return;
-    const i = e / n, g = Number(Math.round(h[0] / n));
+    const { ctx: t } = this, { center: o, radius: e, colorRadar: c, dashDensity: a, arcDash: n } = r, [s, l] = o, h = r.sizeFix;
+    if (n.length > 0 || !R(h)) return;
+    const i = e / a, g = Number(Math.round(h[0] / a));
     t.save(), t.setLineDash([2, 5]), t.strokeStyle = c, t.fillStyle = c, t.textAlign = "center";
-    for (let d = 1; d <= Math.floor(e / i); d++) {
+    for (let d = 1, u = Math.floor(e / i); d <= u; d++) {
       t.beginPath();
       const f = i * d;
-      t.arc(a, l, f, 0, Math.PI * 2), t.stroke(), e >= 50 && t.fillText(`${g * d > h[0] ? h[0] : g * d}m`, a, l + f - 5);
+      t.arc(s, l, f, 0, Math.PI * 2), t.stroke(), e >= 50 && t.fillText(`${g * d > h[0] ? h[0] : g * d}m`, s, l + f - 5);
     }
     t.restore();
   }
-  /**绘制自定义的虚线圈 */
+  /**绘制自定义的虚线圈
+   * @param radar 雷达数据
+   */
   drawCustomDashArc(r) {
-    const { ctx: t } = this, { center: s, radius: e, colorDash: c, arcDash: n = [] } = r, [o, a] = s;
-    if (n.length == 0) return;
-    const l = r.sizeFix, h = e / l[0];
+    const { ctx: t } = this, { center: o, radius: e, colorDash: c, arcDash: a = [] } = r, [n, s] = o, l = r.sizeFix;
+    if (a.length == 0 || !R(l)) return;
+    const h = e / l[0];
     t.save(), t.setLineDash([2, 5]);
-    const i = this.caculateColorChange(c, n.length);
-    t.textAlign = "center", n.forEach((g, d) => {
+    const i = this.caculateColorChange(c, a.length);
+    t.textAlign = "center", a.forEach((g, d) => {
       if (g >= e) return;
-      const f = h * g;
+      const u = h * g;
       t.fillStyle = t.strokeStyle = `rgb(
             ${i[d][0]},
             ${i[d][1]},
-            ${i[d][2]})`, t.beginPath(), t.arc(o, a, f, 0, Math.PI * 2), t.stroke(), e >= 50 && t.fillText(`${g > l[0] ? l[0] : g}m`, o, a + f - 5);
+            ${i[d][2]})`, t.beginPath(), t.arc(n, s, u, 0, Math.PI * 2), t.stroke(), e >= 50 && t.fillText(`${g > l[0] ? l[0] : g}m`, n, s + u - 5);
     }), t.restore();
   }
-  /**绘制轮廓 */
+  /**绘制轮廓
+   * @param radar 雷达数据
+   */
   drawOutline(r) {
-    const { ctx: t } = this, { center: s, radius: e, colorRadar: c } = r, [n, o] = s;
-    t.save(), t.beginPath(), t.lineWidth = e < 100 ? 1 : 2, t.strokeStyle = c, t.arc(n, o, e, 0, Math.PI * 2), t.stroke(), t.restore();
+    const { ctx: t } = this, { center: o, radius: e, colorRadar: c } = r, [a, n] = o;
+    t.save(), t.beginPath(), t.lineWidth = e < 100 ? 1 : 2, t.strokeStyle = c, t.arc(a, n, e, 0, Math.PI * 2), t.stroke(), t.restore();
   }
-  /**绘制边缘单元 */
+  /**绘制边缘单元
+   * @param radar 雷达数据
+   */
   drawOutlineUnit(r) {
-    const { ctx: t } = this, { center: s, radius: e, colorRadar: c } = r, [n, o] = s, a = e >= 100, l = 1, h = a ? 4 : e < 50 ? 1 : 3;
-    t.save(), t.strokeStyle = c, t.lineWidth = l, t.translate(n, o);
+    const { ctx: t } = this, { center: o, radius: e, colorRadar: c } = r, [a, n] = o, s = e >= 100, l = 1, h = s ? 4 : e < 50 ? 1 : 3;
+    t.save(), t.strokeStyle = c, t.lineWidth = l, t.translate(a, n);
     for (let i = 0; i < 360; i++) {
       let g = i % 5 == 0 ? h * 2 : h;
-      if (!a && i % 5 !== 0) continue;
+      if (!s && i % 5 !== 0) continue;
       t.beginPath(), t.rotate(i * Math.PI / 180);
-      const d = [e, 0], f = [e + g, 0];
-      t.moveTo(...d), t.lineTo(...f), t.stroke(), t.rotate(-i * Math.PI / 180);
+      const d = [e, 0], u = [e + g, 0];
+      t.moveTo(...d), t.lineTo(...u), t.stroke(), t.rotate(-i * Math.PI / 180);
     }
     t.restore();
   }
-  /**雷达背景蒙版 中间泛白*/
+  /**雷达背景蒙版 中间泛白
+   * @param radar 雷达数据
+   */
   drawBackground(r) {
-    const { ctx: t } = this, { center: s, radius: e } = r, [c, n] = s;
+    const { ctx: t } = this, { center: o, radius: e } = r, [c, a] = o;
     t.save(), t.restore();
   }
-  /**绘制文字描述 */
+  /**绘制文字描述
+   * @param radar 雷达数据
+   */
   drawText(r) {
-    const { ctx: t } = this, { center: s, radius: e, colorText: c } = r, [n, o] = s;
+    const { ctx: t } = this, { center: o, radius: e, colorText: c } = r, [a, n] = o;
     if (e < 100) return;
-    const a = 20, l = [
+    const s = 20, l = [
       ["90°", "E"],
       ["180°", "S"],
       ["270°", "W"],
       ["360°", "N"]
     ], h = [
       [
-        [e - a / 2, 4],
-        [e + a, 4]
+        [e - s / 2, 4],
+        [e + s, 4]
       ],
       [
-        [0, e - a / 2 - 5],
-        [0, e + a + 4]
+        [0, e - s / 2 - 5],
+        [0, e + s + 4]
       ],
       [
-        [-e + a / 2 + 4, 4],
-        [-e - a, 4]
+        [-e + s / 2 + 4, 4],
+        [-e - s, 4]
       ],
       [
-        [0, -e + a / 2 + 4],
-        [0, -e - a + 4]
+        [0, -e + s / 2 + 4],
+        [0, -e - s + 4]
       ]
     ];
-    t.save(), t.font = "12px Droid Sans bold", t.fillStyle = c, t.textAlign = "center", t.translate(n, o), l.forEach((i, g) => {
-      const [d, f] = i, [u, p] = h[g];
-      t.fillText(d, u[0], u[1]), t.fillText(f, p[0], p[1]);
+    t.save(), t.font = "12px Droid Sans bold", t.fillStyle = c, t.textAlign = "center", t.translate(a, n), l.forEach((i, g) => {
+      const [d, u] = i, [f, p] = h[g];
+      t.fillText(d, f[0], f[1]), t.fillText(u, p[0], p[1]);
     }), t.restore();
   }
-  /**绘制扫描范围 */
+  /**绘制扫描范围
+   * @param radar 雷达数据
+   */
   drawScanRange(r) {
-    const { ctx: t } = this, { angle: s, center: e, radius: c, colorRadar: n } = r, [o, a] = e;
-    t.save(), t.translate(o, a), s.forEach((l) => {
+    const { ctx: t } = this, { angle: o, center: e, radius: c, colorRadar: a } = r, [n, s] = e;
+    t.save(), t.translate(n, s), o.forEach((l) => {
       const h = (l - 90) % 360 * Math.PI / 180;
-      t.rotate(h), M.drawLine({ points: [[0, 0], [c, 0]], colorLine: n }, t), t.rotate(-h);
+      t.rotate(h), y.drawLine({ points: [[0, 0], [c, 0]], colorLine: a }, t), t.rotate(-h);
     }), t.restore();
   }
-  /**更新动态当前角度 */
+  /**更新动态当前角度
+   * @param radar 雷达数据
+   * @param diffTime 时间差
+   */
   updateAngle(r, t) {
-    let { angle: [s, e], currentAngle: c, ifClockwise: n, time: o } = r;
-    s -= 90, e -= 90;
-    let a = c + (e - s) * t / 1e3 / o * (n ? 1 : -1);
-    n && a >= e ? a = s + a % e : !n && a <= s && (a = e - (s - a) % 360), r.currentAngle = a;
+    let { angle: [o, e], currentAngle: c, ifClockwise: a, time: n } = r;
+    o -= 90, e -= 90;
+    let s = c + (e - o) * t / 1e3 / n * (a ? 1 : -1);
+    a && s >= e ? s = o + s % e : !a && s <= o && (s = e - (o - s) % 360), r.currentAngle = s;
   }
-  /**绘制扫描部分(动态) */
+  /**绘制扫描部分(动态)
+   * @param radar 雷达数据
+   */
   drawScan(r) {
-    const { ctx: t } = this, { center: s, radius: e, currentAngle: c, colorSector: n } = r, [o, a] = s;
+    const { ctx: t } = this, { center: o, radius: e, currentAngle: c, colorSector: a } = r, [n, s] = o;
     t.save();
     const l = c % 360 * Math.PI / 180, h = e * Math.cos(l), i = e * Math.sin(l);
-    M.drawLine({
+    y.drawLine({
       points: [
-        [o, a],
-        [o + h, a + i]
+        [n, s],
+        [n + h, s + i]
       ],
-      colorLine: n
+      colorLine: a
     }), this.drawSector(r), t.restore();
   }
   /**
    * 绘制扇形区域
    * @param sectorDeg 扇形渐变角度
-   * @returns
    */
   drawSector(r) {
-    let { ctx: t } = this, { angle: [s, e], center: c, radius: n, ifClockwise: o, currentAngle: a, colorSector: l, sectorAngle: h } = r, [i, g] = c;
-    s -= 90, e -= 90, t.save();
+    let { ctx: t } = this, { angle: [o, e], center: c, radius: a, ifClockwise: n, currentAngle: s, colorSector: l, sectorAngle: h } = r, [i, g] = c;
+    o -= 90, e -= 90, t.save();
     let d = 50;
-    const f = h % 360 * Math.PI / 180, u = o ? 1 : -1;
-    let p = f / d * u;
-    const x = a % 360 * Math.PI / 180, m = s % 360 * Math.PI / 180, w = e % 360 * Math.PI / 180;
-    let y = x - u * f, S = x;
-    for (let A = 0; A < d; A++) {
+    const u = h % 360 * Math.PI / 180, f = n ? 1 : -1;
+    let p = u / d * f;
+    const x = s % 360 * Math.PI / 180, m = o % 360 * Math.PI / 180, M = e % 360 * Math.PI / 180;
+    let w = x - f * u, A = x;
+    for (let S = 0; S < d; S++) {
       t.beginPath(), t.moveTo(i, g);
-      const P = y * 180 / Math.PI, R = Math.floor(1 / d * 255);
-      o && P % 360 >= s || !o && P % 360 <= e ? t.arc(i, g, n, y, S, !o) : t.arc(i, g, n, o ? m : w, S, !o), t.fillStyle = `${l}${R.toString(16).padStart(2, "0")}`, t.fill(), y += p;
+      const P = w * 180 / Math.PI, F = Math.floor(1 / d * 255);
+      n && P % 360 >= o || !n && P % 360 <= e ? t.arc(i, g, a, w, A, !n) : t.arc(i, g, a, n ? m : M, A, !n), t.fillStyle = `${l}${F.toString(16).padStart(2, "0")}`, t.fill(), w += p;
     }
     t.restore();
   }
-  /**计算colors 渐变颜色 */
+  /**计算colors 渐变颜色
+   * @param colors 颜色数组
+   * @param total 总颜色数
+   * @returns 渐变颜色数组
+   */
   caculateColorChange(r, t) {
-    const s = r.length, e = s <= t ? t / (s - 1) : 1, c = r.map((o, a) => {
-      let l = parseInt(o.slice(1, 3), 16), h = parseInt(o.slice(3, 5), 16), i = parseInt(o.slice(5, 7), 16);
+    const o = r.length, e = o <= t ? t / (o - 1) : 1, c = r.map((n, s) => {
+      let l = parseInt(n.slice(1, 3), 16), h = parseInt(n.slice(3, 5), 16), i = parseInt(n.slice(5, 7), 16);
       return [l, h, i];
     });
     if (r.length < 2) return new Array(t).fill(0).map(() => c[0]);
-    const n = [];
-    for (let o = 0; o < t; o++) {
-      const a = Math.floor(o / e), [l, h, i] = c[a], [g, d, f] = c[a + 1], u = o % e / e, p = Math.floor(l + (g - l) * u), x = Math.floor(h + (d - h) * u), m = Math.floor(i + (f - i) * u);
-      n.push([p, x, m]);
+    const a = [];
+    for (let n = 0; n < t; n++) {
+      const s = Math.floor(n / e), [l, h, i] = c[s], [g, d, u] = c[s + 1], f = n % e / e, p = Math.floor(l + (g - l) * f), x = Math.floor(h + (d - h) * f), m = Math.floor(i + (u - i) * f);
+      a.push([p, x, m]);
     }
-    return n;
+    return a;
   }
 }
 export {
-  k as MapCanvasRadar
+  z as MapCanvasRadar
 };
