@@ -1,63 +1,87 @@
 import { l as s } from "../_virtual/leaflet-src.js";
 import "../_virtual/proj4leaflet.js";
-import { u_mapTogps84gcj02 as c, u_mapTogps84bd09 as u } from "../utils/slu-map.js";
+import { u_mapTogps84gcj02 as u, u_mapTogps84bd09 as p } from "../utils/slu-map.js";
 (function(a, o) {
   s.GridLayer.include({
-    _setZoomTransform: function(e, i, t) {
-      var r = i;
-      r != null && this.options && (this.options.corrdType == "gcj02" ? r = c(i.lng, i.lat) : this.options.corrdType == "bd09" && (r = u(i.lng, i.lat)));
-      var l = this._map.getZoomScale(t, e.zoom), n = e.origin.multiplyBy(l).subtract(this._map._getNewPixelOrigin(r, t)).round();
-      s.Browser.any3d ? s.DomUtil.setTransform(e.el, n, l) : s.DomUtil.setPosition(e.el, n);
+    /**设置缩放转换
+     * @param level 矩阵等级
+     * @param _center 中心坐标
+     * @param zoom 缩放级别
+     */
+    _setZoomTransform: function(t, i, e) {
+      let r = i;
+      r != null && this.options && (this.options.corrdType == "gcj02" ? r = u(i.lng, i.lat) : this.options.corrdType == "bd09" && (r = p(i.lng, i.lat)));
+      const l = this._map.getZoomScale(e, t.zoom), n = t.origin.multiplyBy(l).subtract(this._map._getNewPixelOrigin(r, e)).round();
+      s.Browser.any3d ? s.DomUtil.setTransform(t.el, n, l) : s.DomUtil.setPosition(t.el, n);
     },
-    _getTiledPixelBounds: function(e) {
-      var i = e;
-      i != null && this.options && (this.options.corrdType == "gcj02" ? i = c(e.lng, e.lat) : this.options.corrdType == "bd09" && (i = u(e.lng, e.lat)));
-      var t = this._map, r = t._animatingZoom ? Math.max(t._animateToZoom, t.getZoom()) : t.getZoom(), l = t.getZoomScale(r, this._tileZoom), n = t.project(i, this._tileZoom).floor(), p = t.getSize().divideBy(l * 2);
-      return new s.Bounds(n.subtract(p), n.add(p));
+    /**获取瓦片的像素边界
+     * @param _center = { lng: number, lat: number } 中心坐标
+     * @returns 矩形边界
+     */
+    _getTiledPixelBounds: function(t) {
+      let i = t;
+      i != null && this.options && (this.options.corrdType == "gcj02" ? i = u(t.lng, t.lat) : this.options.corrdType == "bd09" && (i = p(t.lng, t.lat)));
+      const e = this._map, r = e._animatingZoom ? Math.max(e._animateToZoom, e.getZoom()) : e.getZoom(), l = e.getZoomScale(r, this._tileZoom), n = e.project(i, this._tileZoom).floor(), c = e.getSize().divideBy(l * 2);
+      return new s.Bounds(n.subtract(c), n.add(c));
     }
   });
 })();
-var y = /* @__PURE__ */ ((a) => (a.tianDiTuNormalMap = "TianDiTu.Normal.Map", a.tianDiTuNormalAnnotion = "TianDiTu.Normal.Annotion", a.tianDiTuSatelliteMap = "TianDiTu.Satellite.Map", a.tianDiTuSatelliteAnnotion = "TianDiTu.Satellite.Annotion", a.tianDiTuTerrainMap = "TianDiTu.Terrain.Map", a.tianDiTuTerrainAnnotion = "TianDiTu.Terrain.Annotion", a.gaoDeNormalMap = "GaoDe.Normal.Map", a.gaoDeSatelliteMap = "GaoDe.Satellite.Map", a.gaoDeSatelliteAnnotion = "GaoDe.Satellite.Annotion", a.baiDuNormalMap = "Baidu.Normal.Map", a.baiDuSatelliteMap = "Baidu.Satellite.Map", a.baiDuSatelliteAnnotion = "Baidu.Satellite.Annotion", a.googleNormalMap = "Google.Normal.Map", a.googleSatelliteMap = "Google.Satellite.Map", a.googleSatelliteAnnotion = "Google.Satellite.Annotion", a.geoqNormalMap = "Geoq.Normal.Map", a.geoqNormalPurplishBlue = "Geoq.Normal.PurplishBlue", a.geoqNormalGray = "Geoq.Normal.Gray", a.geoqNormalWarm = "Geoq.Normal.Warm", a.geoqThemeHydro = "Geoq.Theme.Hydro", a.oSMNormalMap = "OSM.Normal.Map", a))(y || {});
+var d = /* @__PURE__ */ ((a) => (a.tianDiTuNormalMap = "TianDiTu.Normal.Map", a.tianDiTuNormalAnnotion = "TianDiTu.Normal.Annotion", a.tianDiTuSatelliteMap = "TianDiTu.Satellite.Map", a.tianDiTuSatelliteAnnotion = "TianDiTu.Satellite.Annotion", a.tianDiTuTerrainMap = "TianDiTu.Terrain.Map", a.tianDiTuTerrainAnnotion = "TianDiTu.Terrain.Annotion", a.gaoDeNormalMap = "GaoDe.Normal.Map", a.gaoDeSatelliteMap = "GaoDe.Satellite.Map", a.gaoDeSatelliteAnnotion = "GaoDe.Satellite.Annotion", a.baiDuNormalMap = "Baidu.Normal.Map", a.baiDuSatelliteMap = "Baidu.Satellite.Map", a.baiDuSatelliteAnnotion = "Baidu.Satellite.Annotion", a.googleNormalMap = "Google.Normal.Map", a.googleSatelliteMap = "Google.Satellite.Map", a.googleSatelliteAnnotion = "Google.Satellite.Annotion", a.geoqNormalMap = "Geoq.Normal.Map", a.geoqNormalPurplishBlue = "Geoq.Normal.PurplishBlue", a.geoqNormalGray = "Geoq.Normal.Gray", a.geoqNormalWarm = "Geoq.Normal.Warm", a.geoqThemeHydro = "Geoq.Theme.Hydro", a.oSMNormalMap = "OSM.Normal.Map", a))(d || {});
 class h {
-  constructor(o, e) {
-    this.setMapProvider(o, e);
+  constructor(o, t) {
+    this.setMapProvider(o, t);
   }
-  /**将图层添加到map显示在页面 */
+  /**将图层添加到map显示在页面
+   * @param map 地图实例
+   * @returns SLULeafletNetMap实例
+   */
   addTo(o) {
     return o ? (this.map = o, this.mapLayer?.addTo(this.map), this) : this;
   }
-  /**从map中移除当前图层 */
+  /**从map中移除当前图层
+   * @returns SLULeafletNetMap实例
+   */
   remove() {
     return this.mapLayer?.remove(), this;
   }
-  /**变更当前图层并添加到map中 */
-  changeMap(o, e) {
-    return this.remove(), this.setMapProvider(o, e), this.addTo(this.map), this;
+  /**变更当前图层并添加到map中
+   * @param name 网络地图名称SLEMap
+   * @param options 地图配置
+   * @returns SLULeafletNetMap实例
+   */
+  changeMap(o, t) {
+    return this.remove(), this.setMapProvider(o, t), this.addTo(this.map), this;
   }
-  /**设置map的地图来源，名称，类型 */
-  setMapProvider(o, e) {
-    e = e || {};
-    let i = o.split("."), t = i[0], r = i[1], l = i[2], n = m[t][r][l];
-    e.subdomains = m[t].Subdomains, e.key = e.key || m[t].key, e.corrdType = this.getCorrdType(t), "tms" in m[t] && (e.tms = m[t].tms), this.mapLayer = new s.TileLayer(n, e);
+  /**设置map的地图来源，名称，类型
+   * @param name 网络地图名称SLEMap
+   * @param options 地图配置
+   */
+  setMapProvider(o, t) {
+    t = t || Object.assign({});
+    let i = o.split("."), e = i[0], r = i[1], l = i[2], n = m[e][r][l];
+    t.subdomains = m[e].Subdomains, t.key = t.key || m[e].key, t.corrdType = this.getCorrdType(e), "tms" in m[e] && (t.tms = m[e].tms), this.mapLayer = new s.TileLayer(n, t);
   }
-  /**获取坐标转换类型*/
+  /**获取坐标转换类型
+   * @param name 地图来源
+   * @returns 坐标转换类型
+   */
   getCorrdType(o) {
-    var e = "wgs84";
+    let t = "wgs84";
     switch (o) {
       case "Geoq":
       case "GaoDe":
       case "Google":
-        e = "gcj02";
+        t = "gcj02";
         break;
       case "Baidu":
-        e = "bd09";
+        t = "bd09";
         break;
       case "OSM":
       case "TianDiTu":
-        e = "wgs84";
+        t = "wgs84";
         break;
     }
-    return e;
+    return t;
   }
 }
 const m = {
@@ -130,6 +154,6 @@ const m = {
   }
 };
 export {
-  y as SLEMap,
+  d as MapNameType,
   h as SLULeafletNetMap
 };

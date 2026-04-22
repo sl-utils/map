@@ -1,18 +1,20 @@
-import { MapCanvasDraw as w } from "../map/canvas-draw.js";
-import { MapCanvasEvent as b } from "../map/canvas-event.js";
-import { MapCanvasLayer as M } from "../map/canvas-layer.js";
+import { MapCanvasDraw as P } from "../map/canvas-draw.js";
+import { MapCanvasEvent as w } from "../map/canvas-event.js";
+import { MapCanvasLayer as b } from "../map/canvas-layer.js";
 import "../_virtual/leaflet-src.js";
 import "../_virtual/index.js";
 import "../leaflet/slu-leaflet-net-map.js";
-import { u_mapGetMapMouseEvent as L, u_mapGetLngDiffByDistance as C, u_mapGetPointByLatlng as v, u_mapGetLatLngByPoint as D, u_mapSetMapStatus as A } from "../utils/slu-map.js";
+import { u_mapGetMapMouseEvent as E, u_mapGetLngDiffByDistance as M, u_mapGetPointByLatlng as L, u_mapGetLatLngByPoint as C, u_mapSetMapStatus as y } from "../utils/slu-map.js";
+import "../_virtual/maplibre-gl.js";
 import "../canvas/slu-canvas.js";
 import "../canvas/slu-canvas-img.js";
+import "../canvas/slu-canvas-text.js";
 import { MapPluginDraw as x } from "./plugin-draw.js";
-import { u_arrAddItemsIndex as k } from "../utils/slu-array.js";
-class X extends M {
+import { u_arrAddItemsIndex as D } from "../utils/slu-array.js";
+class Y extends b {
   constructor(t, i) {
-    const n = t.map;
-    super(n, i), this.options = {
+    const n = t.map, { plotOpt: e, editOpt: s, textOpt: l } = i || {};
+    super(n, e), this.options = {
       pane: "canvas",
       className: "plot"
     }, this.editArc = {
@@ -20,35 +22,56 @@ class X extends M {
       colorFill: "#fff",
       colorLine: "#2C9B8A",
       size: 4
-    }, this.plotList = [], this.plotAni = { latLngs: [], type: "polygon", ifEdit: !0 }, this.eventClick = (e) => {
+    }, this.plotText = {
+      colorFill: "#2C9B8A",
+      widthLine: 2,
+      colorLine: "#FFFFFF",
+      ifShadow: !0
+    }, this.plotList = [], this.plotAni = { latLngs: [], type: "polygon", ifEdit: !0 }, this.eventClick = (r) => {
       this.eventClickTimer = setTimeout(() => {
-        let s = this.plotAni.latLngs.length, l = this.plotAni.type;
-        const { latlng: a } = L(e, this.type);
-        (l === "polygon" || l === "line" || s < 2) && this.plotAni.latLngs.push([a.lat, a.lng]), (l === "rect" || l === "circle") && this.plotAni.latLngs.length >= 2 ? this.eventDblclick() : this._redraw(), this.cbPointChange && this.cbPointChange(this.plotAni);
+        const a = this.plotAni;
+        if (!a) return;
+        const { latlng: h } = E(r, this.map), o = [h.lat, h.lng];
+        a.type === "polygon" || a.type === "line" ? a.latLngs.push(o) : a.latLngs.length < 2 && (a.latLngs = [...a.latLngs, o]), (a.type === "rect" || a.type === "circle") && a.latLngs.length >= 2 ? this.eventDblclick() : this._redraw(), this.cbPointChange && this.cbPointChange(this.plotAni);
       }, 50);
-    }, this.eventMousemove = (e) => {
-      const { latlng: s } = L(e, this.type);
-      this.curPoint = [s.lat, s.lng], this.renderAnimation();
+    }, this.eventMousemove = (r) => {
+      const { latlng: a } = E(r, this.map);
+      this.curPoint = [a.lat, a.lng], this.renderAnimation();
     }, this.eventDblclick = () => {
-      this.eventClickTimer && (clearTimeout(this.eventClickTimer), this.eventClickTimer = null), !(this.plotAni.type === "polygon" && this.plotAni.latLngs.length < 3) && (this.close(), this.curPoint = void 0, this._redraw());
-    }, this.ctrMapDraw = new w(n, this.canvas), this.ctrMapAniDraw = new x(t, Object.assign({}, this.options, { className: this.options.className + " ani" })), this.ctrEvent = new b(n), Object.assign(this.options, i);
+      this.eventClickTimer && (clearTimeout(this.eventClickTimer), this.eventClickTimer = null);
+      const r = this.plotAni;
+      if (!r) return;
+      const { type: a, latLngs: h } = r;
+      a === "polygon" && h.length < 3 || (this.close(), this.curPoint = void 0, this._redraw());
+    }, this.ctrMapDraw = new P(n, this.canvas), Object.assign(this.options, e), this.ctrMapAniDraw = new x(t, Object.assign({}, this.options, { className: this.options.className + " ani" })), this.ctrEvent = new w(n), Object.assign(this.editArc, s), Object.assign(this.plotText, l);
   }
-  /**开启新增的绘制 */
+  /**开启新增的绘制
+   * @param type 标绘类型
+   * @returns 新增的标绘实例
+   */
   open(t) {
     let i = this.plotList.length - 1 > 0 ? this.plotList.length - 1 : 0;
     this.eventSwitch(!0);
-    let n = this.plotList.find((e) => e.ifEdit);
-    if (n || this.plotAni === this.plotList[i] && this.plotAni.ifEdit) {
-      let e = n || this.plotAni;
-      return this.plotAni = e, e.latLngs = [], e.type = t, e.ifEdit = !0, this.plotAni;
+    let n = this.plotList.find((s) => s.ifEdit);
+    if (n)
+      return n.latLngs = [], n.type = t, n.ifEdit = !0, this.plotAni = n, n;
+    if (this.plotAni && this.plotAni === this.plotList[i] && this.plotAni.ifEdit) {
+      const s = this.plotAni;
+      return s.latLngs = [], s.type = t, s.ifEdit = !0, s;
     }
-    return this.plotList[i] && this.plotList[i].latLngs.length > 0 && i++, this.plotList[i] = this.plotAni = { latLngs: [], type: t, ifEdit: !0 }, this.renderAnimation(), this.plotAni;
+    this.plotList[i] && this.plotList[i].latLngs.length > 0 && i++;
+    const e = this.createPlot(t);
+    return this.plotList[i] = this.plotAni = e, this.renderAnimation(), this.plotAni;
   }
-  /**关闭绘制 */
+  /**关闭绘制 
+   * @returns MapPluginPlot实例
+  */
   close() {
     return this.eventSwitch(!1), this;
   }
-  /**保存标绘 */
+  /**保存标绘
+   * @returns MapPluginPlot实例
+  */
   savePlot() {
     if (this.plotAni) {
       let t = this.plotAni;
@@ -56,30 +79,60 @@ class X extends M {
     }
     return this;
   }
-  /**删除标绘 */
+  /**删除标绘
+   * @param plot 标绘实例
+   * @returns MapPluginPlot实例
+   */
   delPlot(t) {
     return t = t || this.plotAni, this.plotList = this.plotList.filter((i) => i !== t), this._redraw(), this;
   }
-  /**设置所有区域数据 */
+  /**设置所有区域数据
+   * @param plotList 标绘集合
+   * @returns MapPluginPlot实例
+   */
   setPlotList(t) {
     return this.plotList = t, this.renderFixedData(), this;
   }
-  /**设置编辑区域数据 */
+  /**设置编辑区域数据
+   * @param plot 标绘实例
+   * @returns MapPluginPlot实例
+   */
   setEditPlot(t) {
     let i = this.plotList.find((n) => n === t);
     return i && (i.ifEdit = !0), this.eventSwitch(!1), this._redraw(), this;
   }
-  /**重绘 */
+  /**重绘
+   * @returns MapPluginPlot实例
+   */
   redraw() {
     return this._redraw(), this;
   }
+  /**渲染静态标绘图层 */
   renderFixedData() {
     this.map && (this.ctrMapDraw.delAll(), this.ctrMapDraw.reSetCanvas(), this.plotList.forEach((t, i) => {
       t.latLngs.length > 0 && !t.ifEdit && t.ifHide !== !0 && this.drawPlot(this.ctrMapDraw, t, t.type);
     }), this.ctrMapDraw.drawMapAll());
   }
+  /**渲染动态绘制图层 */
   renderAnimation() {
     this.map && this.genAniPlot();
+  }
+  /**创建标绘
+   * @param type 标绘类型
+   * @returns 标绘数据
+   */
+  createPlot(t) {
+    switch (t) {
+      case "point":
+        return { type: "point", latLngs: [], ifEdit: !0, url: "", points: [] };
+      case "circle":
+        return { type: "circle", latLngs: [], ifEdit: !0 };
+      case "rect":
+        return { type: "rect", latLngs: [], ifEdit: !0 };
+      case "line":
+      case "polygon":
+        return { type: t, latLngs: [], ifEdit: !0 };
+    }
   }
   /**生成动态绘制图层 */
   genAniPlot() {
@@ -92,98 +145,117 @@ class X extends M {
       return;
     }
   }
-  /**绘制标绘 */
+  /**绘制标绘
+   * @param layer 绘制图层
+   * @param plotInfo 标绘数据
+   * @param type 标绘类型
+   */
   drawPlot(t, i, n) {
     let e = Object.assign({}, this.options, i);
-    e.colorFill = e.colorFill, e.colorLine = e.colorLine || e.colorFill;
-    let s;
-    switch (n) {
+    switch (e.colorFill = e.colorFill, e.colorLine = e.colorLine || e.colorFill, e.type) {
       case "line":
-        e = e, t.addLine({ ...e, latlngs: e.latLngs });
+        t.addLine({ ...e, latlngs: e.latLngs });
         break;
       case "polygon":
-        e = e, s = e.latLngs;
-        let a = { ...e, latlngs: s };
-        t.addRect(a);
+        let l = { ...e, latlngs: e.latLngs };
+        t.addRect(l);
         break;
       case "circle":
-        if (e = e, e.latLngs.length == 0) break;
-        let h = e.latLngs[0], o = e.latLngs[1], r = e?.rail || 0;
-        if (!o) {
-          let [g, u] = h, f = C(this.map, r, [[g, u]]);
-          e.latLngs[1] = [h[0], u + f];
+        if (e.latLngs.length == 0) break;
+        let [r, a] = e.latLngs, h = e.rail || 0;
+        if (!a) {
+          let [u, m] = r, f = M(this.map, h, [[u, m]]);
+          e.latLngs[1] = [u, m + f];
         }
-        let p = this.calcRadius(e.latLngs);
-        t.addArc({ ...e, size: p, latlng: h });
+        let o = this.calcRadius(e.latLngs);
+        t.addArc({ ...e, size: o, latlng: r });
         break;
       case "rect":
-        e = e, s = this.calcRect(e.latLngs);
-        let c = { ...e, latlngs: s };
+        const p = this.calcRect(e.latLngs);
+        let c = { ...e, latlngs: p };
         t.addRect(c);
         break;
       case "point":
-        if (s = e.latLngs, !s || s.length == 0) break;
-        const { url: d, size: m = [16, 16] } = e = e;
-        d && t.addImg({ ...e, latlng: s[0], size: m });
+        if (!e.latLngs.length) break;
+        const { url: d, size: g = [16, 16] } = e;
+        d && t.addImg({ ...e, latlng: e.latLngs[0], size: g });
         break;
     }
-    let l = { text: e.name || "", colorFill: "#2C9B8A", widthLine: 2, colorLine: "#FFFFFF", ifShadow: !0, latlng: this.calcCenter(e.latLngs, n) };
-    t.addText(l);
+    let s = { ...this.plotText, text: e.name || "", latlng: this.calcCenter(e.latLngs, n) };
+    t.addText(s);
   }
-  /**各个点的平均值计算中心点 */
+  /**各个点的平均值计算中心点
+   * @param points 纬度经度点数组
+   * @param type 标绘类型
+   * @returns 中心点[number, number]
+   */
   calcCenter(t, i) {
     let n = t.length;
     if (n < 2 || i === "circle" || i == "point") return t[0] || [0, 0];
     if (i == "line") {
-      let s = 0, l = 0, a = 0;
-      for (let r = 0; r < t.length - 1; r++) {
-        const [p, c] = t[r], [d, m] = t[r + 1], g = Math.sqrt(Math.pow(d - p, 2) + Math.pow(m - c, 2));
-        s += g;
-        const u = (p + d) / 2, f = (c + m) / 2;
-        l += u * g, a += f * g;
+      let s = 0, l = 0, r = 0;
+      for (let o = 0, p = t.length - 1; o < p; o++) {
+        const [c, d] = t[o], [g, u] = t[o + 1], m = Math.sqrt(Math.pow(g - c, 2) + Math.pow(u - d, 2));
+        s += m;
+        const f = (c + g) / 2, v = (d + u) / 2;
+        l += f * m, r += v * m;
       }
-      const h = l / s, o = a / s;
-      return [h, o];
+      const a = l / s, h = r / s;
+      return [a, h];
     }
     let e = t.reduce((s, l) => [s[0] + l[0], s[1] + l[1]], [0, 0]);
     return e = [e[0] / n, e[1] / n], e;
   }
-  /**直接最大最小计算中心点 */
+  /**直接最大最小计算中心点
+   * @param points 纬度经度点数组
+   * @returns 中心点[number, number]
+   */
   calcCenter2(t) {
     if (t.length < 2) return t[0] || [0, 0];
-    let n = t.reduce((h, o) => {
-      let [r, p, c, d] = h;
+    let n = t.reduce((a, h) => {
+      let [o, p, c, d] = a;
       return [
-        r > o[0] ? r : o[0],
-        p < o[0] ? p : o[0],
-        c > o[1] ? c : o[1],
-        d < o[1] ? d : o[1]
+        o > h[0] ? o : h[0],
+        p < h[0] ? p : h[0],
+        c > h[1] ? c : h[1],
+        d < h[1] ? d : h[1]
       ];
-    }, [-1 / 0, 1 / 0, -1 / 0, 1 / 0]), [e, s, l, a] = n;
-    return [(e + s) / 2, (l + a) / 2];
+    }, [-1 / 0, 1 / 0, -1 / 0, 1 / 0]), [e, s, l, r] = n;
+    return [(e + s) / 2, (l + r) / 2];
   }
-  /**计算多边形的重心*/
+  /**计算多边形的重心
+   * @param points 纬度经度点数组
+   * @returns 中心点[number, number]
+   */
   calcCenter3(t) {
     let i = 0, n = 0, e = 0;
-    for (let l = 0; l < t.length; l++) {
+    for (let l = 0, r = t.length - 1; l < r; l++) {
       const a = (l + 1) % t.length, h = t[l][0] * t[a][1] - t[a][0] * t[l][1];
       e += h, i += (t[l][0] + t[a][0]) * h, n += (t[l][1] + t[a][1]) * h;
     }
     return e *= 3, [i / e, n / e];
   }
-  /**计算矩形的四个点 */
+  /**计算矩形的四个点
+   * @param latLngs 纬度经度点数组
+   * @returns 矩形四个点[number, number]
+   */
   calcRect(t) {
     if (t.length < 2) return t;
-    let i = [], n = t[0], e = t[1];
+    let i = [], [n, e] = t;
     return i.push(n), i.push([n[0], e[1]]), i.push(e), i.push([e[0], n[1]]), i;
   }
-  /**计算圆的半径 */
+  /**计算圆的半径
+   * @param latLngs 纬度经度点数组
+   * @returns 圆的半径
+   */
   calcRadius(t) {
     if (t.length < 2) return 0;
-    let i = v(this.map, t[0]), n = v(this.map, t[1]), e = Math.abs(i[0] - n[0]), s = Math.abs(i[1] - n[1]);
-    return Math.sqrt(e * e + s * s);
+    let [i, n] = L(this.map, t[0]), [e, s] = L(this.map, t[1]), l = Math.abs(i - e), r = Math.abs(n - s);
+    return Math.sqrt(l * l + r * r);
   }
-  /**开启鼠标编辑功能 */
+  /**开启鼠标编辑功能
+   * @param plotInfo 标绘数据
+   */
   openMouseEdit(t) {
     switch (t.type) {
       case "point":
@@ -198,36 +270,44 @@ class X extends M {
         return this.setRectEditPoint(t);
     }
   }
-  /**设置圆的编辑点 */
+  /**设置圆的编辑点
+   * @param plotInfo 标绘数据
+   */
   setCircleEditPoint(t) {
     let { latLngs: i } = t, n = [];
     for (let s = 0, l = i.length; s < l; s++) {
-      let a = i[s];
-      this.addEvent(a, s, t, n, !1);
+      let r = i[s];
+      this.addEvent(r, s, t, n, !1);
     }
     let e = { ...this.options, latlngs: t.latLngs };
     this.ctrMapAniDraw.addLine(e), this.ctrEvent.setEventsByKey(n, "circleEdit");
   }
-  /**设置多边形的编辑点 */
+  /**设置多边形的编辑点
+   * @param plotInfo 标绘数据
+   */
   setPolygonEditPoint(t) {
     let { latLngs: i } = t, n = [];
     for (let e = 0, s = i.length; e < s; e++) {
       let l = i[e];
       if (this.addEvent(l, e, t, n, !1), !this.curPoint) {
-        let a = e + 1 == s ? 0 : e + 1, h = i[a], o = v(this.map, l), r = v(this.map, h), p = (o[0] + r[0]) / 2, c = (o[1] + r[1]) / 2, d = D(this.map, [p, c]);
-        this.addEvent(d, e, t, n, !0);
+        let r = e + 1 == s ? 0 : e + 1, a = i[r], [h, o] = L(this.map, l), [p, c] = L(this.map, a), d = (h + p) / 2, g = (o + c) / 2, u = C(this.map, [d, g]);
+        this.addEvent(u, e, t, n, !0);
       }
     }
     this.ctrEvent.setEventsByKey(n, "polygonEdit");
   }
-  /**点标绘仍可编辑移动位置 */
+  /**点标绘仍可编辑移动位置
+   * @param plotInfo 标绘数据
+   */
   setPointEdit(t) {
     let { latLngs: i } = t;
     if (!i) return;
     let n = [];
     this.addEvent(i[0], 0, t, n), this.ctrEvent.setEventsByKey(n, "pointEdit");
   }
-  /**设置线段的编辑点 */
+  /**设置线段的编辑点
+   * @param plotInfo 标绘数据
+   */
   setLineEditPoint(t) {
     let { latLngs: i } = t, n = [];
     for (let e = 0, s = i.length; e < s; e++) {
@@ -236,43 +316,45 @@ class X extends M {
     }
     this.ctrEvent.setEventsByKey(n, "lineEdit");
   }
-  /**设置矩形的编辑点 */
+  /**设置矩形的编辑点
+   * @param plotInfo 标绘数据
+   */
   setRectEditPoint(t) {
-    let { latLngs: i } = t, n = this.calcRect(i), e = [];
-    for (let s = 0, l = n.length; s < l; s++) {
-      let a = n[s];
-      this.addEvent(a, s, t, e, !1);
+    let { latLngs: i } = t, n = [], e = this.calcRect(i);
+    for (let s = 0, l = e.length; s < l; s++) {
+      let r = e[s];
+      this.addEvent(r, s, t, n, !1);
     }
-    this.ctrEvent.setEventsByKey(e, "rectEdit");
+    this.ctrEvent.setEventsByKey(n, "rectEdit");
   }
   /**添加响应事件 
    * @param latLng 经纬度
    * @param i 索引
-   * @param plotInfo 绘制信息
+   * @param plotInfo 标绘数据
    * @param eves 事件
    * @param ifVirtual 是否为虚拟点
   */
   addEvent(t, i, n, e, s) {
-    const l = this, { map: a } = l;
-    let h = { ...this.editArc, latlng: t }, { latLngs: o, type: r } = n;
-    s && (h.size = 3, h.fillAlpha = 0.9), this.ctrMapAniDraw.addArc(h), e.push({
+    const l = this, { map: r } = l;
+    let a = { ...this.editArc, latlng: t }, { latLngs: h, type: o } = n;
+    s && (a.size = 3, a.fillAlpha = 0.9), this.ctrMapAniDraw.addArc(a), e.push({
       latlng: t,
       type: "mousedown",
-      cb: (p) => {
-        A(a, "dragEnable", !1), s && (k(n.latLngs, [t], i), this.cbPointChange && this.cbPointChange(this.plotAni)), this._redraw();
-        let c = (m) => {
-          const { latlng: g } = L(m, this.type);
-          if (r === "polygon" || r === "circle" || r === "point" || r === "line")
+      cb: () => {
+        y(r, "dragEnable", !1), s && (D(h, [t], i), this.cbPointChange && this.cbPointChange(this.plotAni)), this._redraw();
+        let p = (d) => {
+          const { latlng: g } = E(d, this.map);
+          if (o === "polygon" || o === "circle" || o === "point" || o === "line")
             t[0] = g.lat, t[1] = g.lng;
-          else if (r === "rect") {
-            let u = this.calcRect(o), f = (i + 2) % 4, E = [g.lat, g.lng], P = u[f];
-            this.plotAni.latLngs = [E, P].filter((y) => !!y);
+          else if (o === "rect") {
+            let u = this.calcRect(h), m = (i + 2) % 4, f = [g.lat, g.lng], v = u[m];
+            this.plotAni.latLngs = [f, v].filter((A) => !!A);
           }
           this.renderAnimation();
-        }, d = () => {
-          this.map.off("mousemove", c), this.map.off("mouseup", d), A(a, "dragEnable", !0), this.cbPointChange && this.cbPointChange(this.plotAni), this._redraw();
+        }, c = () => {
+          this.map.off("mousemove", p), this.map.off("mouseup", c), y(r, "dragEnable", !0), this.cbPointChange && this.cbPointChange(this.plotAni), this._redraw();
         };
-        this.map.on("mousemove", c), this.map.on("mouseup", d);
+        this.map.on("mousemove", p), this.map.on("mouseup", c);
       }
     });
   }
@@ -287,19 +369,28 @@ class X extends M {
   clearCb() {
     this.cbPointAdd = void 0, this.cbPointMove = void 0, this.cbPointChange = void 0;
   }
-  /**添加新增点位时的监听函数 */
+  /**添加新增点位时的监听函数
+   * @param cb 回调函数
+   * @returns MapPluginPlot实例
+   */
   addCbPointChange(t) {
     return this.cbPointChange = t, this;
   }
-  /**添加新增点位时的监听函数 */
+  /**添加新增点位时的监听函数
+   * @param cb 回调函数
+   * @returns MapPluginPlot实例
+   */
   addCbPointAdd(t) {
     return this.cbPointAdd = t, this;
   }
-  /**添加新增点位时的监听函数 */
+  /**添加新增点位时的监听函数
+   * @param cb 回调函数
+   * @returns MapPluginPlot实例
+   */
   addCbPointMove(t) {
     return this.cbPointMove = t, this;
   }
 }
 export {
-  X as MapPluginPlot
+  Y as MapPluginPlot
 };

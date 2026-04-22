@@ -1,6 +1,6 @@
-class N {
+class M {
   constructor() {
-    this.canvasTool = document.createElement("canvas"), this.LAST_DISPOSA_METHOD = null, this.CURRENT_FRAME_INDEX = -1, this.TRANSPARENCY = null, this.gifCache = {}, this.aniIds = {}, this.opts = [];
+    this.canvasTool = document.createElement("canvas"), this.LAST_DISPOSA_METHOD = null, this.CURRENT_FRAME_INDEX = -1, this.TRANSPARENCY = null, this.gifCache = Object.assign({}), this.aniIds = Object.assign({}), this.opts = [];
   }
   /**加载gif并进行缓存 , 避免重复请求 url */
   async loadGIF(e, a) {
@@ -15,7 +15,7 @@ class N {
       this.gifCache[s] = { status: 0, data: null, frameList: [] }, t = this.gifCache[s];
       try {
         t.status = 1;
-        const h = await this.fetchGIF(s), n = new F(h);
+        const h = await this.fetchGIF(s), n = new N(h);
         t.status = 2, this.parseHeader(s, n), this.parseBlock(e, n);
       } catch (h) {
         console.error("Error loading GIF:", h);
@@ -75,13 +75,13 @@ class N {
   /**绘制每一帧 */
   drawFrame(e, a) {
     const s = this, t = s.CTX;
-    let { point: h, points: n = [], size: d = [100, 100], url: o, sizeo: r, posX: i = 0, posY: l = 0, left: f = 0, top: c = 0, rotate: p = 0, alpha: u = 1, delay: g } = e, { frameList: E } = s.gifCache[e.url];
-    s.canvasTool.getContext("2d").putImageData(E[a].data, 0, 0);
-    let I = s.canvasTool, T = d[0], y = d[1], w = r && r[0], C = r && r[1];
+    let { point: h, points: n = [], size: d = [100, 100], url: o, sizeo: r, posX: i = 0, posY: l = 0, left: f = 0, top: c = 0, rotate: p = 0, alpha: u = 1, delay: y } = e, { frameList: T } = s.gifCache[e.url];
+    s.canvasTool.getContext("2d").putImageData(T[a].data, 0, 0);
+    let g = s.canvasTool, E = d[0], I = d[1], w = r && r[0], C = r && r[1];
     h && (n = [...n, h]);
-    for (let A = 0; A < n.length; A++) {
-      const S = n[A], x = S[0], R = S[1];
-      p = p * Math.PI / 180, t.globalAlpha = u, t.setTransform(1, 0, 0, 1, x, R), t.rotate(p), w && C ? t.drawImage(I, i, l, w, C, -T / 2 + f, -y / 2 + c, T, y) : t.drawImage(I, -T / 2 + f, -y / 2 + c, T, y), t.rotate(-p), t.setTransform(1, 0, 0, 1, 0, 0);
+    for (let A = 0, R = n.length; A < R; A++) {
+      const S = n[A], x = S[0], F = S[1];
+      p = p * Math.PI / 180, t.globalAlpha = u, t.setTransform(1, 0, 0, 1, x, F), t.rotate(p), w && C ? t.drawImage(g, i, l, w, C, -E / 2 + f, -I / 2 + c, E, I) : t.drawImage(g, -E / 2 + f, -I / 2 + c, E, I), t.rotate(-p), t.setTransform(1, 0, 0, 1, 0, 0);
     }
   }
   /**关闭之前的定时动画 */
@@ -93,14 +93,14 @@ class N {
   parseExt(e, a, s) {
     let t = a, h = (i) => {
       t.readByte();
-      var l = this.byteToBitArr(t.readByte());
+      const l = this.byteToBitArr(t.readByte());
       i.reserved = l.splice(0, 3), i.disposalMethod = this.bitsToNum(l.splice(0, 3)), this.LAST_DISPOSA_METHOD = i.disposalMethod, i.userInput = l.shift(), i.transparencyGiven = l.shift(), i.delayTime = t.readUnsigned(), i.transparencyIndex = t.readByte(), i.terminator = t.readByte(), this.pushFrame(i.delayTime, s), this.TRANSPARENCY = i.transparencyGiven ? i.transparencyIndex : null;
     }, n = (i) => {
       i.comment = this.readSubBlocks(a);
     }, d = (i) => {
       t.readByte(), i.ptHeader = t.readBytes(12), i.ptData = this.readSubBlocks(a);
     }, o = (i) => {
-      var l = function(c) {
+      const l = function(c) {
         t.readByte(), c.unknown = t.readByte(), c.iterations = t.readUnsigned(), c.terminator = t.readByte();
       }, f = (c) => {
         c.appData = this.readSubBlocks(a);
@@ -139,15 +139,15 @@ class N {
     function h(o, r) {
       let i = new Array(o.length);
       const l = o.length / r;
-      function f(I, T) {
-        const y = o.slice(T * r, (T + 1) * r);
-        i.splice.apply(i, [I * r, r].concat(y));
+      function f(y, T) {
+        const g = o.slice(T * r, (T + 1) * r);
+        i.splice.apply(i, [y * r, r].concat(g));
       }
       const c = [0, 4, 2, 1], p = [8, 8, 4, 2];
       let u = 0;
-      for (var g = 0; g < 4; g++)
-        for (var E = c[g]; E < l; E += p[g])
-          f(E, u), u++;
+      for (let y = 0; y < 4; y++)
+        for (let T = c[y]; T < l; T += p[y])
+          f(T, u), u++;
       return i;
     }
     e.leftPos = t.readUnsigned(), e.topPos = t.readUnsigned(), e.width = t.readUnsigned(), e.height = t.readUnsigned();
@@ -175,7 +175,7 @@ class N {
     }
     let h = [], n = 1 << e, d = n + 1, o = e + 1, r = [];
     function i() {
-      r = [], o = e + 1;
+      r.length = 0, o = e + 1;
       for (let c = 0; c < n; c++)
         r[c] = [c];
       r[n] = [], r[d] = null;
@@ -237,7 +237,7 @@ class N {
     return s;
   }
 }
-class F {
+class N {
   constructor(e) {
     this.pos = 0, this.data = e, this.len = e.length, this.pos = 0;
   }
@@ -268,5 +268,5 @@ class F {
   }
 }
 export {
-  N as SLUCanvasGif
+  M as SLUCanvasGif
 };
