@@ -1271,7 +1271,7 @@ declare module '@sl-utils/map' {
     /**设置经纬度信息
      * @param e 鼠标事件
      */
-    private setLatlng(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private setLatlng(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**设置地图层级和比例尺 */
     private setZoomAndScale(): void;
     /**设置地图比例尺 */
@@ -2072,11 +2072,11 @@ declare module '@sl-utils/map' {
     /**鼠标点击事件
      * @param e 鼠标事件对象
      */
-    private eventClick(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private eventClick(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**鼠标移动事件
      * @param e 鼠标事件对象
      */
-    private eventMousemove(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private eventMousemove(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**双击关闭事件 */
     private eventDblclick(): void;
     /**移除所有的监听函数 */
@@ -2108,6 +2108,13 @@ declare module '@sl-utils/map' {
      * @returns MapPluginPlot实例
      */
     public addCbPointMove(cb: (plotAni: DataMapPlot) => void): MapPluginPlot;
+    /**标绘列表变化时的回调（新增/删除等） */
+    private cbPlotListChange?: (plotList: DataMapPlot[]) => void;
+    /**设置标绘列表变化时的监听函数
+     * @param cb 回调函数，参数为最新的标绘列表
+     * @returns MapPluginPlot实例
+     */
+    public addCbPlotListChange(cb: (plotList: DataMapPlot[]) => void): MapPluginPlot;
   }
   /**测绘类
  * @extends MapCanvasLayer
@@ -2706,7 +2713,7 @@ declare module '@sl-utils/map' {
     /**鼠标点击事件监听
      * @param e 鼠标事件
      */
-    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**将m/s转换为方向
      * @param uMs X轴速度
      * @param vMs Y轴速度

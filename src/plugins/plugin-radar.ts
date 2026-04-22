@@ -1,6 +1,7 @@
 import { OptMapCanvas, OptMapPluginRadar } from "@sl-utils/map";
 import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import { u_drawConvertgps84Togcj02 } from "../utils";
 /**雷达绘制插件
  * @extends MapCanvasLayer
  * @constructor
@@ -26,6 +27,7 @@ export class MapPluginRadar extends MapCanvasLayer {
      * @returns MapPluginRadar实例
      */
     public setAllRadars(radars: OptMapPluginRadar[]): MapPluginRadar {
+        u_drawConvertgps84Togcj02(this.map, radars);
         this.canvasRadar.setAllRadars(radars)
         return this;
     }

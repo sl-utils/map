@@ -5,6 +5,7 @@ import { u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUMap } from "../map";
 import { OptMapCanvas, OptBigData, MapRbush, MapImage, MapImageEvent, MapImageRender } from "@sl-utils/map";
 import RBush from "rbush";
+import { u_drawConvertgps84Togcj02 } from "../utils";
 /**大数据绘制 优化处理
  * @extends MapPluginDraw
  * @param sluMap 地图实例
@@ -41,6 +42,7 @@ export class MapPluginBigData extends MapPluginDraw {
   public setbigDataImgs(imgs: MapImage[]): void {
     this.rbush.clear();
     this.rbushData.length = 0;
+    u_drawConvertgps84Togcj02(this.map, imgs);
     this.bigDataImgs = imgs;
     this.rbushData = imgs.map((el) => {
       this._draw.transformImageSize(el);

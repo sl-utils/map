@@ -219,7 +219,7 @@ export class MapCanvasEvent {
      * @returns MapEventRange
      */
     private getEventsByRange(e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): MapEventRange {
-        let x: number, y: number, pageX: number, pageY: number, zoom: number = this.map.getZoom();
+        let x: number = 0, y: number = 0, pageX: number = 0, pageY: number = 0, zoom: number = this.map.getZoom();
         if (u_tsEventisLeaflet(e)) {
             let event = e;
             ({ x, y } = event.containerPoint, { pageX, pageY } = event.originalEvent);

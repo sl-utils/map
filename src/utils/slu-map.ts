@@ -179,11 +179,13 @@ function getBounds(map: AMAP.Map | L.Map | MaplibreMap): MapBounds {
         }
     } else if (tsMapisAmap(map)) {
         let { southwest, northeast } = map.getBounds();
+        const { lat: swLat, lng: swLng } = togcj02gps84(southwest.lng, southwest.lat);
+        const { lat: neLat, lng: neLng } = togcj02gps84(northeast.lng, northeast.lat);
         return {
-            lngLeft: southwest.lng,
-            latTop: northeast.lat,
-            lngRight: northeast.lng,
-            latBottom: southwest.lat
+            lngLeft: swLng,
+            latTop: neLat,
+            lngRight: neLng,
+            latBottom: swLat
         }
     } else if (tsMapisMapLibre(map)) {
         const bounds = map.getBounds();
@@ -397,7 +399,9 @@ function setViewCenter(map: L.Map | AMAP.Map | MaplibreMap, center: [number, num
         map.setView(center, zoom);
     } else if (tsMapisAmap(map) || tsMapisMapLibre(map)) {
         const [lat, lng] = center;
-        const mapcenter: [number, number] = [lng, lat];
+        /**84转火星 */
+        const { lat: lat02, lng: lng02 } = togps84gcj02(lng, lat);
+        const mapcenter: [number, number] = [lng02, lat02];
         map.setCenter(mapcenter);
         map.setZoom(zoom);
     } else {
@@ -430,12 +434,15 @@ function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, numbe
         northeast = [maxLat, maxLng];
     } else {
         southwest = point;
-        northeast = point2;
+        northeast = point2 || point;
     }
     if (tsMapisLeaflet(map)) {
         map.fitBounds([southwest, northeast]);
     } else if (tsMapisAmap(map)) {
-        const bounds = new AMap.Bounds(southwest.reverse(), northeast.reverse());
+        /**84转火星 */
+        const { lat: swLat, lng: swLng } = togps84gcj02(southwest[1], southwest[0]);
+        const { lat: neLat, lng: neLng } = togps84gcj02(northeast[1], northeast[0]);
+        const bounds = new AMap.Bounds([swLng, swLat], [neLng, neLat]);
         const [zoom, center] = map.getFitZoomAndCenterByBounds(bounds);
         map.setZoomAndCenter(zoom, center);
     } else if (tsMapisMapLibre(map)) {
@@ -517,7 +524,7 @@ function tsIfTwoArr(value: [number, number] | [number, number][]): value is [num
  * @param value 参数
  */
 function tsIfOneArrTwoLen(value: number | [number, number]): value is [number, number] {
-    return value && Array.isArray(value) && value.length == 2;
+    return !!(value && Array.isArray(value) && value.length == 2);
 }
 /**判断地图是否是Leaflet */
 function tsMapisLeaflet(map: AMAP.Map | L.Map | MaplibreMap): map is L.Map {

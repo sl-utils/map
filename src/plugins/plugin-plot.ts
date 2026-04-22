@@ -1,10 +1,11 @@
 
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
-import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus } from "../utils/slu-map";
+import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
 import { u_arrAddItemsIndex } from "../utils/slu-array";
 import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, OptMapPluginPlotBase, OptMapPluginPlotText } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
+import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 /**自定义标绘类
  * @extends MapCanvasLayer
  * @constructor
@@ -87,6 +88,7 @@ export class MapPluginPlot extends MapCanvasLayer {
         const newplot = this.createPlot(type);
         this.plotList[i] = this.plotAni = newplot;
         this.renderAnimation();
+        this.cbPlotListChange && this.cbPlotListChange(this.plotList);
         return this.plotAni;
     }
     /**关闭绘制 
@@ -105,6 +107,7 @@ export class MapPluginPlot extends MapCanvasLayer {
             plot.ifEdit = false;
             this.plotAni = undefined;
             this.redraw();
+            this.cbPlotListChange && this.cbPlotListChange(this.plotList);
         }
         return this;
     }
@@ -114,8 +117,10 @@ export class MapPluginPlot extends MapCanvasLayer {
      */
     public delPlot(plot?: DataMapPlot): MapPluginPlot {
         plot = plot || this.plotAni;
-        this.plotList = this.plotList.filter(info => info !== plot);
+        const idx = this.plotList.findIndex(info => info === plot);
+        if (idx > -1) this.plotList.splice(idx, 1);
         this._redraw();
+        this.cbPlotListChange && this.cbPlotListChange(this.plotList);
         return this;
     }
     /**设置所有区域数据
@@ -237,6 +242,8 @@ export class MapPluginPlot extends MapCanvasLayer {
                 const { url, size: pSize = [16, 16] } = info;
                 if (url) {
                     layer.addImg({ ...info, latlng: info.latLngs[0], size: pSize })
+                } else {
+                    layer.addArc({ ...info, size: 4, dash: [0, 0], latlng: info.latLngs[0] });
                 }
                 break;
         }
@@ -401,7 +408,7 @@ export class MapPluginPlot extends MapCanvasLayer {
      */
     private setPointEdit(plotInfo: DataMapPlot): void {
         let { latLngs } = plotInfo;
-        if (!latLngs) return;
+        if (!latLngs || latLngs.length != 2) return;
         let eves: MapEvent[] = [];
         this.addEvent(latLngs[0], 0, plotInfo, eves);
         this.ctrEvent.setEventsByKey(eves, 'pointEdit')
@@ -443,8 +450,14 @@ export class MapPluginPlot extends MapCanvasLayer {
         let circle: MapArc = { ...this.editArc, latlng: latLng }, { latLngs, type } = plotInfo;
         if (ifVirtual) { circle.size = 3, circle.fillAlpha = 0.9 };
         this.ctrMapAniDraw.addArc(circle);
+        let hitLatLng: [number, number] = latLng;
+        if (u_tsMapisAmap(this.map)) {
+            /**添加事件的经纬度是84坐标系，需要转换为火星坐标系 */
+            const { lat, lng } = u_mapTogps84gcj02(latLng[1], latLng[0]);
+            hitLatLng = [lat, lng];
+        }
         eves.push({
-            latlng: latLng,
+            latlng: hitLatLng,
             type: 'mousedown',
             cb: () => {
                 /**禁止地图拖动 */
@@ -456,18 +469,24 @@ export class MapPluginPlot extends MapCanvasLayer {
                     this.cbPointChange && this.cbPointChange(this.plotAni!);
                 }
                 this._redraw();
-                let moveCb = (e: LeafletMouseEvent | AMapMapsEvent) => {
-                    const { latlng: eLatlng } = u_mapGetMapMouseEvent(e, this.map);
+                let moveCb = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent) => {
+                    let { latlng: eLatlng } = u_mapGetMapMouseEvent(e, this.map);
+                    let lat84 = eLatlng.lat, lng84 = eLatlng.lng;
+                    if (u_tsMapisAmap(this.map)) {
+                        /**将鼠标当前的地图原生坐标（高德为火星）转换回 84坐标系 */
+                        const { lat, lng } = u_mapTogcj02gps84(eLatlng.lng, eLatlng.lat);
+                        lat84 = lat, lng84 = lng;
+                    }
                     // let event = u_mapGetMapEvent(e)
                     if (type === 'polygon' || type === 'circle' || type === 'point' || type === 'line') {
                         /**移动点位数据并重绘 */
-                        latLng[0] = eLatlng.lat;
-                        latLng[1] = eLatlng.lng;
+                        latLng[0] = lat84;
+                        latLng[1] = lng84;
                     } else if (type === 'rect') {
                         /**计算4个点位数据 ( 不能采用SLTMap.Plot.Info.latLngs因为此值一直在变化 )*/
                         let points = this.calcRect(latLngs);
                         let index = (i + 2) % 4;
-                        let p1: [number, number] = [eLatlng.lat, eLatlng.lng];
+                        let p1: [number, number] = [lat84, lng84];
                         let p2 = points[index];
                         this.plotAni!.latLngs = [p1, p2].filter(p => !!p);
                     }
@@ -500,12 +519,18 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**鼠标点击事件
      * @param e 鼠标事件对象
      */
-    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent): void => {
+    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
         this.eventClickTimer = setTimeout(() => {
             const plot = this.plotAni;
             if (!plot) return;
-            const { latlng } = u_mapGetMapMouseEvent(e, this.map);
-            const point: [number, number] = [latlng.lat, latlng.lng];
+            let { latlng } = u_mapGetMapMouseEvent(e, this.map);
+            let lat84 = latlng.lat, lng84 = latlng.lng;
+            if (u_tsMapisAmap(this.map)) {
+                /**将鼠标当前的地图原生坐标（高德为火星）转换回 84坐标系 */
+                const { lat, lng } = u_mapTogcj02gps84(latlng.lng, latlng.lat);
+                lat84 = lat, lng84 = lng;
+            }
+            const point: [number, number] = [lat84, lng84];
             if (plot.type === 'polygon' || plot.type === 'line') {
                 plot.latLngs.push(point);
             } else if (plot.latLngs.length < 2) {
@@ -524,9 +549,15 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**鼠标移动事件
      * @param e 鼠标事件对象
      */
-    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent): void => {
-        const { latlng } = u_mapGetMapMouseEvent(e, this.map);
-        this.curPoint = [latlng.lat, latlng.lng];
+    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
+        let { latlng } = u_mapGetMapMouseEvent(e, this.map);
+        let lat84 = latlng.lat, lng84 = latlng.lng;
+        if (u_tsMapisAmap(this.map)) {
+            /**将鼠标当前的地图原生坐标（高德为火星）转换回 84坐标系 */
+            const { lat, lng } = u_mapTogcj02gps84(latlng.lng, latlng.lat);
+            lat84 = lat, lng84 = lng;
+        }
+        this.curPoint = [lat84, lng84];
         this.renderAnimation();
     }
     /**双击关闭事件 */
@@ -586,5 +617,15 @@ export class MapPluginPlot extends MapCanvasLayer {
     public addCbPointMove(cb: (plotAni: DataMapPlot) => void): MapPluginPlot {
         this.cbPointMove = cb;
         return this
+    }
+    /**标绘列表变化时的回调（新增/删除等） */
+    private cbPlotListChange?: (plotList: DataMapPlot[]) => void;
+    /**设置标绘列表变化时的监听函数
+     * @param cb 回调函数，参数为最新的标绘列表
+     * @returns MapPluginPlot实例
+     */
+    public addCbPlotListChange(cb: (plotList: DataMapPlot[]) => void): MapPluginPlot {
+        this.cbPlotListChange = cb;
+        return this;
     }
 }

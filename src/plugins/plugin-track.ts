@@ -3,6 +3,7 @@ import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent, SLUMap } from "../map";
 import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "@sl-utils/map";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import { u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
 /**轨迹绘制类
  * @constructor
  * @param sluMap 地图实例
@@ -70,6 +71,15 @@ export class MapPluginTrack {
    * @param tracks 轨迹数据
    */
   public setTracks(tracks: DataMapTrackGroup[]): void {
+    if (u_tsMapisAmap(this.map)) {
+      tracks.forEach(track => {
+        track.data.forEach(e => {
+          const { lat, lng } = u_mapTogps84gcj02(e.lng, e.lat);
+          e.lat = lat;
+          e.lng = lng;
+        })
+      })
+    }
     const that = this,
       { allTracks } = that;
     /**添加数据到轨迹 */
