@@ -201,9 +201,10 @@ export class SLUMap {
             doubleClickZoom,
             attributionControl: attributionControl ? undefined : false
         });
+        map.on('style.load', () => { this.changeLanguage(false); });
         return Promise.resolve(map);
     }
-    /**切换中英文
+    /**切换中英文 仅对maplibre地图生效
      * @param ifEn 是否切换英文
      */
     public changeLanguage(ifEn: boolean): void {
@@ -214,7 +215,14 @@ export class SLUMap {
             layers.forEach((layer) => {
                 if (layer.type === 'symbol' && layer.layout && 'text-field' in layer.layout) {
                     try {
-                        map.setLayoutProperty(layer.id, 'text-field', ['get', `name:${lang}`]);
+                        const text = ['get', `name:${lang}`];
+                        const textField = [
+                            'case',
+                            ['==', text, '台湾'], '台湾省',
+                            ['==', text, 'Taiwan'], 'TaiWan Province',
+                            text
+                        ];
+                        map.setLayoutProperty(layer.id, 'text-field', textField);
                     } catch (e) { }
                 }
             });
