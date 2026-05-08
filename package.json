@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",
+    "@turf/bbox-clip": "^7.3.5",
     "leaflet": "^1.9.4",
     "proj4": "^2.16.2",
     "proj4leaflet": "^1.0.2",

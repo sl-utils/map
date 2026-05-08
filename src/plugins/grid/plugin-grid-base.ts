@@ -46,7 +46,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
     /**渐变数据 */
     protected gradient?: Uint8ClampedArray;
     /**启用新的线程 */
-    private worker: SLUWorker<WorkerInfo, { workerId: number; data: CanvasImageSource; }> = new SLUWorker<WorkerInfo, { workerId: number, data: CanvasImageSource }>('grid-worker1', (data) => this.workerCb(data));
+    private worker: SLUWorker<WorkerInfo, { workerId: number; data: CanvasImageSource; }> = new SLUWorker<WorkerInfo, { workerId: number, data: CanvasImageSource }>('grid', (data) => this.workerCb(data));
     /**线程id */
     private workerId: number = 0;
     /**将线程绘制的图像绘制出来

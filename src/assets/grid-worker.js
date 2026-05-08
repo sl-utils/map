@@ -1,4 +1,4 @@
-importScripts();
+// importScripts();
 /**全局变量  */
 /**主线程传过来的数据(此线程处理单个数据由1个元素组成的数据) */
 var data;
@@ -19,8 +19,8 @@ self.addEventListener('message', function (ev) {
 }, false);
 /**计算并构建数据 */
 function computeData() {
-    let columns = this.interpolateField();
-    this.genMosaic(columns);
+    let columns = interpolateField();
+    genMosaic(columns);
 }
 /**生成可视区范围数据
  * @param bounds  可视区域的像素范围
@@ -107,7 +107,7 @@ function genMosaic(datas) {
         for (let j = 0, len = width; j < len; j++) {
             let p = datas[i][j] || [], value = p[0];
             if (value === invalid || value === undefined || value === null) continue;
-            ctx.fillStyle = this.getColorByValue(value);
+            ctx.fillStyle = getColorByValue(value);
             ctx.fillRect(j, i, 1, 1);
         }
     }

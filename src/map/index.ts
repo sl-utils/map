@@ -4,3 +4,4 @@ export * from "./canvas-layer"
 export * from "./canvas-map"
 export * from './canvas-arrow-line'
 export * from './canvas-radar'
+export * from './canvas-fixed-heat'

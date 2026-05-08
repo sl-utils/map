@@ -285,7 +285,38 @@ function getPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, latlng: [number, 
 function getPointsByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined): [number, number][] {
     return latlngs?.map(e => getPointByLatlng(map, e)) || [];
 }
-
+/**
+ * 经纬度数组 转 屏幕像素坐标
+ * @param map 当前的地图
+ * @param latlngs [纬度,经度][]
+ * @param zoom 缩放级别
+ */
+function getProjectedPointByLatlng(map: AMAP.Map | L.Map, lng: number, lat: number, zoom: number): [number, number] {
+    if (tsMapisLeaflet(map)) {
+        const p = map.project(L.latLng(lat, lng), zoom);
+        return [p.x, p.y];
+    } else {
+        return project(lng, lat, zoom);
+    }
+};
+/**经纬度转指定级别像素 */
+function project(lng: number, lat: number, zoom: number): [number, number] {
+    const tileSize = 256;
+    const scale = tileSize * Math.pow(2, zoom);
+    const x = (lng + 180) / 360 * scale;
+    const sinLat = Math.sin(lat * Math.PI / 180);
+    const y = (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale;
+    return [x, y];
+}
+/** 将经纬度数组转换为坐标系 
+ * @param map 当前的地图 
+ * @param latlngs [经度,纬度][]
+ * @param zoom 缩放级别
+ * @returns latlngs有效时返回 [x,y][]
+ */
+function getProjectedPointByLatlngs(map: AMAP.Map | L.Map, latlngs: [number, number][] | undefined, zoom: number): [number, number][] {
+    return latlngs?.map(e => getProjectedPointByLatlng(map, e[0], e[1], zoom)) || [];
+}
 /**对大小进行解析设置
  * @param map  当前的地图 
  * @param info 大小信息和位置信息
@@ -626,6 +657,8 @@ export {
     getLngDiffByDistance as u_mapGetLngDiffByDistance,
     getPointByLatlng as u_mapGetPointByLatlng,
     getPointsByLatlngs as u_mapGetPointsByLatlngs,
+    getProjectedPointByLatlng as u_mapGetProjectedPointByLatlng,
+    getProjectedPointByLatlngs as u_mapGetProjectedPointByLatlngs,
     getSizeByMap as u_mapGetSizeByMap,
     getMapSize as u_mapGetMapSize,
     setMapStatus as u_mapSetMapStatus,
