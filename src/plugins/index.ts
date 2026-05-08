@@ -12,3 +12,6 @@ export * from './plugin-arrow-line';
 export * from './plugin-big-data';
 export * from './plugin-partial';
 export * from './plugin-radar';
+export * from './plugin-fixed-heat';
+export * from './plugin-coastline-mask';
+export * from './plugin-grid-render';

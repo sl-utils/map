@@ -851,6 +851,24 @@ declare module '@sl-utils/map' {
     /**渐变半径 */
     gradientRadius?: number;
   }
+  /**-----------------------------固定图片热力图类--------------------start--- */
+  export interface OptMapPluginFixedHeat extends OptMapCanvas {
+    /**固定渲染级别（只在这级生成图片）@default 13 */
+    refZoom?: number;
+    /**最小显示级别 @default 13 */
+    minZoom?: number;
+    /**最大显示级别 @default 16 */
+    maxZoom?: number;
+    /**热力半径 @default 30 */
+    radius?: number;
+    /**模糊半径 @default 5 */
+    blur?: number;
+    /**透明度 @default 1 */
+    opacity?: number;
+    /**颜色梯度  @default {0.0: '#00008b', 0.4: '#0088ff', 0.5: '#00ffff', 0.6: '#ffff00', 0.8: '#ff8800', 1.0: '#ff0000'} */
+    gradient?: Record<number, string>;
+  }
+  /**-----------------------------固定图片热力图类--------------------end--- */
 
   /**-----------------------------各插件数据格式---------------------------- */
 
@@ -970,6 +988,46 @@ declare module '@sl-utils/map' {
     mosaicColor?: string[];
     /**马赛克颜色对应的值 */
     mosaicValue?: number[];
+  }
+  interface GridRenderWorkerInfo {
+    /**worker id */
+    id?: number;
+    /**可视区宽度 */
+    width: number;
+    /**可视区高度 */
+    height: number;
+    /**数据起始纬度 */
+    lat0: number;
+    /**数据起始经度 */
+    lng0: number;
+    /**数据纬度差 */
+    latΔ: number;
+    /**数据经度差 */
+    lngΔ: number;
+    /**空数据无数据的标识 */
+    invalid: number | undefined | null;
+    /**数据 */
+    grid: any;
+    /**马赛克颜色设置 */
+    mosaicColor?: string[];
+    /**马赛克颜色对应的值 */
+    mosaicValue?: number[];
+    /**经纬度采样步长 */
+    geoStep?: number;
+    /**经纬度采样网格 列 */
+    geoCols?: number;
+    /**经纬度采样网格 行 */
+    geoRows?: number;
+    /**经纬度缓存 [lng, lat, lng, lat...] */
+    lngLatBuffer?: Float32Array<ArrayBuffer>;
+    /**栅格有效性mask 0:无效值; 1:有效值 */
+    mask?: Uint8Array<ArrayBufferLike>;
+    /**经度方向格点数 */
+    nx?: number;
+    /**纬度方向格点数 */
+    ny?: number;
+    /**像素采样率 */
+    samplingRate?: number;
   }
   /**-----------------------------grid数据格式-------------------------end--- */
 
@@ -1122,7 +1180,17 @@ declare module '@sl-utils/map' {
   }
   /**-----------------------------大数据渲染类-------------------------end--- */
 
-
+  /**[west, south, east, north] */
+  type BBox = [number, number, number, number];
+  /**海岸线数据源 */
+  interface DataCoastline {
+    /**最小适用层级 */
+    minZoom: number;
+    /** 最大适用层级 */
+    maxZoom: number;
+    /**GeoJSON海岸线数据 */
+    data: GeoJSON.FeatureCollection;
+  }
 
 
 
@@ -1271,7 +1339,7 @@ declare module '@sl-utils/map' {
     /**设置经纬度信息
      * @param e 鼠标事件
      */
-    private setLatlng(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private setLatlng(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**设置地图层级和比例尺 */
     private setZoomAndScale(): void;
     /**设置地图比例尺 */
@@ -1700,6 +1768,43 @@ declare module '@sl-utils/map' {
      */
     private caculateColorChange(colors: string[], total: number): number[][];
   }
+  /**
+* 固定图片热力图
+* 只在指定级别渲染一次热力图为图片，缩放仅拉伸图片，不重新计算
+*/
+  export class MapCanvasFixedHeat {
+    constructor(map: AMAP.Map | L.Map, ctx: CanvasRenderingContext2D, heatOpt?: OptMapPluginFixedHeat);
+    /** 热力图默认配置 */
+    private readonly defaultOption: OptMapPluginFixedHeat;
+    /** 原始数据 [经度, 纬度, 强度] */
+    private data: [number, number, number][];
+    /** 渲染好的热力图离屏画布（核心：固定图片） */
+    private heatCanvas: HTMLCanvasElement | null;
+    /** 热力图对应的经纬度边界 */
+    private bounds: { minLng: number; maxLng: number; minLat: number; maxLat: number; } | null;
+    /**
+     * 设置热力图数据
+     * @param data [经度, 纬度, 强度]
+     */
+    public setData(data: [number, number, number][]): void;
+    /**将热力数据渲染为一张固定图片；只在 refZoom 级别计算一次，后续缩放不再计算 */
+    private renderToImage(): void;
+    /**
+     * 自定义热力图渲染逻辑
+     * @param ctx 目标画布上下文
+     * @param points 偏移后的像素点 [x, y, 强度]
+     */
+    private renderHeat(ctx: CanvasRenderingContext2D, points: [number, number, number][]): void;
+    /**
+     * 十六进制颜色转RGB
+     * @param hex 十六进制颜色字符串
+     */
+    private hexToRgb(hex: string): [number, number, number];
+    /**每帧绘制：只贴图片，不计算；根据当前地图级别自动显隐 */
+    public draw(): void;
+    /**清空数据与图片 */
+    public clear(): void;
+  }
   /** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 
    * @constructor
    * @param MAP 地图实例
@@ -2072,11 +2177,11 @@ declare module '@sl-utils/map' {
     /**鼠标点击事件
      * @param e 鼠标事件对象
      */
-    private eventClick(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private eventClick(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**鼠标移动事件
      * @param e 鼠标事件对象
      */
-    private eventMousemove(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private eventMousemove(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**双击关闭事件 */
     private eventDblclick(): void;
     /**移除所有的监听函数 */
@@ -2108,6 +2213,13 @@ declare module '@sl-utils/map' {
      * @returns MapPluginPlot实例
      */
     public addCbPointMove(cb: (plotAni: DataMapPlot) => void): MapPluginPlot;
+    /**标绘列表变化时的回调（新增/删除等） */
+    private cbPlotListChange?: (plotList: DataMapPlot[]) => void;
+    /**设置标绘列表变化时的监听函数
+     * @param cb 回调函数，参数为最新的标绘列表
+     * @returns MapPluginPlot实例
+     */
+    public addCbPlotListChange(cb: (plotList: DataMapPlot[]) => void): MapPluginPlot;
   }
   /**测绘类
  * @extends MapCanvasLayer
@@ -2706,7 +2818,7 @@ declare module '@sl-utils/map' {
     /**鼠标点击事件监听
      * @param e 鼠标事件
      */
-    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent): void;
+    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void;
     /**将m/s转换为方向
      * @param uMs X轴速度
      * @param vMs Y轴速度
@@ -2805,6 +2917,20 @@ declare module '@sl-utils/map' {
      * @param gradient 渐变色
      */
     private _colorize(pixels: Uint8ClampedArray, gradient: Uint8ClampedArray): void;
+  }
+  /**固定图片热力图 - 插件 */
+  export class MapPluginFixedHeat extends MapCanvasLayer {
+    constructor(sluMap: SLUMap, options?: OptMapPluginFixedHeat);
+    private fixedHeat: MapCanvasFixedHeat;
+    /**
+     * 外部设置热力数据
+     * @param data [经度, 纬度, 强度]
+     */
+    public setData(data: [number, number, number][]): void;
+    /**静态数据层 */
+    protected override renderFixedData(): void;
+    /**动态数据层 */
+    protected override renderAnimation(time?: number): void;
   }
   /**
    * 地图canvas动态箭头线插件
@@ -2983,5 +3109,159 @@ declare module '@sl-utils/map' {
     private drawStart(): void;
     /**拖拽开始，结束绘制 */
     private drawEnd(): void;
+  }
+  /**海岸线Mask生成器: bbox裁剪、自动按zoom切换海岸线精度
+ * @constructor
+ * @param sources 海岸线数据源
+ * @param map 地图实例
+ * 适用于：
+ * - 风浪流裁剪
+ * - 海洋粒子遮罩
+ * - 海岸线mask
+ * - 气象海洋渲染
+ */
+  export class PluginCoastlineMask {
+    constructor(sources: DataCoastline[], map: AMAP.Map | LMap | MaplibreMap);
+    /**地图实例 */
+    private map: AMAP.Map | LMap | MaplibreMap;
+    /**海岸线数据源 */
+    private sources: DataCoastline[];
+    /**canvas缓存 */
+    private cacheCanvas: HTMLCanvasElement | null;
+    /**缓存key */
+    private cacheKey;
+    /**世界复制偏移(低zoom会出现世界复制，所以海岸线也需要同步复制) */
+    private readonly worldOffsets;
+    /**获取mask
+     * @param bbox 经纬度bbox
+     * @param zoom 缩放层级
+     * @param width canvas宽度
+     * @param height canvas高度
+     * @returns mask canvas
+     */
+    public getMask(bbox: BBox, zoom: number, width: number, height: number): HTMLCanvasElement;
+    /**根据zoom选择海岸线数据
+     * @param zoom 缩放层级
+     * @returns 海岸线数据源
+     */
+    private pickSource(zoom: number): DataCoastline;
+    /**标准化经度 转换到：[-180, 180]
+     * @param lng 经度
+     * @returns 标准化后的经度
+     */
+    private normalizeLng(lng: number): number;
+    /**标准化bbox 如：[220, ... ,260]=>[-140, ... ,-100]
+     * @param bbox 经纬度bbox
+     * @returns 标准化后的经纬度bbox
+     */
+    private normalizeBBox(bbox: BBox): BBox;
+    /**bbox裁剪GeoJSON
+     * @param geojson GeoJSON数据
+     * @param bbox 经纬度bbox
+     * @returns 裁剪后的GeoJSON数据
+    */
+    private clipGeoJSON(geojson: GeoJSON.FeatureCollection, bbox: BBox): GeoJSON.FeatureCollection;
+    /**构建mask canvas
+     * @param width canvas宽度
+     * @param height canvas高度
+     * @param geojson GeoJSON数据
+     * @returns mask canvas
+     */
+    private buildMaskCanvas(width: number, height: number, geojson: GeoJSON.FeatureCollection): HTMLCanvasElement;
+    /**绘制polygon
+     * @param ctx canvas上下文
+     * @param coordinates polygon坐标
+     */
+    private drawPolygon(ctx: CanvasRenderingContext2D, coordinates: number[][][]): void;
+    /**构建缓存key,带容差：避免拖动1px就重建 
+     * @param bbox 经纬度bbox
+     * @param zoom 缩放级别
+     * @param width canvas宽度
+     * @param height canvas高度
+     * @returns 缓存key
+    */
+    private buildCacheKey(bbox: BBox, zoom: number, width: number, height: number): string;
+    /**清除缓存 */
+    public clearCache(): void;
+  }
+  /**
+ * 色斑图插件（CPU栅格填色）
+ * @extends MapCanvasLayer
+ * @constructor
+ * @param sluMap - SLUMap实例
+ * @param options - 配置项
+ * @param mask - 海岸线Mask /可选
+ *
+ * 功能：
+ * 1. 渲染海浪/风场/流场等栅格数据
+ * 2. Worker异步计算颜色
+ * 3. Canvas绘制
+ * 4. 海岸线Mask裁剪
+ *
+ * 适用于：
+ * - 海浪
+ * - 海流
+ * - 风场
+ * - 温度场
+ * - 盐度场
+ * - 任意规则经纬度栅格
+ */
+  export class MapPluginGridRender extends MapCanvasLayer {
+    constructor(sluMap: SLUMap, options: Partial<OptMapGrid>, mask?: PluginCoastlineMask);
+    /**Worker线程:栅格插值-颜色计算-ImageBitmap生成 */
+    private worker: SLUWorker<WorkerInfo, { workerId: number; data: ImageBitmap; }>;
+    /**worker任务ID-用于丢弃旧帧 */
+    private workerId;
+    /**海岸线mask */
+    private mask?: PluginCoastlineMask;
+    /**离屏canvas */
+    private offCanvas: HTMLCanvasElement;
+    /**离屏canvas ctx */
+    private offCtx: CanvasRenderingContext2D;
+    /**栅格值 Float32Array:内存占用低,Worker传输快 */
+    private gridData: Float32Array;
+    /**栅格有效性mask 0:无效值; 1:有效值 */
+    private gridMask: Uint8Array;
+    /**经度方向格点数 */
+    private nx: number;
+    /**纬度方向格点数 */
+    private ny: number;
+    /**起始经度 */
+    private lng0: number;
+    /**起始纬度 */
+    private lat0: number;
+    /**经度步长 */
+    private lngΔ: number;
+    /**纬度步长 */
+    private latΔ: number;
+    /**默认配置 */
+    public readonly options: OptMapGrid;
+    /**设置栅格数据
+     * @param datas 栅格数据源
+     */
+    public setData(datas: DataMapGrid[]): void;
+    /**渲染 */
+    private render(): void;
+    /** worker回调
+     * @param res worker结果 
+     */
+    private workerCb(res: { workerId: number, data: ImageBitmap }): void;
+    /**动态像素采样 越大：CPU越低，越模糊
+     * @returns 像素采样率
+     */
+    private getSamplingRate(): number;
+    /**经纬度采样步长 越大：CPU越低，经纬度误差越大
+     * @returns 经纬度采样步长
+     */
+    private getGeoStep(): number;
+    /**获取当前地图bbox
+     * @returns bbox
+     */
+    private getBBox(): [number, number, number, number];
+    /**控制地图监听事件
+     * @param map 地图实例
+     * @param key 事件类型
+     */
+    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void;
   }
 }

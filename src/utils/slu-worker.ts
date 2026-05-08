@@ -1,4 +1,10 @@
-import workerSource from '../assets/grid-worker.js?raw';
+import GridWorker from '../assets/grid-worker.js?worker';
+import GridRenderWorker from '../assets/grid-render-worker.js?worker';
+type WorkerFactory = () => Worker;
+const WorkerMap: Record<string, WorkerFactory> = {
+    grid: () => new GridWorker(),
+    gridRender: () => new GridRenderWorker()
+};
 /**线程工具类 
  * @param name 子线程的文件名(线程文件必须放到`/assets/worker`)
  * @param cb 子线程结果回调函数
@@ -8,10 +14,13 @@ import workerSource from '../assets/grid-worker.js?raw';
 export class SLUWorker<T = any, D = any> {
     constructor(name: string, cb?: (data: D) => void) {
         this.cb = cb;
+
         // let worker = this.worker = new Worker(`../../assets/worker/${name}.js`);
-        const blob = new Blob([workerSource], { type: 'text/javascript' });
-        const url = URL.createObjectURL(blob);
-        const worker = this.worker = new Worker(url, { type: 'classic' });
+
+        const factory = WorkerMap[name];
+        if (!factory) { throw new Error(`Worker ${name} not found`); };
+        const worker = this.worker = factory();
+
         worker.onmessage = (ev: MessageEvent) => {
             console.log(ev);
             this.cb?.(ev.data);
@@ -24,8 +33,12 @@ export class SLUWorker<T = any, D = any> {
     /**回调函数 @data 子线程返回的数据类型*/
     private cb?: (data: D) => void
     /**发送信息给子线程 */
-    public post(data: T): SLUWorker<T, D> {
-        this.worker.postMessage(data);
+    public post(data: T, transfer?: Transferable[]): SLUWorker<T, D> {
+        if (transfer) {
+            this.worker.postMessage(data, transfer);
+        } else {
+            this.worker.postMessage(data);
+        }
         return this;
     }
     /**线程处理后返回数据处理 */

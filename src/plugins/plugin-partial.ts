@@ -4,6 +4,7 @@ import { SLUCanvas } from "../canvas";
 import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
 import { OptMapCanvas, DataMapParticle, CanvasPosition } from "@sl-utils/map";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import { u_drawConvertgps84Togcj02 } from "../utils";
 /**用于绘制地图上的粒子效果
  * @extends MapCanvasLayer
  * @constructor
@@ -27,6 +28,7 @@ export class MapPluginPartial extends MapCanvasLayer {
    * @param particles 粒子数据
    */
   public setAllParticles(particles: (DataMapParticle & CanvasPosition)[]): void {
+    u_drawConvertgps84Togcj02(this.map, particles);
     /**渲染内部会添加CanvasPosition到数据 */
     this._allParticle = particles;
     this._redraw();

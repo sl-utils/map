@@ -26,11 +26,17 @@ import {
   MapPluginFlow,
   OptMapPluginFlow,
   DataMapVeloctiyWind,
+  MapPluginFixedHeat,
+  MapPluginGridRender,
+  PluginCoastlineMask,
 } from "@sl-utils/map";
 import { ref, onMounted, reactive } from "vue";
 import shipjson from "./assets/json/ship.json";
 import { SLUFormat } from "./utils/app";
 import mapstyle from "./assets/json/mapstyle-protomaps.json";
+import low from "./assets/json/coast_low.json";
+import mid from "./assets/json/coast_mid.json";
+import high from "./assets/json/coast_high.json";
 const arrowUrl = new URL("./assets/images/direction-arrow.png", import.meta.url)
   .href;
 const windUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
@@ -38,7 +44,7 @@ const windUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
 let map: SLUMap;
 onMounted(async () => {
   map = new SLUMap("map");
-  await map.init({ type: "A", style: mapstyle });
+  await map.init({ type: "L", style: mapstyle });
 });
 
 /**控件------------------------------- */
@@ -295,6 +301,36 @@ function openHeat() {
   ];
   heatPlugin = new MapPluginHeat(map);
   heatPlugin.setAllHeats(data);
+}
+/**----------------------------------------------------- */
+
+/**固定内容热力图------------------------------- */
+/**是否开启固定内容热力图 */
+const ifFixedHeat = ref(false);
+let fixedHeatPlugin: MapPluginFixedHeat;
+/**点击开启/关闭固定内容热力图按钮 */
+function onFixedHeat() {
+  ifFixedHeat.value = !ifFixedHeat.value;
+  ifFixedHeat.value ? openFixedHeat() : fixedHeatPlugin.onRemove();
+}
+/**开启固定内容热力图 */
+async function openFixedHeat() {
+  map.setCenter([38.954736111, 117.89823611], 13);
+  const data = await genFixedHeat();
+  fixedHeatPlugin = new MapPluginFixedHeat(map);
+  fixedHeatPlugin.setData(data);
+}
+async function genFixedHeat() {
+  const res = await fetch("/json/fixed-heat.json");
+  console.log(res);
+
+  const data = await res.json();
+  const heats: [number, number, number][] = [];
+  for (const key in data) {
+    const item = data[key];
+    heats.push([item.lng, item.lat, item.speed]);
+  }
+  return heats;
 }
 /**----------------------------------------------------- */
 
@@ -576,45 +612,84 @@ let waveData: DataMapGrid[] = [];
 /**点击开启/关闭海浪按钮 */
 async function onWave() {
   ifWave.value = !ifWave.value;
-  if (!waveData.length) {
-    await openWave();
-  }
+  await openWave();
   ifWave.value ? wavePlugin.setData(waveData) : wavePlugin.setData([]);
 }
 /**开启海浪 */
 async function openWave() {
-  const options = {
-    zIndex: 200,
-    mosaicColor: [
-      "#0000CD",
-      "#0066ff",
-      "#00B7ff",
-      "#00E0FF",
-      "#00FFFF",
-      "#00FFCC",
-      "#00FF99",
-      "#00FF00",
-      "#99FF00",
-      "#CCFF00",
-      "#FFFF00",
-      "#FFCC00",
-      "#FF9900",
-      "#FF6600",
-      "#FF0000",
-      "#B03060",
-      "#D02090",
-      "#FF00FF",
-    ],
-    mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-    pane: "wavePane",
-  };
-  wavePlugin = new MapPluginGrid(map, options);
-  waveData = await genWave();
+  if (!wavePlugin) {
+    const options = {
+      zIndex: 200,
+      mosaicColor: [
+        "#337ffc",
+        "#32aafc",
+        "#31d6fc",
+        "#72e9c7",
+        "#e0f16b",
+        "#e4e35f",
+        "#FFCC00",
+        "#FF6600",
+        "#FF0000",
+        "#B03060",
+      ],
+      mosaicValue: [0.5, 1, 2, 3, 4, 5, 7, 9, 12, 15],
+      pane: "wavePane",
+    };
+    wavePlugin = new MapPluginGrid(map, options);
+  }
+  waveData = waveData.length ? waveData : (await genWave());
 }
 async function genWave() {
   const res = await fetch("/json/wave-global.json");
   const waveChunk = await res.json();
   return waveChunk;
+}
+/**----------------------------------------------------- */
+
+/**海浪2------------------------------- */
+/**是否开启海浪2 */
+const ifWave2 = ref(false);
+let wavePlugin2: MapPluginGridRender;
+/**点击开启/关闭海浪2按钮 */
+async function onWave2() {
+  ifWave2.value = !ifWave2.value;
+  await openWave2();
+  ifWave2.value ? wavePlugin2.setData(waveData) : wavePlugin2.setData([]);
+}
+/**开启海浪2 */
+async function openWave2() {
+  if (!wavePlugin2) {
+    const options = {
+      zIndex: 200,
+      mosaicColor: [
+        "#337FFC",
+        "#32AAFC",
+        "#31D6FC",
+        "#72E9C7",
+        "#E0F16B",
+        "#E4E35F",
+        "#FFCC00",
+        "#FF6600",
+        "#FF0000",
+        "#B03060",
+      ],
+      mosaicValue: [0.5, 1, 2, 3, 4, 5, 7, 9, 12, 15],
+      pane: "wavePane2",
+    };
+    const mask = new PluginCoastlineMask(
+      [
+        { minZoom: 0, maxZoom: 4, data: low },
+        { minZoom: 5, maxZoom: 7, data: mid },
+        { minZoom: 8, maxZoom: 20, data: high },
+      ],
+      map.map,
+    );
+    /**无需裁切海岸线 */
+    // wavePlugin2 = new MapPluginGridRender(map, options);
+
+    wavePlugin2 = new MapPluginGridRender(map, options, mask);
+  }
+  waveData = waveData.length ? waveData : (await genWave());
 }
 /**----------------------------------------------------- */
 
@@ -704,6 +779,9 @@ async function genFlow() {
     <button class="btn" @click="onHeat">
       {{ ifHeat ? "关闭" : "开启" }}热力图
     </button>
+    <!-- <button class="btn" @click="onFixedHeat">
+      {{ ifFixedHeat ? "关闭" : "开启" }}固定内容热力图
+    </button> -->
     <button class="btn" @click="onParticle">
       {{ ifPartial ? "关闭" : "开启" }}粒子
     </button>
@@ -721,6 +799,9 @@ async function genFlow() {
     </button>
     <button class="btn" @click="onWave">
       {{ ifWave ? "关闭" : "开启" }}海浪
+    </button>
+    <button class="btn" @click="onWave2">
+      {{ ifWave2 ? "关闭" : "开启" }}海浪2
     </button>
     <button class="btn" @click="onFlow">
       {{ ifFlow ? "关闭" : "开启" }}洋流

@@ -1,9 +1,9 @@
 import { CRS, Map as LMap, LatLng, LeafletMouseEvent, MapOptions, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_tsIsKeyOf, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
+import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsIsKeyOf, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
 import { AMapMapsEvent, MapBounds, MapControlInfo, MapLatLng, OptMap } from "@sl-utils/map";
-import { Map as MaplibreMap, LngLat as MaplibreLngLat } from 'maplibre-gl';
+import { Map as MaplibreMap, LngLat as MaplibreLngLat, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 declare var AMap: any;
 /**地图
  * @constructor
@@ -73,7 +73,12 @@ export class SLUMap {
      * @returns 地图中心
      */
     public getCenter(): LatLng | AMAP.LngLat | MaplibreLngLat {
-        return this.map.getCenter();
+        const center = this.map.getCenter();
+        if (u_tsMapisAmap(this.map)) {
+            const { lat, lng } = u_mapTogcj02gps84(center.lng, center.lat);
+            return new AMap.LngLat(lng, lat);
+        }
+        return center;
     }
     /**获取地图缩放级别
      * @returns 地图缩放级别
@@ -111,7 +116,7 @@ export class SLUMap {
                 let name: MapNameType = key;
                 let flag = names.includes(name);
                 if (flag) continue;
-                curs[name].remove();
+                curs[name]?.remove();
                 Reflect.deleteProperty(curs, key)
             }
         }
@@ -182,11 +187,11 @@ export class SLUMap {
      * @returns maplibregl.Map实例
      */
     private async initMaplibre(ele: string, opt: Partial<OptMap>): Promise<MaplibreMap> {
-        const { style, zoom = 11, minZoom = 2, maxZoom = 20, center = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
+        const { style, zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
         let map = new MaplibreMap({
             container: ele,
             style,
-            center,
+            center: [lng, lat],
             zoom,
             minZoom,
             maxZoom,
@@ -196,9 +201,10 @@ export class SLUMap {
             doubleClickZoom,
             attributionControl: attributionControl ? undefined : false
         });
+        map.on('style.load', () => { this.changeLanguage(false); });
         return Promise.resolve(map);
     }
-    /**切换中英文
+    /**切换中英文 仅对maplibre地图生效
      * @param ifEn 是否切换英文
      */
     public changeLanguage(ifEn: boolean): void {
@@ -209,7 +215,14 @@ export class SLUMap {
             layers.forEach((layer) => {
                 if (layer.type === 'symbol' && layer.layout && 'text-field' in layer.layout) {
                     try {
-                        map.setLayoutProperty(layer.id, 'text-field', ['get', `name:${lang}`]);
+                        const text = ['get', `name:${lang}`];
+                        const textField = [
+                            'case',
+                            ['==', text, '台湾'], '台湾省',
+                            ['==', text, 'Taiwan'], 'TaiWan Province',
+                            text
+                        ];
+                        map.setLayoutProperty(layer.id, 'text-field', textField);
                     } catch (e) { }
                 }
             });
@@ -222,7 +235,8 @@ export class SLUMap {
      * @returns AMap实例
      */
     private async initAmap(ele: string, opt: Partial<OptMap>): Promise<AMAP.Map> {
-        const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
+        const { zoom = 11, minZoom = 2, maxZoom = 20, center = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
+        const { lat, lng } = u_mapTogps84gcj02(center[1], center[0]);
         return AMapLoader.load({
             "key": "87e1b1e9aa88724f69208972546fdd57",   // 申请好的Web端开发者Key，首次调用 load 时必填
             "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
@@ -266,9 +280,10 @@ export class SLUMap {
     /**设置经纬度信息
      * @param e 鼠标事件
      */
-    private setLatlng = (e: LeafletMouseEvent | AMapMapsEvent): void => {
-        const [lat, lng] = u_mapGetLatLngByEvent(e);
-        if (!lat || !lng) return;
+    private setLatlng = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
+        const latlng = u_mapGetLatLngByEvent(e);
+        if (!latlng) return;
+        const [lat, lng] = latlng;
         this.latLng.lat = lat;
         this.latLng.lng = lng;
         this.controlInfo.lat = u_mapGetLatlngByValue(lat, false, this.ifDMS);

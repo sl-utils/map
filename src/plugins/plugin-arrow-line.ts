@@ -2,6 +2,7 @@
 import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
 import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import { u_drawConvertgps84Togcj02 } from "../utils";
 /**
  * 地图canvas动态箭头线插件
  * @extends MapCanvasLayer
@@ -20,6 +21,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
    * @param lines 箭头线数据
    */
   public setAllLines(lines: MapLine[]): void {
+    u_drawConvertgps84Togcj02(this.map, lines);
     this.arrowLine.setAllLines(lines);
   }
   /**

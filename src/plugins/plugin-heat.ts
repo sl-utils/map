@@ -3,6 +3,7 @@ import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { OptMapPluginHeat, DataMapHeat } from "@sl-utils/map";
+import { u_drawConvertgps84Togcj02 } from "../utils";
 /**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] 
  * @extends MapCanvasLayer
  * @constructor
@@ -58,6 +59,7 @@ export class MapPluginHeat extends MapCanvasLayer {
      * @param heats 热力数据集合
     */
     public setAllHeats(heats: DataMapHeat[]): void {
+        u_drawConvertgps84Togcj02(this.map, heats);
         this._allHeats = heats;
         return this._redraw();
     }

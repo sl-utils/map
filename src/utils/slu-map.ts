@@ -179,11 +179,13 @@ function getBounds(map: AMAP.Map | L.Map | MaplibreMap): MapBounds {
         }
     } else if (tsMapisAmap(map)) {
         let { southwest, northeast } = map.getBounds();
+        const { lat: swLat, lng: swLng } = togcj02gps84(southwest.lng, southwest.lat);
+        const { lat: neLat, lng: neLng } = togcj02gps84(northeast.lng, northeast.lat);
         return {
-            lngLeft: southwest.lng,
-            latTop: northeast.lat,
-            lngRight: northeast.lng,
-            latBottom: southwest.lat
+            lngLeft: swLng,
+            latTop: neLat,
+            lngRight: neLng,
+            latBottom: swLat
         }
     } else if (tsMapisMapLibre(map)) {
         const bounds = map.getBounds();
@@ -283,7 +285,38 @@ function getPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, latlng: [number, 
 function getPointsByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined): [number, number][] {
     return latlngs?.map(e => getPointByLatlng(map, e)) || [];
 }
-
+/**
+ * 经纬度数组 转 屏幕像素坐标
+ * @param map 当前的地图
+ * @param latlngs [纬度,经度][]
+ * @param zoom 缩放级别
+ */
+function getProjectedPointByLatlng(map: AMAP.Map | L.Map, lng: number, lat: number, zoom: number): [number, number] {
+    if (tsMapisLeaflet(map)) {
+        const p = map.project(L.latLng(lat, lng), zoom);
+        return [p.x, p.y];
+    } else {
+        return project(lng, lat, zoom);
+    }
+};
+/**经纬度转指定级别像素 */
+function project(lng: number, lat: number, zoom: number): [number, number] {
+    const tileSize = 256;
+    const scale = tileSize * Math.pow(2, zoom);
+    const x = (lng + 180) / 360 * scale;
+    const sinLat = Math.sin(lat * Math.PI / 180);
+    const y = (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale;
+    return [x, y];
+}
+/** 将经纬度数组转换为坐标系 
+ * @param map 当前的地图 
+ * @param latlngs [经度,纬度][]
+ * @param zoom 缩放级别
+ * @returns latlngs有效时返回 [x,y][]
+ */
+function getProjectedPointByLatlngs(map: AMAP.Map | L.Map, latlngs: [number, number][] | undefined, zoom: number): [number, number][] {
+    return latlngs?.map(e => getProjectedPointByLatlng(map, e[0], e[1], zoom)) || [];
+}
 /**对大小进行解析设置
  * @param map  当前的地图 
  * @param info 大小信息和位置信息
@@ -397,7 +430,9 @@ function setViewCenter(map: L.Map | AMAP.Map | MaplibreMap, center: [number, num
         map.setView(center, zoom);
     } else if (tsMapisAmap(map) || tsMapisMapLibre(map)) {
         const [lat, lng] = center;
-        const mapcenter: [number, number] = [lng, lat];
+        /**84转火星 */
+        const { lat: lat02, lng: lng02 } = togps84gcj02(lng, lat);
+        const mapcenter: [number, number] = [lng02, lat02];
         map.setCenter(mapcenter);
         map.setZoom(zoom);
     } else {
@@ -430,12 +465,15 @@ function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, numbe
         northeast = [maxLat, maxLng];
     } else {
         southwest = point;
-        northeast = point2;
+        northeast = point2 || point;
     }
     if (tsMapisLeaflet(map)) {
         map.fitBounds([southwest, northeast]);
     } else if (tsMapisAmap(map)) {
-        const bounds = new AMap.Bounds(southwest.reverse(), northeast.reverse());
+        /**84转火星 */
+        const { lat: swLat, lng: swLng } = togps84gcj02(southwest[1], southwest[0]);
+        const { lat: neLat, lng: neLng } = togps84gcj02(northeast[1], northeast[0]);
+        const bounds = new AMap.Bounds([swLng, swLat], [neLng, neLat]);
         const [zoom, center] = map.getFitZoomAndCenterByBounds(bounds);
         map.setZoomAndCenter(zoom, center);
     } else if (tsMapisMapLibre(map)) {
@@ -517,7 +555,7 @@ function tsIfTwoArr(value: [number, number] | [number, number][]): value is [num
  * @param value 参数
  */
 function tsIfOneArrTwoLen(value: number | [number, number]): value is [number, number] {
-    return value && Array.isArray(value) && value.length == 2;
+    return !!(value && Array.isArray(value) && value.length == 2);
 }
 /**判断地图是否是Leaflet */
 function tsMapisLeaflet(map: AMAP.Map | L.Map | MaplibreMap): map is L.Map {
@@ -619,6 +657,8 @@ export {
     getLngDiffByDistance as u_mapGetLngDiffByDistance,
     getPointByLatlng as u_mapGetPointByLatlng,
     getPointsByLatlngs as u_mapGetPointsByLatlngs,
+    getProjectedPointByLatlng as u_mapGetProjectedPointByLatlng,
+    getProjectedPointByLatlngs as u_mapGetProjectedPointByLatlngs,
     getSizeByMap as u_mapGetSizeByMap,
     getMapSize as u_mapGetMapSize,
     setMapStatus as u_mapSetMapStatus,

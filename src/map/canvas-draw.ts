@@ -3,6 +3,7 @@ import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByL
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
 import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '@sl-utils/map';
 import { Map as MaplibreMap } from 'maplibre-gl';
+import { u_drawConvertgps84Togcj02 } from '../utils';
 
 /** 地图canvas基础图形绘制类
  * @constructor
@@ -111,6 +112,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllArcs(arcs: MapArc[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, arcs);
     this._allArcs = arcs;
     return this;
   }
@@ -119,6 +121,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllLines(lines: MapLine[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, lines);
     this._allLines = lines;
     return this;
   }
@@ -127,6 +130,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllBezierLines(lines: MapLine[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, lines);
     this._allBLins = lines;
     return this;
   }
@@ -135,6 +139,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllRects(rects: MapRect[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, rects);
     this._allRects = rects;
     return this;
   }
@@ -143,6 +148,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllTexts(texts: MapText[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, texts);
     this._allTexts = texts;
     return this;
   }
@@ -151,6 +157,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllImgs(imgs: MapImage[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, imgs);
     this._allImgs = imgs;
     return this;
   }
@@ -159,6 +166,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllGifs(gifs: MapGif[]): MapCanvasDraw {
+    u_drawConvertgps84Togcj02(this.map, gifs);
     this._allGifs = gifs;
     return this;
   }
@@ -168,6 +176,7 @@ export class MapCanvasDraw {
    */
   public addArc(arc: MapArc): MapCanvasDraw {
     if (!arc.latlngs && !arc.latlng) return this;
+    u_drawConvertgps84Togcj02(this.map, arc);
     this._allArcs.push(arc);
     return this;
   }
@@ -177,6 +186,7 @@ export class MapCanvasDraw {
    */
   public addLine(line: MapLine): MapCanvasDraw {
     if (!line.latlngs) return this;
+    u_drawConvertgps84Togcj02(this.map, line);
     this._allLines.push(line);
     return this;
   }
@@ -186,6 +196,7 @@ export class MapCanvasDraw {
    */
   public addBezierLine(line: MapLine): MapCanvasDraw {
     if (!line.latlngs) return this;
+    u_drawConvertgps84Togcj02(this.map, line);
     this._allBLins.push(line);
     return this;
   }
@@ -195,6 +206,7 @@ export class MapCanvasDraw {
    */
   public addRect(rect: MapRect): MapCanvasDraw {
     if (!rect.latlngs) return this;
+    u_drawConvertgps84Togcj02(this.map, rect);
     this._allRects.push(rect);
     return this;
   }
@@ -204,6 +216,7 @@ export class MapCanvasDraw {
    */
   public addText(text: MapText): MapCanvasDraw {
     if (!text.latlngs && !text.latlng) return this;
+    u_drawConvertgps84Togcj02(this.map, text);
     this._allTexts.push(text);
     return this;
   }
@@ -213,6 +226,7 @@ export class MapCanvasDraw {
    */
   public addImg(img: MapImage): MapCanvasDraw {
     if (!img.latlngs && !img.latlng) return this;
+    u_drawConvertgps84Togcj02(this.map, img);
     this._allImgs.push(img);
     return this;
   }
