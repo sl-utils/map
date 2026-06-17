@@ -31,12 +31,19 @@ import {
   PluginCoastlineMask,
 } from "@sl-utils/map";
 import { ref, onMounted, reactive } from "vue";
-import shipjson from "./assets/json/ship.json";
+// 使用 fetch 动态加载 JSON 文件
+const shipjson = fetch(new URL("./assets/json/ship.json", import.meta.url).href)
+  .then(res => res.json());
 import { SLUFormat } from "./utils/app";
-import mapstyle from "./assets/json/mapstyle-protomaps.json";
-import low from "./assets/json/coast_low.json";
-import mid from "./assets/json/coast_mid.json";
-import high from "./assets/json/coast_high.json";
+const mapstyle = fetch(new URL("./assets/json/mapstyle-protomaps.json", import.meta.url).href)
+  .then(res => res.json());
+const low = fetch(new URL("./assets/json/coast_low.json", import.meta.url).href)
+  .then(res => res.json());
+const mid = fetch(new URL("./assets/json/coast_mid.json", import.meta.url).href)
+  .then(res => res.json());
+// 使用 fetch 动态加载大文件，避免 Vite 解析内存问题
+const high = fetch(new URL("./assets/json/coast_high.json", import.meta.url).href)
+  .then(res => res.json());
 const arrowUrl = new URL("./assets/images/direction-arrow.png", import.meta.url)
   .href;
 const windUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
@@ -44,7 +51,8 @@ const windUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
 let map: SLUMap;
 onMounted(async () => {
   map = new SLUMap("map");
-  await map.init({ type: "L", style: mapstyle });
+  const style = await mapstyle;
+  await map.init({ type: "L", style: style });
 });
 
 /**控件------------------------------- */
@@ -207,7 +215,7 @@ function onBigData() {
   ifBigData.value ? openBigData() : bigDataPlugin.setbigDataImgs([]);
 }
 /**开启大数据渲染 */
-function openBigData() {
+async function openBigData() {
   map.setFitView([
     [38.925008, 118.05103],
     [38.94, 117.555],
@@ -224,7 +232,8 @@ function openBigData() {
       },
     });
   const imgs: MapImage[] = [];
-  shipjson.forEach((e: any) => {
+  const shipData = await shipjson;
+  shipData.forEach((e: any) => {
     imgs.push(transfromShipImage(e));
   });
   bigDataPlugin.setbigDataImgs(imgs);
@@ -659,6 +668,11 @@ async function onWave2() {
 /**开启海浪2 */
 async function openWave2() {
   if (!wavePlugin2) {
+    // 等待数据加载完成
+    const lowData = await low;
+    const midData = await mid;
+    const highData = await high;
+    
     const options = {
       zIndex: 200,
       mosaicColor: [
@@ -678,9 +692,9 @@ async function openWave2() {
     };
     const mask = new PluginCoastlineMask(
       [
-        { minZoom: 0, maxZoom: 4, data: low },
-        { minZoom: 5, maxZoom: 7, data: mid },
-        { minZoom: 8, maxZoom: 20, data: high },
+        { minZoom: 0, maxZoom: 4, data: lowData },
+        { minZoom: 5, maxZoom: 7, data: midData },
+        { minZoom: 8, maxZoom: 20, data: highData },
       ],
       map.map,
     );

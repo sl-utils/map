@@ -1,7 +1,9 @@
 <script setup lang="ts">
 /**风场 */
 import { onMounted, ref } from "vue";
-import windjson from "./assets/json/wind-global.json";
+// 使用 fetch 动态加载大文件
+const windjson = fetch(new URL("./assets/json/wind-global.json", import.meta.url).href)
+  .then(res => res.json());
 import { MapPluginWind, SLUMap, Image, OptMapPluginWind } from "@sl-utils/map";
 const iconUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
 let wind_: MapPluginWind | undefined;
@@ -83,10 +85,10 @@ function onVisible() {
   ifShow.value = !ifShow.value;
   ifShow.value ? add() : remove();
 }
-function add() {
+async function add() {
   wind_ = new MapPluginWind(map, options);
   wind_.setIconResolver(iconResolver);
-  wind_.setData(windjson);
+  wind_.setData(await windjson);
 }
 function remove() {
   if (!wind_) return;

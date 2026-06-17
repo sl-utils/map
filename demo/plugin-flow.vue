@@ -2,7 +2,9 @@
 /**流场 */
 import { SLUMap, MapPluginFlow, OptMapPluginFlow } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
-import flowjson from "./assets/json/flow-global.json";
+// 使用 fetch 动态加载大文件
+const flowjson = fetch(new URL("./assets/json/flow-global.json", import.meta.url).href)
+  .then(res => res.json());
 let flow_: MapPluginFlow | undefined;
 /**是否显示流场数据 */
 const ifShow = ref(false);
@@ -24,9 +26,9 @@ function onVisible() {
   ifShow.value = !ifShow.value;
   ifShow.value ? add() : remove();
 }
-function add() {
+async function add() {
   flow_ = new MapPluginFlow(map, options);
-  flow_.setData(flowjson);
+  flow_.setData(await flowjson);
 }
 function remove() {
   if (!flow_) return;

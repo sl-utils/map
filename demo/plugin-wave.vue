@@ -2,7 +2,9 @@
 /**浪场 */
 import { SLUMap, MapPluginGrid } from "@sl-utils/map";
 import { onMounted, ref } from "vue";
-import wavejson from "./assets/json/wave-global.json";
+// 使用 fetch 动态加载大文件
+const wavejson = fetch(new URL("./assets/json/wave-global.json", import.meta.url).href)
+  .then(res => res.json());
 let wave_: MapPluginGrid | undefined;
 let map: SLUMap;
 /**是否显示浪场数据 */
@@ -41,9 +43,9 @@ function onVisible() {
   ifShow.value = !ifShow.value;
   ifShow.value ? add() : remove();
 }
-function add() {
+async function add() {
   wave_ = new MapPluginGrid(map, options);
-  wave_.setData(wavejson);
+  wave_.setData(await wavejson);
 }
 function remove() {
   if (!wave_) return;

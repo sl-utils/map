@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { SLUMap, MapPluginBigData, MapImage } from "@sl-utils/map";
 import { onMounted } from "vue";
-import shipjson from "./assets/json/ship.json";
+// 使用 fetch 动态加载 JSON 文件
+const shipjson = fetch(new URL("./assets/json/ship.json", import.meta.url).href)
+  .then(res => res.json());
 /**大数据渲染 */
 onMounted(async () => {
   const map = new SLUMap("map");
@@ -20,7 +22,8 @@ onMounted(async () => {
     },
   });
   const imgs: MapImage[] = [];
-  shipjson.forEach((e: any) => {
+  const shipData = await shipjson;
+  shipData.forEach((e: any) => {
     imgs.push(transfromShipImage(e));
   });
   data.setbigDataImgs(imgs);
