@@ -1,4 +1,4 @@
-import { OptMapCanvas, MapArc, MapLine, MapRect, MapText, MapImage, MapGif } from "@sl-utils/map";
+import { OptMapCanvas, MapArc, MapLine, MapRect, MapText, MapImage, MapGif } from "../types";
 import { MapCanvasDraw, MapCanvasLayer, SLUMap } from "../map";
 
 /**地图插件----绘制类

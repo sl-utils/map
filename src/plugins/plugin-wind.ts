@@ -1,4 +1,4 @@
-import { OptMapPluginWind, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "@sl-utils/map";
+import { OptMapPluginWind, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "../types";
 import { MapCanvasDraw, SLUMap } from "../map";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/plugin-grid-base";

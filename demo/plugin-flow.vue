@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**流场 */
-import { SLUMap, MapPluginFlow, OptMapPluginFlow } from "@sl-utils/map";
+import { SLUMap, MapPluginFlow, OptMapPluginFlow } from "../types";
 import { onMounted, ref } from "vue";
 // 使用 fetch 动态加载大文件
 const flowjson = fetch(new URL("./assets/json/flow-global.json", import.meta.url).href)

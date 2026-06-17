@@ -1,4 +1,4 @@
-import { OptMapPluginFixedHeat } from "@sl-utils/map";
+import { OptMapPluginFixedHeat } from "../types";
 import { u_mapGetPointByLatlng, u_mapGetProjectedPointByLatlng } from "../utils/slu-map";
 import { Map as MaplibreMap } from 'maplibre-gl';
 /** 固定图片热力图-不随缩放而变化

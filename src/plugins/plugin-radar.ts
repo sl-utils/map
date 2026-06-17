@@ -1,4 +1,4 @@
-import { OptMapCanvas, OptMapPluginRadar } from "@sl-utils/map";
+import { OptMapCanvas, OptMapPluginRadar } from "../types";
 import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { u_drawConvertgps84Togcj02 } from "../utils";

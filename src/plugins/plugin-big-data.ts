@@ -3,7 +3,7 @@ import { MapPluginDraw } from "./plugin-draw";
 import { SLUCanvasImg, SLUCanvasText } from "../canvas";
 import { u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUMap } from "../map";
-import { OptMapCanvas, OptBigData, MapRbush, MapImage, MapImageEvent, MapImageRender } from "@sl-utils/map";
+import { OptMapCanvas, OptBigData, MapRbush, MapImage, MapImageEvent, MapImageRender } from "../types";
 import RBush from "rbush";
 import { u_drawConvertgps84Togcj02 } from "../utils";
 /**大数据绘制 优化处理

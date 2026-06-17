@@ -2,7 +2,7 @@ import { CRS, Map as LMap, LatLng, LeafletMouseEvent, MapOptions, latLng } from 
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
 import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsIsKeyOf, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
-import { AMapMapsEvent, MapBounds, MapControlInfo, MapLatLng, OptMap } from "@sl-utils/map";
+import { AMapMapsEvent, MapBounds, MapControlInfo, MapLatLng, OptMap } from "../types";
 import { Map as MaplibreMap, LngLat as MaplibreLngLat, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 declare var AMap: any;
 /**地图

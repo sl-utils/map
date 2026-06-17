@@ -2,7 +2,10 @@ import bboxClip from '@turf/bbox-clip';
 import { u_mapGetPointByLatlng } from '../utils/slu-map';
 import { Map as LMap } from 'leaflet';
 import { Map as MaplibreMap } from 'maplibre-gl';
-import { BBox, DataCoastline } from '@sl-utils/map';
+import { BBox, DataCoastline } from '../types';
+
+type ClipGeometry = GeoJSON.LineString | GeoJSON.MultiLineString | GeoJSON.Polygon | GeoJSON.MultiPolygon;
+const clipGeometryTypes: GeoJSON.GeoJsonTypes[] = ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
 
 /**海岸线Mask生成器: bbox裁剪、自动按zoom切换海岸线精度
  * @constructor
@@ -101,9 +104,10 @@ export class PluginCoastlineMask {
         for (let i = 0, len = features.length; i < len; i++) {
             const feature = features[i];
             if (!feature.geometry) continue;
+            if (!clipGeometryTypes.includes(feature.geometry.type)) continue;
             for (let j = 0, len2 = bboxes.length; j < len2; j++) {
                 try {
-                    const clipped = bboxClip(feature, bboxes[j]);
+                    const clipped = bboxClip(feature as GeoJSON.Feature<ClipGeometry>, bboxes[j]);
                     if (clipped && clipped.geometry) {
                         result.push(clipped);
                     }

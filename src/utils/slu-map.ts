@@ -1,7 +1,6 @@
-import { AMapMapsEvent, MapMouseEvent, MapPosition, MapEventType, MapSize, MapBounds, MapLatLng } from "@sl-utils/map";
+import { AMapMapsEvent, MapMouseEvent, MapPosition, MapEventType, MapSize, MapBounds, MapLatLng } from "../types";
 import * as L from "leaflet";
 import { LeafletMouseEvent, Layer, Map } from "leaflet";
-import { MAP_EVENT } from "../const";
 import { u_mathGetPoint } from "./slu-math";
 import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent, LngLat as MaplibreLngLat, CustomLayerInterface, LngLatBoundsLike, Point as MaplibrePoint } from 'maplibre-gl';
 declare var AMap: any;
@@ -291,7 +290,7 @@ function getPointsByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [numbe
  * @param latlngs [纬度,经度][]
  * @param zoom 缩放级别
  */
-function getProjectedPointByLatlng(map: AMAP.Map | L.Map, lng: number, lat: number, zoom: number): [number, number] {
+function getProjectedPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, lng: number, lat: number, zoom: number): [number, number] {
     if (tsMapisLeaflet(map)) {
         const p = map.project(L.latLng(lat, lng), zoom);
         return [p.x, p.y];
@@ -314,7 +313,7 @@ function project(lng: number, lat: number, zoom: number): [number, number] {
  * @param zoom 缩放级别
  * @returns latlngs有效时返回 [x,y][]
  */
-function getProjectedPointByLatlngs(map: AMAP.Map | L.Map, latlngs: [number, number][] | undefined, zoom: number): [number, number][] {
+function getProjectedPointByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined, zoom: number): [number, number][] {
     return latlngs?.map(e => getProjectedPointByLatlng(map, e[0], e[1], zoom)) || [];
 }
 /**对大小进行解析设置
@@ -362,8 +361,8 @@ function getMapSize(map: AMAP.Map | L.Map | MaplibreMap): { w: number, h: number
 */
 function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent, map: L.Map | AMAP.Map | MaplibreMap): MapMouseEvent {
     let latlng, point, page, originalEvent, type;
-    tsisMapEventType(e.type)
-    type = e.type;
+    tsisMapEventType(e.type as string)
+    type = e.type as MapEventType;
     if (tsMapisLeaflet(map) && tsEventisLeaflet(e)) {
         const { latlng: Llatlng, originalEvent: LorginalEvent, containerPoint } = e;
         const { lat, lng } = Llatlng;
@@ -387,7 +386,7 @@ function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEv
         throw new Error('百度地图暂时不支持！')
     }
     return {
-        type,
+        type ,
         latlng,
         containerPoint: point,
         orginDOMEvent: originalEvent,
@@ -636,7 +635,7 @@ function tsisKeyOf<T extends object>(obj: T, key: PropertyKey): key is keyof T {
  * @param type 参数
  */
 function tsisMapEventType(type: string): asserts type is MapEventType {
-    if (!(type in MAP_EVENT)) {
+    if (!(['unset', 'click', 'dblclick', 'mousemove', 'mousedown', 'mouseup', 'mouseleave', 'mouseenter', 'rightclick'].includes(type))) {
         throw new Error(`Invalid MapEventType: ${type}`);
     }
 }

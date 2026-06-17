@@ -1,4 +1,4 @@
-import { OptCanvas, CanvasArc, CanvasPolygon, CanvasLine, CanvasRect } from "@sl-utils/map";
+import { OptCanvas, CanvasArc, CanvasPolygon, CanvasLine, CanvasRect } from "../types";
 /** canvas画布的工具类
  * 创建画布、设置画布相关配置、获取贝塞尔曲线的控制点
  * 绘制小圆点、矩形、多边形、线、贝塞尔曲线

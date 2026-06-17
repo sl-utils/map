@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByLatlngs, u_mapGetSizeByMap } from '../utils/slu-map'
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
-import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '@sl-utils/map';
+import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '../types';
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { u_drawConvertgps84Togcj02 } from '../utils';
 

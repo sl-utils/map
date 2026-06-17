@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SLUMap, MapPluginPartial } from "@sl-utils/map";
+import { SLUMap, MapPluginPartial } from "../types";
 import { onMounted } from "vue";
 /**leaflet的粒子效果 */
 onMounted(async () => {

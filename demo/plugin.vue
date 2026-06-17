@@ -29,7 +29,7 @@ import {
   MapPluginFixedHeat,
   MapPluginGridRender,
   PluginCoastlineMask,
-} from "@sl-utils/map";
+} from "../types";
 import { ref, onMounted, reactive } from "vue";
 // 使用 fetch 动态加载 JSON 文件
 const shipjson = fetch(new URL("./assets/json/ship.json", import.meta.url).href)

@@ -1,4 +1,4 @@
-import { OptMapPluginFixedHeat } from "@sl-utils/map";
+import { OptMapPluginFixedHeat } from "../types";
 import { MapCanvasFixedHeat, MapCanvasLayer, SLUMap } from "../map";
 //todo 待完成
 /**固定图片热力图

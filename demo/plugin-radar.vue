@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SLUMap, MapPluginRadar, MapRadarScanEvent } from "@sl-utils/map";
+import { SLUMap, MapPluginRadar, MapRadarScanEvent } from "../types";
 import { onMounted } from "vue";
 /**雷达 */
 onMounted(async () => {

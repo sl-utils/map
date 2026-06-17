@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SLUMap, MapPluginBigData, MapImage } from "@sl-utils/map";
+import { SLUMap, MapPluginBigData, MapImage } from "../types";
 import { onMounted } from "vue";
 // 使用 fetch 动态加载 JSON 文件
 const shipjson = fetch(new URL("./assets/json/ship.json", import.meta.url).href)

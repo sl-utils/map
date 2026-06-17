@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SLUMap, MapPluginDraw } from "@sl-utils/map";
+import { SLUMap, MapPluginDraw } from "../types";
 import { ref, onMounted } from "vue";
 
 onMounted(() => {

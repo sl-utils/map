@@ -1,8 +1,9 @@
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUWorker } from "../utils/slu-worker";
 import { u_mapGetLatLngByPoint, u_mapGetMapSize } from "../utils/slu-map";
-import { DataMapGrid, OptMapGrid, PluginCoastlineMask, GridRenderWorkerInfo } from "@sl-utils/map";
+import { DataMapGrid, OptMapGrid, GridRenderWorkerInfo } from "../types";
 import { Map as MaplibreMap } from "maplibre-gl";
+import { PluginCoastlineMask } from "./plugin-coastline-mask";
 
 /**
  * 色斑图插件（CPU栅格填色）

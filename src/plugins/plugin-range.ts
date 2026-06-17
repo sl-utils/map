@@ -3,7 +3,7 @@ import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas";
-import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "@sl-utils/map";
+import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "../types";
 import { LeafletMouseEvent } from "leaflet";
 import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 /**测绘类
@@ -44,7 +44,7 @@ export class MapPluginRange extends MapCanvasLayer {
     /** 是否正在拖动地图 */
     private ifDrag: boolean = false;
     /** 单击事件 */
-    private eventClickTimer: number | undefined;
+    private eventClickTimer: ReturnType<typeof setTimeout> | null = null;
     /** 启用测距功能
      * @returns MapPluginRange实例
      */

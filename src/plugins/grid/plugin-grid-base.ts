@@ -2,7 +2,7 @@ import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
 import { u_mapGetLatLngByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";
-import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "@sl-utils/map";
+import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "../../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 
 /**网格插件基础类

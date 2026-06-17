@@ -1,4 +1,4 @@
-import { MapEventType, MapEventResponse, MapEvent, MapRbush, AMapMapsEvent, MapCursorPosition, MapEventRange } from "@sl-utils/map";
+import { MapEventType, MapEventResponse, MapEvent, MapRbush, AMapMapsEvent, MapCursorPosition, MapEventRange } from "../types";
 import { u_arrItemDel, u_mapGetPointByLatlng, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
 import rbush, { BBox } from 'rbush'
 import { LeafletMouseEvent, Map as LMap } from "leaflet";
@@ -210,7 +210,7 @@ export class MapCanvasEvent {
         if (curEvents.length == 0) return
         MapCanvasEvent.ifInitCursor = false;
         style.cursor = 'pointer';
-        const type = e.type;
+        const type:string  = e.type as string;
         u_tsIsMapEventType(type);
         curEvents.forEach(resp => this.doCbByEventType(resp, type));
     };

@@ -1,6 +1,6 @@
 /**在项目中用于数据转换的工具类 */
 
-import { DataMapTrackGroup, DataMapTrack } from "@sl-utils/map";
+import { DataMapTrackGroup, DataMapTrack } from "../types";
 
 /**
  * 映射轨迹数据结构格式转为plugin-track通用数据结构

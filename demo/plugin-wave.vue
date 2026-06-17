@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**浪场 */
-import { SLUMap, MapPluginGrid } from "@sl-utils/map";
+import { SLUMap, MapPluginGrid } from "../types";
 import { onMounted, ref } from "vue";
 // 使用 fetch 动态加载大文件
 const wavejson = fetch(new URL("./assets/json/wave-global.json", import.meta.url).href)

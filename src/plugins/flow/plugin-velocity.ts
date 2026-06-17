@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
-import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "@sl-utils/map";
+import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "../../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 /**运动粒子类
  * @constructor

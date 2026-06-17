@@ -1,4 +1,4 @@
-import { CanvasImage } from "@sl-utils/map";
+import { CanvasImage } from "../types";
 /**画布图片类，用于绘制图片到画布上（支持旋转、缩放、透明度、偏移、多点批量绘制） */
 export class SLUCanvasImg {
     /**图片的缓存 */

@@ -1,5 +1,5 @@
 
-import { CanvasTextRect, CanvasTxt } from '@sl-utils/map';
+import { CanvasTextRect, CanvasTxt } from "../types";
 import { u_TextSplitMultilineText } from '../utils/txt';
 import { SLUCanvas } from './slu-canvas';
 /**画布绘制文本工具类-绘制不重叠文本标签 */

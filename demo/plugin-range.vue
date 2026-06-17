@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**测距 */
-import { SLUMap, MapPluginRange } from "@sl-utils/map";
+import { SLUMap, MapPluginRange } from "../types";
 import { onMounted } from "vue";
 let range_: MapPluginRange;
 onMounted(async () => {

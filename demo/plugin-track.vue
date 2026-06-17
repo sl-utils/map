@@ -5,7 +5,7 @@ import {
   MapTrackShipInfo,
   MapTrackPosition,
   DataMapTrackGroup,
-} from "@sl-utils/map";
+} from "../types";
 import { onMounted, ref } from "vue";
 import { SLUFormat } from "./utils/app";
 let track_: MapPluginTrack;

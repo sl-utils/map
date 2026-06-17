@@ -2,7 +2,7 @@ import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUCanvas } from "../canvas";
 import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
-import { OptMapCanvas, DataMapParticle, CanvasPosition } from "@sl-utils/map";
+import { OptMapCanvas, DataMapParticle, CanvasPosition } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { u_drawConvertgps84Togcj02 } from "../utils";
 /**用于绘制地图上的粒子效果

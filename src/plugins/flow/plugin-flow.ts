@@ -2,9 +2,9 @@ import * as L from "leaflet";
 import { u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
-import { OptMapPluginFlow, DataMapVeloctiyWind, AMapMapsEvent } from "@sl-utils/map";
 import { LeafletMouseEvent } from "leaflet";
 import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+import { AMapMapsEvent, DataMapVeloctiyWind, OptMapPluginFlow } from "../../types";
 /**流体动画(风速风向洋流动图)leaflet-velocity.js
  * @extends MapCanvasLayer
  * @constructor

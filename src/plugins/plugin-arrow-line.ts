@@ -1,5 +1,5 @@
 
-import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
+import { OptMapPluginArrowLine, MapLine } from "../types";
 import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { u_drawConvertgps84Togcj02 } from "../utils";

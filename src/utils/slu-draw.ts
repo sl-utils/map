@@ -1,4 +1,4 @@
-import { CanvasPosition, DataMapParticle, MapArc, MapImage, MapLine, MapRect, MapText } from "@sl-utils/map";
+import { CanvasPosition, DataMapParticle, MapArc, MapImage, MapLine, MapRect, MapText } from "../types";
 import { u_mapTogps84gcj02, u_tsMapisAmap } from "./slu-map";
 import * as L from "leaflet";
 import { Map as MaplibreMap } from 'maplibre-gl';

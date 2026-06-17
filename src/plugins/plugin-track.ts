@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent, SLUMap } from "../map";
-import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "@sl-utils/map";
+import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
 /**轨迹绘制类

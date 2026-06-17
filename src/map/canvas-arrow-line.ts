@@ -1,7 +1,7 @@
 import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
-import { OptMapPluginArrowLine, MapLine } from "@sl-utils/map";
+import { OptMapPluginArrowLine, MapLine } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 const ARROW_URL = "/assets/images/direction-arrow.png";
 /**地图canvas箭头线类
@@ -11,10 +11,11 @@ const ARROW_URL = "/assets/images/direction-arrow.png";
  * @param opts 动画线配置项
  */
 export class MapCanvasArrowLine {
-  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, public opt?: OptMapPluginArrowLine) {
-    this.opt = Object.assign({}, this.options, this.opt);
+  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, opt?: OptMapPluginArrowLine) {
+    this.opt = Object.assign({}, this.options, opt);
     this.initResource();
   }
+  private opt!: OptMapPluginArrowLine;
   /**默认配置项 */
   private readonly options: OptMapPluginArrowLine = {
     lineWidth: 16,

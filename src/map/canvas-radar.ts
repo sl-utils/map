@@ -1,4 +1,4 @@
-import { OptMapPluginRadar } from "@sl-utils/map";
+import { OptMapPluginRadar } from "../types";
 import { SLUCanvas } from "../canvas";
 import { u_mapGetPointByLatlng, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
 import { Map as LMap } from 'leaflet';

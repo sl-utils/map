@@ -1,6 +1,8 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compilerOptions": {
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "noImplicitAny": true,
     "removeComments": true,
@@ -8,7 +10,7 @@
     "sourceMap": true,
     "target": "ES2020",
     "module": "commonjs",
-    "outDir": "./dist",
+    "outDir": "./buildts",
     "rootDir": ".",
     "baseUrl": ".",
     "lib": [
@@ -16,7 +18,7 @@
       "dom"
     ],
     "paths": {
-      "@sl-utils/map": ["types/index.d.ts"]  // 添加这行
+      "../types": ["types/index.d.ts"]  // 添加这行
     }
   },
   "include": [

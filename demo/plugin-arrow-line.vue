@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SLUMap, MapPluginArrowLine } from "@sl-utils/map";
+import { SLUMap, MapPluginArrowLine } from "../types";
 import { onMounted } from "vue";
 const url = new URL("./assets/images/direction-arrow.png", import.meta.url).href;
 onMounted(async () => {

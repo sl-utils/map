@@ -1,4 +1,4 @@
-import { CanvasGif } from "@sl-utils/map";
+import { CanvasGif } from "../types";
 
 /**canvas绘制gif工具类 */
 export class SLUCanvasGif {
@@ -18,7 +18,7 @@ export class SLUCanvasGif {
     /**存放动画id用于停止之前绘制的动画 */
     private aniIds: { [id: string]: number | null } = Object.assign({});
     private opts: CanvasGif[] = [];
-    private timeId: number;
+    private timeId: ReturnType<typeof setTimeout>;
     /**加载gif并进行缓存 , 避免重复请求 url */
     public async loadGIF(opt: CanvasGif, ctx: CanvasRenderingContext2D) {
         let { url } = opt;
@@ -57,7 +57,7 @@ export class SLUCanvasGif {
             }
         }
     }
-    private fetchGIF(url: string): Promise<ArrayBuffer> {
+    private fetchGIF(url: string): Promise<ArrayBuffer | Uint8Array> {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);

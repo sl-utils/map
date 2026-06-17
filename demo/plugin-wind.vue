@@ -4,7 +4,7 @@ import { onMounted, ref } from "vue";
 // 使用 fetch 动态加载大文件
 const windjson = fetch(new URL("./assets/json/wind-global.json", import.meta.url).href)
   .then(res => res.json());
-import { MapPluginWind, SLUMap, Image, OptMapPluginWind } from "@sl-utils/map";
+import { MapPluginWind, SLUMap, Image, OptMapPluginWind } from "../types";
 const iconUrl = new URL("./assets/icons/icon-28.png", import.meta.url).href;
 let wind_: MapPluginWind | undefined;
 let map: SLUMap;

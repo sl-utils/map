@@ -5,7 +5,7 @@ import {
   OptMapPluginPlot,
   MapPlotType,
   DataMapPlot,
-} from "@sl-utils/map";
+} from "../types";
 import { onMounted, ref, Ref } from "vue";
 let plot_: MapPluginPlot;
 let plotList: Ref<DataMapPlot[]> = ref([

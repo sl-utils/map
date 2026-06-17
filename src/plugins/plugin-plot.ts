@@ -3,7 +3,7 @@ import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
 import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
 import { u_arrAddItemsIndex } from "../utils/slu-array";
-import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, OptMapPluginPlotBase, OptMapPluginPlotText } from "@sl-utils/map";
+import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, OptMapPluginPlotBase, OptMapPluginPlotText } from "../types";
 import { LeafletMouseEvent } from "leaflet";
 import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 /**自定义标绘类
@@ -55,7 +55,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**记录当前鼠标纬经度 */
     private curPoint?: [number, number];
     /** 单击事件 */
-    private eventClickTimer: number | undefined;
+    private eventClickTimer: ReturnType<typeof setTimeout> | null = null;
     /**开启新增的绘制
      * @param type 标绘类型
      * @returns 新增的标绘实例

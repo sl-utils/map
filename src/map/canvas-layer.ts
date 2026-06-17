@@ -1,6 +1,6 @@
 import { Browser, DomUtil, Map as LMap, Layer, Util, ZoomAnimEvent, bind, extend } from "leaflet";
 import { u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
-import { OptMapCanvas } from "@sl-utils/map";
+import { OptMapCanvas } from "../types";
 import { Map as MaplibreMap, CustomLayerInterface } from 'maplibre-gl';
 declare var AMap: any;
 /** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 

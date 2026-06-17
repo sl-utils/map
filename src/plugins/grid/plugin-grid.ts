@@ -1,7 +1,7 @@
 import { MapPluginGridBase } from "./plugin-grid-base";
 import { u_mapGetMapSize } from "../../utils/slu-map";
 import { SLUMap } from "../../map";
-import { DataMapGrid, OptMapGrid } from "@sl-utils/map";
+import { DataMapGrid, OptMapGrid } from "../../types";
 /**网格插件,用于渲染网格数据
  * @extends MapPluginGridBase
  * @constructor
