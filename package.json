@@ -1,6 +1,6 @@
 {
   "name": "@sl-utils/map",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Map utility library",
   "type": "module",
   "exports": {
