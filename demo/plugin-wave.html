@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plugin-wave</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+#app { width: 100%; height: 100%; }
+.card {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  overflow: hidden;
+}
+.btn {
+  width: 84px;
+  height: 32px;
+  position: absolute;
+  z-index: 100;
+}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script type="module">
+import * as mapLib from "../build/index.js";
+window.__map_lib__ = mapLib;
+
+const { createApp, defineComponent } = Vue;
+
+const App = defineComponent({
+setup() {
+/**浪场 */
+const { SLUMap, MapPluginGrid } = window.__map_lib__;
+const { onMounted, ref } = Vue;
+// 使用 fetch 动态加载大文件
+const wavejson = fetch("./assets/json/wave-global.json")
+  .then(res => res.json());
+let wave_;
+let map;
+/**是否显示浪场数据 */
+const ifShow = ref(false);
+const options = {
+  zIndex: 200,
+  mosaicColor: [
+    "#0000CD",
+    "#0066ff",
+    "#00B7ff",
+    "#00E0FF",
+    "#00FFFF",
+    "#00FFCC",
+    "#00FF99",
+    "#00FF00",
+    "#99FF00",
+    "#CCFF00",
+    "#FFFF00",
+    "#FFCC00",
+    "#FF9900",
+    "#FF6600",
+    "#FF0000",
+    "#B03060",
+    "#D02090",
+    "#FF00FF",
+  ],
+  mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  pane: "wavePane",
+};
+onMounted(async () => {
+  map = new SLUMap("map");
+  await map.init({ type: "L" });
+
+});
+function onVisible() {
+  ifShow.value = !ifShow.value;
+  ifShow.value ? add() : remove();
+}
+async function add() {
+  wave_ = new MapPluginGrid(map, options);
+  wave_.setData(await wavejson);
+}
+function remove() {
+  if (!wave_) return;
+  wave_?.onRemove();
+  wave_ = undefined;
+}
+return { wavejson, wave_, map, ifShow, options, onVisible, add, remove };
+},
+  template: `<div id="map" class="card"></div>
+  <button class="btn" @click="onVisible">
+    {{ ifShow ? "隐藏" : "显示" }}浪场
+  </button>`
+});
+
+createApp(App).mount('#app');
+  </script>
+</body>
+</html>

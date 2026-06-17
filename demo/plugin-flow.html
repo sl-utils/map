@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plugin-flow</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+#app { width: 100%; height: 100%; }
+.card {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  overflow: hidden;
+}
+.btn {
+  width: 84px;
+  height: 32px;
+  position: absolute;
+  z-index: 100;
+}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script type="module">
+import * as mapLib from "../build/index.js";
+window.__map_lib__ = mapLib;
+
+const { createApp, defineComponent } = Vue;
+
+const App = defineComponent({
+setup() {
+/**流场 */
+const { SLUMap, MapPluginFlow } = window.__map_lib__;
+const { onMounted, ref } = Vue;
+// 使用 fetch 动态加载大文件
+const flowjson = fetch("./assets/json/flow-global.json")
+  .then(res => res.json());
+let flow_;
+/**是否显示流场数据 */
+const ifShow = ref(false);
+const options = {
+  pane: "flowPane",
+  displayValues: true,
+  unit: "m/s",
+  angleConvention: "bearingCCW",
+  emptyString: "No velocity data",
+  maxVelocity: 15,
+  colorScale: null,
+};
+let map;
+onMounted(async () => {
+  map = new SLUMap("map");
+  await map.init({ type: "L" });
+});
+function onVisible() {
+  ifShow.value = !ifShow.value;
+  ifShow.value ? add() : remove();
+}
+async function add() {
+  flow_ = new MapPluginFlow(map, options);
+  flow_.setData(await flowjson);
+}
+function remove() {
+  if (!flow_) return;
+  flow_?.onRemove();
+  flow_ = undefined;
+}
+return { flowjson, flow_, ifShow, options, map, onVisible, add, remove };
+},
+  template: `<div id="map" class="card"></div>
+  <button class="btn" @click="onVisible">
+    {{ ifShow ? "隐藏" : "显示" }}流场
+  </button>`
+});
+
+createApp(App).mount('#app');
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plugin-heat</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+#app { width: 100%; height: 100%; }
+.card {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  overflow: hidden;
+}
+.btn {
+  width: 84px;
+  height: 32px;
+  position: absolute;
+  z-index: 100;
+}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script type="module">
+import * as mapLib from "../build/index.js";
+window.__map_lib__ = mapLib;
+
+const { createApp, defineComponent } = Vue;
+
+const App = defineComponent({
+setup() {
+/**热力图 */
+const { SLUMap, MapPluginHeat } = window.__map_lib__;
+const { onMounted, ref } = Vue;
+let heat_;
+/**是否显示热力图数据 */
+let map;
+const ifShow = ref(false);
+const data = [
+  {
+    latlng: [22.745, 114.055],
+    weight: 1,
+  },
+  {
+    latlng: [22.74, 114.055],
+    weight: 1,
+  },
+  {
+    latlng: [22.74, 114.065],
+    weight: 0.5,
+  },
+  {
+    latlng: [22.745, 114.065],
+    weight: 0.2,
+  },
+];
+onMounted(async () => {
+  map = new SLUMap("map");
+  await map.init({ type: "L" });
+});
+function onVisible() {
+  ifShow.value = !ifShow.value;
+  ifShow.value ? add() : remove();
+}
+function add() {
+  heat_ = new MapPluginHeat(map);
+  heat_.setAllHeats(data);
+}
+function remove() {
+  if (!heat_) return;
+  heat_?.onRemove();
+  heat_ = undefined;
+}
+return { heat_, map, ifShow, data, onVisible, add, remove };
+},
+  template: `<div id="map" class="card"></div>
+  <button class="btn" @click="onVisible">
+    {{ ifShow ? "隐藏" : "显示" }}热力图
+  </button>`
+});
+
+createApp(App).mount('#app');
+  </script>
+</body>
+</html>
