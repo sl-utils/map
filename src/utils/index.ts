@@ -1,4 +1,3 @@
-export * from './slu-array'
 export * from './slu-map'
 export * from './slu-math'
 export * from './txt'

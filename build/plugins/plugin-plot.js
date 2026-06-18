@@ -1,7 +1,6 @@
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
 import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
-import { u_arrAddItemsIndex } from "../utils/slu-array";
 export class MapPluginPlot extends MapCanvasLayer {
     constructor(sluMap, options) {
         const map = sluMap.map, { plotOpt, editOpt, textOpt } = options || {};
@@ -405,7 +404,10 @@ export class MapPluginPlot extends MapCanvasLayer {
             cb: () => {
                 u_mapSetMapStatus(map, 'dragEnable', false);
                 if (ifVirtual) {
-                    u_arrAddItemsIndex(latLngs, [latLng], i);
+                    for (let j = latLngs.length, end = i + 1; j > end; j--) {
+                        latLngs[j] = latLngs[j - 1];
+                    }
+                    latLngs[i + 1] = latLng;
                     this.cbPointChange && this.cbPointChange(this.plotAni);
                 }
                 this._redraw();

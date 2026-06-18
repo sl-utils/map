@@ -76,7 +76,7 @@ async function main() {
     },
   });
 
-  const response = await fetch("./assets/json/ship.json");
+  const response = await fetch("/assets/json/ship.json");
   const shipData = await response.json();
   const images = shipData.map(transformShipImage);
 

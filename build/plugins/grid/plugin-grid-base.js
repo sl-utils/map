@@ -12,7 +12,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
             mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         };
         this.dataLength = 1;
-        this.worker = new SLUWorker('grid', (data) => this.workerCb(data));
+        this.worker = new SLUWorker('grid-worker', (data) => this.workerCb(data));
         this.workerId = 0;
         Object.assign(this.options, options);
     }

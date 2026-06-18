@@ -2,13 +2,13 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const files = [
+  // {
+  //   path: resolve('types/index.d.ts'),
+  //   content: "export * from './generated/src/index';\n",
+  // },
   {
-    path: resolve('types/index.d.ts'),
-    content: "export * from './generated/src/index';\n",
-  },
-  {
-    path: resolve('types/generated/src/types/index.d.ts'),
-    content: "export * from '../../../../src/types/index';\n",
+    path: resolve('types/types/index.d.ts'),
+    content: "export * from '../../src/types/index';\n",
   },
 ];
 

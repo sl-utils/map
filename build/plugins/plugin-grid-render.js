@@ -4,7 +4,7 @@ import { u_mapGetLatLngByPoint, u_mapGetMapSize } from "../utils/slu-map";
 export class MapPluginGridRender extends MapCanvasLayer {
     constructor(sluMap, options, mask) {
         super(sluMap.map, options);
-        this.worker = new SLUWorker("gridRender", (d) => this.workerCb(d));
+        this.worker = new SLUWorker("grid-render-worker", (d) => this.workerCb(d));
         this.workerId = 0;
         this.options = {
             pane: "wavePane",

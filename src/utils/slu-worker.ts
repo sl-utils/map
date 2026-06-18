@@ -1,10 +1,3 @@
-import GridWorker from '../assets/grid-worker.js?worker';
-import GridRenderWorker from '../assets/grid-render-worker.js?worker';
-type WorkerFactory = () => Worker;
-const WorkerMap: Record<string, WorkerFactory> = {
-    grid: () => new GridWorker(),
-    gridRender: () => new GridRenderWorker()
-};
 /**线程工具类 
  * @param name 子线程的文件名(线程文件必须放到`/assets/worker`)
  * @param cb 子线程结果回调函数
@@ -14,13 +7,7 @@ const WorkerMap: Record<string, WorkerFactory> = {
 export class SLUWorker<T = any, D = any> {
     constructor(name: string, cb?: (data: D) => void) {
         this.cb = cb;
-
-        // let worker = this.worker = new Worker(`../../assets/worker/${name}.js`);
-
-        const factory = WorkerMap[name];
-        if (!factory) { throw new Error(`Worker ${name} not found`); };
-        const worker = this.worker = factory();
-
+        let worker = this.worker = new Worker(`/assets/workers/${name}.js`);
         worker.onmessage = (ev: MessageEvent) => {
             console.log(ev);
             this.cb?.(ev.data);

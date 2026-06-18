@@ -9,7 +9,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmitOnError": true,
-    "outDir": "./types/generated",
+    "outDir": "./types",
     "removeComments": false,
     "paths": {
       "@sl-utils/map": [

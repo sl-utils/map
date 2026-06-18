@@ -2,7 +2,6 @@
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
 import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
-import { u_arrAddItemsIndex } from "../utils/slu-array";
 import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, OptMapPluginPlotBase, OptMapPluginPlotText } from "../types";
 import { LeafletMouseEvent } from "leaflet";
 import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
@@ -464,7 +463,11 @@ export class MapPluginPlot extends MapCanvasLayer {
                 u_mapSetMapStatus(map, 'dragEnable', false)
                 /**将计算的虚拟点添加到经纬度 */
                 if (ifVirtual) {
-                    u_arrAddItemsIndex(latLngs, [latLng], i);
+                    /**在指定index后添加一个的数据 */
+                    for (let j = latLngs.length, end = i + 1; j > end; j--) {
+                        latLngs[j] = latLngs[j - 1];
+                    }
+                    latLngs[i + 1] = latLng;
                     // this.cbPointAdd && this.cbPointAdd(this.plotAni);
                     this.cbPointChange && this.cbPointChange(this.plotAni!);
                 }

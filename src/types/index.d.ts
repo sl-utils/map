@@ -312,7 +312,7 @@ interface MapBounds {
     latBottom: number;
 }
 /**地图事件类型 */
-type MapEventType ='unset'| 'click' | 'dblclick' | 'mousemove' | 'mousedown' | 'mouseup' | 'mouseleave' | 'mouseenter' | 'rightclick' ;
+type MapEventType = 'unset' | 'click' | 'dblclick' | 'mousemove' | 'mousedown' | 'mouseup' | 'mouseleave' | 'mouseenter' | 'rightclick';
 /**抛出给地图扩展的图片类 由于地图size可能采用固定m为单位，故采用不限定size的_BaseImage*/
 type ωCanvasMapImage<I = any> = CanvasImage<I>;
 /**抛出给地图扩展的Gif类 由于地图size可能采用固定m为单位，故采用不限定size的_BaseGif*/
@@ -774,6 +774,7 @@ export interface OptMapPluginRange extends OptCanvas, OptMapCanvas {
     colorFont?: string;
     /**语言模式 cn中文 en英文*/
     lang?: 'cn' | 'en';
+    textPanel?: CanvasTextPanel;
 }
 /**配置--插件地图轨迹配置 */
 export interface OptMapPluginTrack extends OptMapCanvas {

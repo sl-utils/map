@@ -1,18 +1,7 @@
-import GridWorker from '../assets/grid-worker.js?worker';
-import GridRenderWorker from '../assets/grid-render-worker.js?worker';
-const WorkerMap = {
-    grid: () => new GridWorker(),
-    gridRender: () => new GridRenderWorker()
-};
 export class SLUWorker {
     constructor(name, cb) {
         this.cb = cb;
-        const factory = WorkerMap[name];
-        if (!factory) {
-            throw new Error(`Worker ${name} not found`);
-        }
-        ;
-        const worker = this.worker = factory();
+        let worker = this.worker = new Worker(`/assets/workers/${name}.js`);
         worker.onmessage = (ev) => {
             console.log(ev);
             this.cb?.(ev.data);

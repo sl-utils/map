@@ -17,9 +17,10 @@
   "module": "./build/index.js",
   "types": "./types/index.d.ts",
   "scripts": {
+    "dev": "vite --open /demo/App.html",
     "build": "tsc -p tsconfig.json",
-    "build:types": "tsc -p tsconfig.types.json && node scripts/postbuild-types.mjs",
-    "demo:dev": "vite --open /demo/plugin.html"
+    "build:vite": "vite build",
+    "build:types": "tsc -p tsconfig.types.json && node scripts/postbuild-types.mjs"
   },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",

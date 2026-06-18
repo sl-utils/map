@@ -16,14 +16,14 @@ export declare class MapPluginRange extends MapCanvasLayer {
     private ctrMapDraw;
     /** 动画绘制类 */
     private ctrMapAniDraw;
-    /** 所有的已确定的经纬度 (绘制确定的点线)*/
-    private lnglats;
+    /** 所有的已确定的经纬度 (绘制确定的点线)[多条测距线]*/
+    private lnglatLists;
     /** 鼠标当前所在的经纬度(绘制虚线) */
     private lnglat?;
     /** 是否正在拖动地图 */
     private ifDrag;
     /** 单击事件 */
-    private eventClickTimer;
+    private flagTimeout;
     /** 启用测距功能
      * @returns MapPluginRange实例
      */

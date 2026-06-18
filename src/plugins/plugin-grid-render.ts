@@ -38,7 +38,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
     this.offCtx = this.offCanvas.getContext("2d", { alpha: true, desynchronized: true })!;
   }
   /**Worker线程:栅格插值-颜色计算-ImageBitmap生成 */
-  private worker: SLUWorker<GridRenderWorkerInfo, { workerId: number; data: ImageBitmap; }> = new SLUWorker<GridRenderWorkerInfo, { workerId: number; data: ImageBitmap }>("gridRender", (d) => this.workerCb(d));
+  private worker: SLUWorker<GridRenderWorkerInfo, { workerId: number; data: ImageBitmap; }> = new SLUWorker<GridRenderWorkerInfo, { workerId: number; data: ImageBitmap }>("grid-render-worker", (d) => this.workerCb(d));
   /**worker任务ID-用于丢弃旧帧 */
   private workerId = 0;
   /**海岸线mask */
