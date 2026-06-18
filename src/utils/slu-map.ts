@@ -1,7 +1,6 @@
 import { AMapMapsEvent, MapMouseEvent, MapPosition, MapEventType, MapSize, MapBounds, MapLatLng } from "../types";
 import * as L from "leaflet";
 import { LeafletMouseEvent, Layer, Map } from "leaflet";
-import { u_mathGetPoint } from "./slu-math";
 import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent, LngLat as MaplibreLngLat, CustomLayerInterface, LngLatBoundsLike, Point as MaplibrePoint } from 'maplibre-gl';
 declare var AMap: any;
 const a = 6378245.0;
@@ -386,7 +385,7 @@ function getMapMouseEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEv
         throw new Error('百度地图暂时不支持！')
     }
     return {
-        type ,
+        type,
         latlng,
         containerPoint: point,
         orginDOMEvent: originalEvent,
@@ -502,7 +501,7 @@ function getLatlngByValue(value: number, ifLng: boolean, ifDMS?: boolean): strin
         }
     }
     value = Math.abs(value)
-    if (!ifDMS) return u_mathGetPoint(value, 5) + '°' + unit;
+    if (!ifDMS) return Math.round(value * Math.pow(10, 5)) / Math.pow(10, 5) + '°' + unit;
     let f = value % 1 * 60
     let m = (f % 1 * 60).toFixed(2)
     let d = Math.floor(value);

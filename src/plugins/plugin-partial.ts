@@ -1,7 +1,6 @@
 import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUCanvas } from "../canvas";
-import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
 import { OptMapCanvas, DataMapParticle, CanvasPosition } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { u_drawConvertgps84Togcj02 } from "../utils";
@@ -129,7 +128,7 @@ export class MapPluginPartial extends MapCanvasLayer {
         break;
       }
       percent = percent > 0 ? percent : 0;
-      let point: [number, number] = u_mathGetBezierPointByPercent(percent, per, nex, ctrl);
+      let point: [number, number] = this.getBezierPointByPercent(percent, per, nex, ctrl);
       curPoints.push(point);
     }
     if (age == 1) {
@@ -138,6 +137,18 @@ export class MapPluginPartial extends MapCanvasLayer {
     }
     particle.age = age;
     particle.curPoints = curPoints;
+  }
+  /**获取二阶贝塞尔曲线指定百分比的点位置信息
+  * @param t 当前百分比
+  * @param p1 起点坐标
+  * @param p2 终点坐标
+  * @param cp 控制点
+  */
+  private getBezierPointByPercent(percent: number, p1: [number, number], p2: [number, number], cp: [number, number]): [number, number] {
+    const [x1, y1] = p1, [cx, cy] = cp, [x2, y2] = p2, t = percent;
+    let x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * cx + t * t * x2;
+    let y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * cy + t * t * y2;
+    return [x, y];
   }
   /**绘制粒子
    * @param particle 粒子数据
