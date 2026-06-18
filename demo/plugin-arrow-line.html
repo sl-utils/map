@@ -1,87 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>plugin-arrow-line</title>
+  <link rel="stylesheet" href="/demo/shared/base.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    #app {
-      width: 100%;
-      height: 100%;
-    }
-
-    .card {
-      position: absolute;
-      z-index: 100;
-      width: 100%;
-      height: 100%;
-      left: 0px;
-      top: 0px;
-      overflow: hidden;
-    }
-  </style>
 </head>
-
 <body>
-  <div id="map" class="card"></div>
-  <script type="module">
-    import * as mapLib from "../build/index.js";
-    window.__map_lib__ = mapLib;
-    const { SLUMap, MapPluginArrowLine } = window.__map_lib__;
-    const url = "./assets/images/direction-arrow.png";
-    const map = new SLUMap("map");
-    await map.init({ type: "L" });
-    const arrowline = new MapPluginArrowLine(map, { imgUrl: url });
-    arrowline.setAllLines([
-      {
-        latlngs: [
-          [39.745, 117.555],
-          [39.74, 117.555],
-          [39.74, 117.565],
-          [39.745, 117.565],
-        ],
-      },
-      {
-        latlngs: [
-          [39.73, 117.555],
-          [39.735, 117.555],
-        ],
-      },
-      {
-        latlngs: [
-          [39.72, 117.545],
-          [39.72, 117.565],
-        ],
-      },
-      {
-        latlngs: [
-          [39.715, 117.565],
-          [39.715, 117.545],
-        ],
-      },
-    ]);
-    map.setFitView([
-      [39.745, 117.555],
-      [39.74, 117.555],
-      [39.74, 117.565],
-    ]);
-
-  </script>
+  <div id="map" class="map-root"></div>
+  <script type="module" src="./plugin-arrow-line.ts"></script>
 </body>
-
 </html>

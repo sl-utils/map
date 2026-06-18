@@ -1,119 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>plugin-big-data</title>
+  <link rel="stylesheet" href="/demo/shared/base.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 100%; height: 100%; overflow: hidden; }
-#app { width: 100%; height: 100%; }
-.card {
-  position: absolute;
-  z-index: 100;
-  width: 100%;
-  height: 100%;
-  left: 0px;
-  top: 0px;
-  overflow: hidden;
-}
-  </style>
 </head>
 <body>
-  <div id="app"></div>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script type="module">
-import * as mapLib from "../build/index.js";
-window.__map_lib__ = mapLib;
-
-const { createApp, defineComponent } = Vue;
-
-const App = defineComponent({
-setup() {
-const { SLUMap, MapPluginBigData } = window.__map_lib__;
-const { onMounted } = Vue;
-// 使用 fetch 动态加载 JSON 文件
-const shipjson = fetch("./assets/json/ship.json")
-  .then(res => res.json());
-/**大数据渲染 */
-onMounted(async () => {
-  const map = new SLUMap("map");
-  await map.init({ type: "L" });
-  map.setFitView([
-    [38.925008, 118.05103],
-    [38.94, 117.555],
-  ]);
-  const data = new MapPluginBigData(map, {
-    zIndex: 299,
-    zoomOption: {
-      1: { maxCount: 2, minBound: [22, 22] },
-      12: { maxCount: 2, minBound: [100, 100] },
-      // 层级大于等于14 不处理
-      14: { maxCount: -1 },
-    },
-  });
-  const imgs = [];
-  const shipData = await shipjson;
-  shipData.forEach((e) => {
-    imgs.push(transfromShipImage(e));
-  });
-  data.setbigDataImgs(imgs);
-});
-function transfromShipImage(e) {
-  let { shipTypeCode, lat, lng, cog } = e;
-  let code = shipTypeCode || "8";
-  let { posX, posY } = getShipImgPosBytypeCode(code);
-  e.typeCode = `A${code}`;
-  return {
-    info: e,
-    url: "./assets/icons/icon-16.png",
-    latlng: [lat, lng],
-    size: [16, 16],
-    sizeo: [16, 16],
-    rotate: cog,
-    posX,
-    posY,
-    type: ["click", "dblclick"],
-  };
-}
-function getShipImgPosBytypeCode(shipCode) {
-  let posX = 0,
-    posY = 0;
-  switch (shipCode) {
-    case "1":
-      ((posX = 204), (posY = 272));
-      break;
-    case "2":
-      ((posX = 221), (posY = 272));
-      break;
-    case "3":
-      ((posX = 238), (posY = 272));
-      break;
-    case "4":
-      ((posX = 34), (posY = 289));
-      break;
-    case "5":
-      ((posX = 0), (posY = 289));
-      break;
-    case "6":
-      ((posX = 17), (posY = 289));
-      break;
-    case "7":
-      ((posX = 51), (posY = 289));
-      break;
-    case "8":
-      ((posX = 68), (posY = 289));
-      break;
-  }
-  return { posX, posY };
-}
-return { shipjson, transfromShipImage, getShipImgPosBytypeCode };
-},
-  template: `<div id="map" class="card"></div>`
-});
-
-createApp(App).mount('#app');
-  </script>
+  <div id="map" class="map-root"></div>
+  <script type="module" src="./plugin-big-data.ts"></script>
 </body>
 </html>

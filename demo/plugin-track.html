@@ -1,117 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>plugin-track</title>
+  <link rel="stylesheet" href="/demo/shared/base.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 100%; height: 100%; overflow: hidden; }
-#app { width: 100%; height: 100%; }
-.card {
-  position: absolute;
-  z-index: 100;
-  width: 100%;
-  height: 100%;
-  left: 0px;
-  top: 0px;
-  overflow: hidden;
-}
-.btn {
-  width: 84px;
-  height: 32px;
-  position: absolute;
-  z-index: 100;
-}
-  </style>
 </head>
 <body>
-  <div id="app"></div>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script type="module">
-import * as mapLib from "../build/index.js";
-window.__map_lib__ = mapLib;
-
-const { createApp, defineComponent } = Vue;
-
-const App = defineComponent({
-async setup() {
-const { SLUMap, MapPluginTrack } = window.__map_lib__;
-const { onMounted, ref } = Vue;
-const { SLUFormat } = await import("./utils/app/index.js");
-let track_;
-/**是否显示轨迹 */
-const ifShow = ref(false);
-/**轨迹 */
-onMounted(async () => {
-  const map = new SLUMap("map");
-  await map.init({ type: "L" });
-  track_ = new MapPluginTrack(map);
-  const tracks = await genTracks();
-  track_.setTracks(tracks);
-  let latlngs= [];
-  tracks.forEach((info) => {
-    const POSITIONS = info.data,
-      first = POSITIONS[0];
-    latlngs.push([first.lat, first.lng]);
-  });
-  /**获取latlngs中最大最小经纬度值 */
-  let maxLat = Math.max(...latlngs.map((e) => e[0])),
-    minLat = Math.min(...latlngs.map((e) => e[0])),
-    maxLng = Math.max(...latlngs.map((e) => e[1])),
-    minLng = Math.min(...latlngs.map((e) => e[1]));
-  map.setFitView([
-    [minLat, minLng],
-    [maxLat, maxLng],
-  ]);
-  track_.addCbClickPoint((e)=>{
-    console.log(e)
-  })
-});
-function onVisible() {
-  ifShow.value = !ifShow.value;
-  track_.setIfShow(ifShow.value);
-}
-async function genTracks() {
-  const response = await fetch("./assets/json/track-chunk.json");
-  const trackChunk = await response.json()
-  const rawData =  trackChunk;
-  const tracks = [];
-  for (const key in rawData) {
-    if (!Object.hasOwn(rawData, key)) continue;
-    const element = rawData[key];
-    const positions = element.POSITIONS;
-    positions.forEach((p) => {
-      p.LAT = Number(p.LAT);
-      p.LON = Number(p.LON);
-      p.SPEED = Number(p.SPEED);
-      p.EPOCH = Number(p.EPOCH);
-    });
-(
-      element,
-      { id: "SHIP_ID", name: "SHIPNAME", data: "POSITIONS" },
-      {
-        lat: "LAT",
-        lng: "LON",
-        timeStamp: "EPOCH",
-        speed: "SPEED",
-        course: "COURSE",
-      }
-    );
-    tracks.push(trackGroup);
-  }
-  return tracks;
-}
-return { track_, ifShow, onVisible, genTracks };
-},
-  template: `<div id="map" class="card"></div>
-  <button class="btn" @click="onVisible">
-    {{ ifShow ? "隐藏" : "显示" }}轨迹
-  </button>`
-});
-
-createApp(App).mount('#app');
-  </script>
+  <div id="map" class="map-root"></div>
+  <script type="module" src="./plugin-track.ts"></script>
 </body>
 </html>
