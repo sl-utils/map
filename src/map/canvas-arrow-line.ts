@@ -1,4 +1,4 @@
-import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetPointsByLatlngs } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
 import { OptMapPluginArrowLine, MapLine } from "../types";
@@ -12,7 +12,7 @@ const ARROW_URL = "/assets/images/direction-arrow.png";
  */
 export class MapCanvasArrowLine {
   constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, opt?: OptMapPluginArrowLine) {
-    this.opt = Object.assign({}, this.options, opt);
+    this.opt = opt ? u_deepMergeOpt(this.options, opt) : this.options;
     this.initResource();
   }
   private opt!: OptMapPluginArrowLine;

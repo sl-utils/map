@@ -41,6 +41,7 @@ async function main() {
       sectorAngle: 60,
       longitude: 109.45816,
       angle: [0, 90],
+      ifClockwise: false,
     },
   ];
 

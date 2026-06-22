@@ -21,7 +21,7 @@ async function main() {
   button.addEventListener("click", async () => {
     if (!wavePlugin2) {
       const options = {
-        zIndex: 200,
+        zIndex: 120,
         mosaicColor: [
           "#337FFC",
           "#32AAFC",

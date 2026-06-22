@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
 import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "../../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 /**运动粒子类
@@ -73,7 +73,7 @@ export class PluginVelocity {
    * @param options 配置项
    */
   public setOptions(options: any): void {
-    options = Object.assign(this.options, options);
+    options = u_deepMergeOpt(this.options, options);
     this.map = options.map;
     this.MIN_VELOCITY_INTENSITY = options.minVelocity;
     this.MAX_VELOCITY_INTENSITY = options.maxVelocity;

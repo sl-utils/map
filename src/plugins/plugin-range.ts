@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
-import { u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLatlng } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas";
 import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "../types";
 import { LeafletMouseEvent } from "leaflet";
@@ -16,10 +16,11 @@ export class MapPluginRange extends MapCanvasLayer {
     constructor(sluMap: SLUMap, options?: OptMapPluginRange) {
         const map = sluMap.map;
         super(map, options);
-        Object.assign(this.options, options);
+        if (options) this.options = u_deepMergeOpt(this.options, options);
         /** 动态绘制图层 */
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        this.ctrMapAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
+        const aniOpt = u_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
+        this.ctrMapAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.ctrEvent = new MapCanvasEvent(map);
     }
     /**默认配置 */

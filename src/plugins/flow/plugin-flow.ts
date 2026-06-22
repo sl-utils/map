@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-import { u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
 import { LeafletMouseEvent } from "leaflet";
@@ -12,9 +12,9 @@ import { AMapMapsEvent, DataMapVeloctiyWind, OptMapPluginFlow } from "../../type
  * @param options 基础配置
 */
 export class MapPluginFlow extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: Partial<OptMapPluginFlow>) {
+    constructor(sluMap: SLUMap, options?: OptMapPluginFlow) {
         super(sluMap.map, options);
-        Object.assign(this.options, options);
+        if (options) this.options = u_deepMergeOpt(this.options, options);
     }
     /**基础配置项 */
     public options: OptMapPluginFlow = {

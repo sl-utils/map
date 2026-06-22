@@ -1,3 +1,4 @@
+import { u_deepMergeOpt } from "../utils";
 import { OptCanvas, CanvasArc, CanvasPolygon, CanvasLine, CanvasRect } from "../types";
 /** canvas画布的工具类
  * 创建画布、设置画布相关配置、获取贝塞尔曲线的控制点
@@ -182,7 +183,7 @@ export class SLUCanvas {
   public static setCtxPara(ctx: CanvasRenderingContext2D, fig: OptCanvas = {}): CanvasRenderingContext2D {
     this.ctx = ctx;
     this.deletePara(fig);
-    fig = Object.assign({}, this.ctxFig, fig);
+    fig = u_deepMergeOpt(this.ctxFig, fig);
     ctx.globalAlpha = fig.alpha!;
     ctx.globalCompositeOperation = fig.globalCompositeOperation!;
     ctx.fillStyle = fig.colorFill!;

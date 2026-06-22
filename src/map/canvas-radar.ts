@@ -1,6 +1,6 @@
 import { OptMapPluginRadar } from "../types";
 import { SLUCanvas } from "../canvas";
-import { u_mapGetPointByLatlng, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetPointByLatlng, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
 import { Map as LMap } from 'leaflet';
 import { Map as MaplibreMap } from 'maplibre-gl';
 
@@ -43,7 +43,7 @@ export class MapCanvasRadar {
      * @returns MapCanvasRadar实例
      */
     public setAllRadars(radars: OptMapPluginRadar[]): MapCanvasRadar {
-        this.allRadars = radars.filter(e => e).map(e => Object.assign({}, this.options, e));
+        this.allRadars = radars.filter(e => e).map(e => e = u_deepMergeOpt(this.options, e));
         return this;
     }
     /**添加雷达绘制类
@@ -51,7 +51,8 @@ export class MapCanvasRadar {
      * @returns MapCanvasRadar实例
      */
     public addRadar(radar: OptMapPluginRadar): MapCanvasRadar {
-        this.allRadars.push(Object.assign({}, this.options, radar));
+        const newRadar = u_deepMergeOpt(this.options, radar);
+        this.allRadars.push(newRadar);
         return this;
     }
     /**开始绘制所有雷达静态部分 */

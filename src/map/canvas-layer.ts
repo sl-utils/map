@@ -1,5 +1,5 @@
 import { Browser, DomUtil, Map as LMap, Layer, Util, ZoomAnimEvent, bind, extend } from "leaflet";
-import { u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
 import { OptMapCanvas } from "../types";
 import { Map as MaplibreMap, CustomLayerInterface } from 'maplibre-gl';
 declare var AMap: any;
@@ -13,9 +13,9 @@ export class MapCanvasLayer {
     constructor(MAP: MaplibreMap, opt?: OptMapCanvas)
     constructor(MAP: AMAP.Map, opt?: AMAP.CustomLayerOption)
     constructor(MAP: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas)
-    constructor(map: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas) {
+    constructor(map: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas){
         this.map = map;
-        Object.assign(this.options, opt);
+        if (opt) this.options = u_deepMergeOpt(this.options, opt);
         this.initCanvas();
         if (u_tsMapisLeaflet(map)) {
             this._initLeaflet();
@@ -135,7 +135,7 @@ export class MapCanvasLayer {
     /**------------------------------高德地图的实现------------------------------*/
     /**初始化高德地图的图层 */
     private _initAMap(): void {
-        const opt = Object.assign({
+        const opt = u_deepMergeOpt({
             zooms: [3, 18],
             alwaysRender: false,//缩放过程中是否重绘，复杂绘制建议设为false
             zIndex: 200,

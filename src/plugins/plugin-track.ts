@@ -3,7 +3,7 @@ import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent, SLUMap } from "../map";
 import { DataMapTrack, DataMapTrackGroup, MapArc, MapEvent, MapEventResponse, MapImage, MapLine, MapPoint, MapText, MapTrackTimePosition, OptMapPluginTrack } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
-import { u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
+import { u_deepMergeOpt, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
 /**轨迹绘制类
  * @constructor
  * @param sluMap 地图实例
@@ -13,10 +13,11 @@ export class MapPluginTrack {
   constructor(sluMap: SLUMap, options?: Partial<OptMapPluginTrack>) {
     const map = sluMap.map;
     this.map = map;
-    Object.assign(this.options, options);
+    if (options) this.options = u_deepMergeOpt(this.options, options);
     let zIndex = this.options.zIndex! + 1;
     this.layerDraw = new MapPluginDraw(sluMap, this.options);
-    this.layerAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { zIndex, className: "track ani" }));
+    const aniOpt = u_deepMergeOpt(this.options, { zIndex, className: "track ani" });
+    this.layerAniDraw = new MapPluginDraw(sluMap, aniOpt);
     this.allEvents = new MapCanvasEvent(map);
   }
   /**地图实例 */

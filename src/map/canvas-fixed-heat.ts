@@ -1,5 +1,5 @@
 import { OptMapPluginFixedHeat } from "../types";
-import { u_mapGetPointByLatlng, u_mapGetProjectedPointByLatlng } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetPointByLatlng, u_mapGetProjectedPointByLatlng } from "../utils/slu-map";
 import { Map as MaplibreMap } from 'maplibre-gl';
 /** 固定图片热力图-不随缩放而变化
  * @constructor
@@ -9,7 +9,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  */
 export class MapCanvasFixedHeat {
   constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, public heatOpt?: OptMapPluginFixedHeat) {
-    this.heatOpt = Object.assign({}, this.defaultOption, this.heatOpt);
+    this.heatOpt = u_deepMergeOpt(this.defaultOption, heatOpt);
   }
 
   /** 热力图默认配置 */

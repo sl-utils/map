@@ -1,6 +1,6 @@
 import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
-import { u_mapGetLatLngByPoint } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLatLngByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";
 import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "../../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
@@ -14,7 +14,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
 export class MapPluginGridBase extends MapCanvasLayer {
     constructor(map: L.Map | AMAP.Map | MaplibreMap, options: Partial<OptMapGrid>) {
         super(map, options);
-        Object.assign(this.options, options);
+        this.options = u_deepMergeOpt(this.options, options);
     }
     /**基础配置 */
     public readonly options: OptMapGrid = {

@@ -474,7 +474,7 @@ export type MapLineEvent<I = any> = MapLine & MapEvent<MapEvent, I>;
 
 
 /**配置--地图画布配置 */
-interface OptMapCanvas extends LayerOptions {
+interface OptMapCanvas extends LayerOptions,CustomLayerOption {
     /**画布挂载的div节点 
      * @default 'canvas'
      * map默认创建 mapPane tilePane shadowPane overlayPane markerPane tooltipPane popupPane,

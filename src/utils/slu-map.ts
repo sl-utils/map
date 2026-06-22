@@ -545,6 +545,34 @@ function delItem<T>(arr: T[] | undefined, item: T, key?: keyof T): T[] {
     return arr || [];
 }
 
+/**
+ * 用于深度合并同类型的配置：入参类型一致,不改变原对象,返回合并后的新对象
+ * @param target 目标对象
+ * @param source 源对象
+ * @returns 合并后的新对象
+ */
+function deepMergeOpt<T>(target: T, source: T): T {
+    const result = { ...target };
+    for (const key in source) {
+        const sourceValue = source[key];
+        if (sourceValue === undefined) {
+            continue;
+        }
+        const targetValue = result[key];
+        if (tsIfPlainObject(targetValue) && tsIfPlainObject(sourceValue)) {
+            result[key] = deepMergeOpt(targetValue, sourceValue);
+        } else {
+            result[key] = sourceValue;
+        }
+    }
+    return result;
+}
+/**判断参数是否是纯对象
+ * @param value 参数
+ */
+function tsIfPlainObject(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 /**判断参数是否是二维数组 */
 function tsIfTwoArr(value: [number, number] | [number, number][]): value is [number, number][] {
     return value && Array.isArray(value[0]);
@@ -665,6 +693,7 @@ export {
     setViewCenter as u_mapSetViewCenter,
     getLatlngByValue as u_mapGetLatlngByValue,
     getLatLngByEvent as u_mapGetLatLngByEvent,
+    deepMergeOpt as u_deepMergeOpt,
 
     tsMapisLeaflet as u_tsMapisLeaflet,
     tsMapisAmap as u_tsMapisAmap,

@@ -1490,7 +1490,7 @@ declare namespace AMAP {
         visible?: boolean;
         zIndex?: number;
         zooms?: [number, number];
-        render: () => void;
+        render?: () => void;
         alwaysRender?: boolean;
     }
 

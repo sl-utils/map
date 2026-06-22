@@ -1,8 +1,8 @@
 
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
-import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
-import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, OptMapPluginPlotBase, OptMapPluginPlotText } from "../types";
+import { u_deepMergeOpt, u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
+import { OptMapPluginPlot, MapArc, DataMapPlot, MapPlotType, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, OptMapPluginPlotBase, OptMapPluginPlotText, OptMapPluginPlotEdit } from "../types";
 import { LeafletMouseEvent } from "leaflet";
 import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 /**自定义标绘类
@@ -16,11 +16,12 @@ export class MapPluginPlot extends MapCanvasLayer {
         const map = sluMap.map, { plotOpt, editOpt, textOpt } = options || {};
         super(map, plotOpt);
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        Object.assign(this.options, plotOpt);
-        this.ctrMapAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
+        if (plotOpt) this.options = u_deepMergeOpt(this.options, plotOpt);
+        const aniOpt = u_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
+        this.ctrMapAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.ctrEvent = new MapCanvasEvent(map);
-        Object.assign(this.editArc, editOpt);
-        Object.assign(this.plotText, textOpt);
+        if (editOpt) this.editArc = u_deepMergeOpt(this.editArc, editOpt);
+        if (textOpt) this.plotText = u_deepMergeOpt(this.plotText, textOpt);
     }
     /**标绘形状配置 */
     public options: OptMapPluginPlotBase = {
@@ -34,7 +35,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**图层事件控制器 */
     private ctrEvent!: MapCanvasEvent;
     /**编辑圆点样式 */
-    private editArc: MapArc = {
+    private editArc: OptMapPluginPlotEdit = {
         latlng: [0, 0],
         colorFill: '#fff',
         colorLine: '#2C9B8A',
@@ -446,7 +447,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     */
     private addEvent(latLng: [number, number], i: number, plotInfo: DataMapPlot, eves: MapEvent[], ifVirtual?: boolean): void {
         const that = this, { map } = that;
-        let circle: MapArc = { ...this.editArc, latlng: latLng }, { latLngs, type } = plotInfo;
+        let circle: MapArc = { ...this.editArc, latlng: latLng } as MapArc, { latLngs, type } = plotInfo;
         if (ifVirtual) { circle.size = 3, circle.fillAlpha = 0.9 };
         this.ctrMapAniDraw.addArc(circle);
         let hitLatLng: [number, number] = latLng;

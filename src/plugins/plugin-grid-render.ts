@@ -1,6 +1,6 @@
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUWorker } from "../utils/slu-worker";
-import { u_mapGetLatLngByPoint, u_mapGetMapSize } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLatLngByPoint, u_mapGetMapSize } from "../utils/slu-map";
 import { DataMapGrid, OptMapGrid, GridRenderWorkerInfo } from "../types";
 import { Map as MaplibreMap } from "maplibre-gl";
 import { PluginCoastlineMask } from "./plugin-coastline-mask";
@@ -30,7 +30,7 @@ import { PluginCoastlineMask } from "./plugin-coastline-mask";
 export class MapPluginGridRender extends MapCanvasLayer {
   constructor(sluMap: SLUMap, options: Partial<OptMapGrid>, mask?: PluginCoastlineMask) {
     super(sluMap.map, options);
-    Object.assign(this.options, options);
+    this.options = u_deepMergeOpt(this.options, options);
     this.mask = mask;
     /**离屏canvas: worker结果中转-mask裁剪-最终再绘制到主canvas */
     this.offCanvas = document.createElement("canvas");
