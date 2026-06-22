@@ -408,7 +408,7 @@ export class MapPluginPlot extends MapCanvasLayer {
      */
     private setPointEdit(plotInfo: DataMapPlot): void {
         let { latLngs } = plotInfo;
-        if (!latLngs || latLngs.length != 2) return;
+        if (!latLngs || !latLngs[0] || latLngs[0].length != 2) return;
         let eves: MapEvent[] = [];
         this.addEvent(latLngs[0], 0, plotInfo, eves);
         this.ctrEvent.setEventsByKey(eves, 'pointEdit')
