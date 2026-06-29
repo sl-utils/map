@@ -14,10 +14,10 @@ async function main() {
   toolbar.append(button);
 
   const data = [
-    { latlng: [22.745, 114.055], weight: 1 },
-    { latlng: [22.74, 114.055], weight: 1 },
-    { latlng: [22.74, 114.065], weight: 0.5 },
-    { latlng: [22.745, 114.065], weight: 0.2 },
+    { lnglat: [114.055, 22.745], weight: 1 },
+    { lnglat: [114.055, 22.74], weight: 1 },
+    { lnglat: [114.065, 22.74], weight: 0.5 },
+    { lnglat: [114.065, 22.745], weight: 0.2 },
   ];
 
   let plugin: MapPluginHeat | undefined;

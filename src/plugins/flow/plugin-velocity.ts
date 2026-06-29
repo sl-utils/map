@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-import { u_deepMergeOpt, u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetPointByLnglat } from "../../utils/slu-map";
 import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "../../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
 /**运动粒子类
@@ -196,7 +196,7 @@ export class PluginVelocity {
       const id = requestIdleCallback(() => {
         for (let y = bounds.y, len = bounds.yMax; y <= len; y += 2) {
           //得到X , Y 点对应地图上的经纬度
-          let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+          let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
           /**是否是有效数字 */
           if (isFinite(lng)) {
             //获得指定经纬度的信息 [ 开始值 , 结束值 , 平均值 ]
@@ -315,11 +315,11 @@ export class PluginVelocity {
   }
   /**根据经纬度获得像素点
    * @param lat 纬度
-   * @param lon 经度
+   * @param lng 经度
    * @returns [像素点X, 像素点Y]
    */
-  private project(lat: number, lon: number): [number, number] {
-    let [x, y] = u_mapGetPointByLatlng(this.map, [lat, lon]);
+  private project(lat: number, lng: number): [number, number] {
+    let [x, y] = u_mapGetPointByLnglat(this.map, [lng, lat]);
     return [x, y];
   }
   /**动画

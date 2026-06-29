@@ -2,7 +2,7 @@ import { MapPluginRadar, SLUMap } from "../src/index.ts";
 
 function transformRadarInfo(radar: any) {
   return {
-    latlng: [radar.latitude, radar.longitude],
+    lnglat: [radar.longitude, radar.latitude],
     sizeFix: [radar.radius, radar.radius],
     time: 3,
     ifClockwise: radar.ifClockwise,
@@ -45,7 +45,7 @@ async function main() {
     },
   ];
 
-  map.setCenter([39.749, 117.555], 15);
+  map.setCenter([117.555, 39.749], 15);
   plugin.setAllRadars(radarData.map(transformRadarInfo));
 }
 

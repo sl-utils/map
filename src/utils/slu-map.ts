@@ -1,7 +1,7 @@
 import { AMapMapsEvent, MapMouseEvent, MapPosition, MapEventType, MapSize, MapBounds, MapLatLng } from "../types";
 import * as L from "leaflet";
-import { LeafletMouseEvent, Layer, Map } from "leaflet";
-import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent, LngLat as MaplibreLngLat, CustomLayerInterface, LngLatBoundsLike, Point as MaplibrePoint } from 'maplibre-gl';
+import { LeafletMouseEvent, Layer, LatLngBoundsExpression } from "leaflet";
+import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent, LngLat as MaplibreLngLat, CustomLayerInterface, Point as MaplibrePoint } from 'maplibre-gl';
 declare var AMap: any;
 const a = 6378245.0;
 const pi = 3.1415926535897932384626;
@@ -149,13 +149,13 @@ function transformLng(x: number, y: number): number {
 
 /** 测算两点与Y轴形成的角度大小（Y轴方向 ↑ ）
 * @param map 当前的地图
-* @param latLngA 第一个点的[纬度，经度]
-* @param latLngB 第二个点的[纬度，经度]
+* @param lnglatA 第一个点的[经度,纬度]
+* @param lnglatB 第二个点的[经度,纬度]
 * @returns 两点与正北方的角度
 */
-function getAngle(map: AMAP.Map | L.Map | MaplibreMap, latLngA: [number, number], latLngB: [number, number]): number {
-    let [y0, x0] = getPointByLatlng(map, latLngA),
-        [y1, x1] = getPointByLatlng(map, latLngB);
+function getAngle(map: AMAP.Map | L.Map | MaplibreMap, lnglatA: [number, number], lnglatB: [number, number]): number {
+    let [y0, x0] = getPointByLnglat(map, lnglatA),
+        [y1, x1] = getPointByLnglat(map, lnglatB);
     let θ = Math.atan2(x1 - x0, y1 - y0);
     θ = θ * 180 / Math.PI;
     θ = (90 + θ) < 0 ? 450 + θ : 90 + θ;
@@ -205,20 +205,20 @@ function getDiffLatitude(distance: number | string): number {
     return delta_lat * (180 / Math.PI); // 将弧度转换为角度
 }
 /**获取两点间的距离
- * @param latLngA A点的[纬度，经度]
- * @param latLngB B点的[纬度，经度]
+ * @param lnglatA A点的[经度,纬度]
+ * @param lnglatB B点的[经度,纬度]
  * @param map 地图实例
  * @returns 两点间的距离(米)
  */
-function getDistance(latLngA: [number, number], latLngB: [number, number], map: L.Map | AMAP.Map | MaplibreMap): number {
-    let [latA, lngA] = latLngA, [latB, lngB] = latLngB, dis = 0;
+function getDistance(lnglatA: [number, number], lnglatB: [number, number], map: L.Map | AMAP.Map | MaplibreMap): number {
+    let [lngA, latA] = lnglatA, [lngB, latB] = lnglatB, dis = 0;
     if (tsMapisLeaflet(map)) {
-        dis = L.latLng(latLngA).distanceTo(latLngB);
+        dis = L.latLng([latA, lngA]).distanceTo([latB, lngB]);
     } else if (tsMapisAmap(map)) {
-        dis = AMap.GeometryUtil.distance([lngA, latA], [lngB, latB])
+        dis = AMap.GeometryUtil.distance(lnglatA, lnglatB)
     } else if (tsMapisMapLibre(map)) {
-        const lngLatA = new MaplibreLngLat(latLngA[1], latLngA[0]);
-        const lngLatB = new MaplibreLngLat(latLngB[1], latLngB[0]);
+        const lngLatA = new MaplibreLngLat(lngA, latA);
+        const lngLatB = new MaplibreLngLat(lngB, latB);
         dis = lngLatA.distanceTo(lngLatB);
     } else {
         dis = 0;
@@ -228,9 +228,9 @@ function getDistance(latLngA: [number, number], latLngB: [number, number], map: 
 /** 将坐标系转换为经纬度数
  * @param map 地图实例
  * @param point 像素点位
- * @returns latlng [lat,lng]
+ * @returns lnglat [lng,lat]
  */
-function getLatLngByPoint(map: AMAP.Map | L.Map | MaplibreMap, point: [number, number] | undefined): [number, number] {
+function getLngLatByPoint(map: AMAP.Map | L.Map | MaplibreMap, point: [number, number] | undefined): [number, number] {
     if (!point) return [0, 0];
     let p: L.LatLng | AMAP.LngLat | MaplibreLngLat;
     if (tsMapisLeaflet(map)) {
@@ -240,29 +240,29 @@ function getLatLngByPoint(map: AMAP.Map | L.Map | MaplibreMap, point: [number, n
     } else {
         p = map.containerToLngLat(new AMap.Pixel(point[0], point[1]));
     }
-    return [p.lat, p.lng]
+    return [p.lng, p.lat]
 }
 /** 获取指定间隔距离的经度差值 
  * @param map 地图实例
  * @param 间隔距离 @default 100
  * @param 纬度点位集合(纬度不同，相同距离经度变化差值不一样) 
  */
-function getLngDiffByDistance(map: AMAP.Map | L.Map | MaplibreMap, distance: number = 100, latLng: [number, number][]): number {
-    if (latLng.length === 0) { return 0; }
-    let lng = 0.00001, lat = latLng.map(e => e[0]).reduce((s, v) => s + v) / latLng.length;
-    let positionA: [number, number] = [lat, 100],
-        positionB: [number, number] = [lat, 100 + lng];
+function getLngDiffByDistance(map: AMAP.Map | L.Map | MaplibreMap, distance: number = 100, lnglats: [number, number][]): number {
+    if (lnglats.length === 0) { return 0; }
+    let lng = 0.00001, lat = lnglats.map(e => e[1]).reduce((s, v) => s + v) / lnglats.length;
+    let positionA: [number, number] = [100, lat],
+        positionB: [number, number] = [100 + lng, lat];
     let xMeasure = getDistance(positionA, positionB, map);
     return distance / xMeasure * lng
 }
 /** 得到坐标系点位    
  * @param map 当前的地图 
- * @param latlng [纬度,经度]
- * @returns latlng有效时返回 [x,y] , 无效时返回 [-1000, -1000]
+ * @param lnglat [经度,纬度]
+ * @returns lnglat有效时返回 [x,y] , 无效时返回 [-1000, -1000]
  */
-function getPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, latlng: [number, number] | undefined): [number, number] {
-    if (!latlng) return [-1000, -1000];
-    let [lat = 90, lng = 180] = latlng, p: AMAP.Pixel | L.Point | MaplibrePoint;
+function getPointByLnglat(map: AMAP.Map | L.Map | MaplibreMap, lnglat: [number, number] | undefined): [number, number] {
+    if (!lnglat) return [-1000, -1000];
+    let [lng = 180, lat = 90] = lnglat, p: AMAP.Pixel | L.Point | MaplibrePoint;
     if (isNaN(lat) || isNaN(lng)) return [-1000, -1000];
     if (tsMapisLeaflet(map)) {
         p = map.latLngToContainerPoint([lat, lng]);
@@ -277,19 +277,20 @@ function getPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, latlng: [number, 
 }
 /** 将经纬度数组转换为坐标系 
  * @param map 当前的地图 
- * @param latlngs [纬度,经度][]
- * @returns latlngs有效时返回 [x,y][]
+ * @param lnglats [经度,纬度][]
+ * @returns lnglats有效时返回 [x,y][]
  */
-function getPointsByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined): [number, number][] {
-    return latlngs?.map(e => getPointByLatlng(map, e)) || [];
+function getPointsByLnglats(map: AMAP.Map | L.Map | MaplibreMap, lnglats: [number, number][] | undefined): [number, number][] {
+    return lnglats?.map(e => getPointByLnglat(map, e)) || [];
 }
 /**
  * 经纬度数组 转 屏幕像素坐标
  * @param map 当前的地图
- * @param latlngs [纬度,经度][]
+ * @param lng 经度
+ * @param lat 纬度
  * @param zoom 缩放级别
  */
-function getProjectedPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, lng: number, lat: number, zoom: number): [number, number] {
+function getProjectedPointByLnglat(map: AMAP.Map | L.Map | MaplibreMap, lng: number, lat: number, zoom: number): [number, number] {
     if (tsMapisLeaflet(map)) {
         const p = map.project(L.latLng(lat, lng), zoom);
         return [p.x, p.y];
@@ -308,12 +309,12 @@ function project(lng: number, lat: number, zoom: number): [number, number] {
 }
 /** 将经纬度数组转换为坐标系 
  * @param map 当前的地图 
- * @param latlngs [经度,纬度][]
+ * @param lnglats [经度,纬度][]
  * @param zoom 缩放级别
  * @returns latlngs有效时返回 [x,y][]
  */
-function getProjectedPointByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined, zoom: number): [number, number][] {
-    return latlngs?.map(e => getProjectedPointByLatlng(map, e[0], e[1], zoom)) || [];
+function getProjectedPointByLnglats(map: AMAP.Map | L.Map | MaplibreMap, lnglats: [number, number][] | undefined, zoom: number): [number, number][] {
+    return lnglats?.map(e => getProjectedPointByLnglat(map, e[0], e[1], zoom)) || [];
 }
 /**对大小进行解析设置
  * @param map  当前的地图 
@@ -321,17 +322,17 @@ function getProjectedPointByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs
  * @returns [x轴的像素大小 number,y轴的像素大小 number]
  */
 function getSizeByMap(map: AMAP.Map | L.Map | MaplibreMap, info: MapPosition & MapSize): [number, number] {
-    let { sizeFix, latlng, size = [0, 0] } = info;
-    if (!sizeFix || !latlng) {
+    let { sizeFix, lnglat, size = [0, 0] } = info;
+    if (!sizeFix || !lnglat) {
         Array.isArray(size) || (size = [size, size]);
         return size;
     }
     let sizes: [number, number] = Array.isArray(sizeFix) ? sizeFix : [sizeFix, sizeFix];
-    let [x, y] = latlng;
-    let lngDiff = getLngDiffByDistance(map, sizes[1], [latlng]);
+    let [x, y] = lnglat;
+    let lngDiff = getLngDiffByDistance(map, sizes[1], [lnglat]);
     /**获取同纬度下，经度变化指定sizeFix后像素点的差值 */
-    let [x0, y0] = getPointByLatlng(map, [x, y]);
-    let [x1, y1] = getPointByLatlng(map, [x, y + lngDiff]);
+    let [x0, y0] = getPointByLnglat(map, [x, y]);
+    let [x1, y1] = getPointByLnglat(map, [x + lngDiff, y]);
     let xd = Math.abs(x1 - x0), yd = (xd * sizes[1]) / sizes[0];
     return [xd, yd];
 }
@@ -415,23 +416,26 @@ function setMapStatus(map: AMAP.Map | L.Map | MaplibreMap, key: 'dragEnable', fl
 /**
  * 设置地图中心
  * @param map 地图实例
- * @param center 中心 latlng顺序
+ * @param center 中心 [lng,lat]顺序
  * @param zoom 缩放级别
  * @param offset 中心 但需要偏移固定像素
  */
 function setViewCenter(map: L.Map | AMAP.Map | MaplibreMap, center: [number, number], zoom: number, offset?: [number, number]): void {
     if (offset) {
-        const centerPixel = getPointByLatlng(map, center);
-        center = getLatLngByPoint(map, [centerPixel[0] + offset[0], centerPixel[1] + offset[1]])
+        const centerPixel = getPointByLnglat(map, center);
+        center = getLngLatByPoint(map, [centerPixel[0] + offset[0], centerPixel[1] + offset[1]])
     }
     if (tsMapisLeaflet(map)) {
-        map.setView(center, zoom);
-    } else if (tsMapisAmap(map) || tsMapisMapLibre(map)) {
-        const [lat, lng] = center;
+        map.setView([center[1], center[0]], zoom);
+    } else if (tsMapisAmap(map)) {
+        const [lng, lat] = center;
         /**84转火星 */
         const { lat: lat02, lng: lng02 } = togps84gcj02(lng, lat);
         const mapcenter: [number, number] = [lng02, lat02];
         map.setCenter(mapcenter);
+        map.setZoom(zoom);
+    } else if (tsMapisMapLibre(map)) {
+        map.setCenter(center);
         map.setZoom(zoom);
     } else {
         throw new Error('百度地图暂时不支持！')
@@ -450,36 +454,39 @@ function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, allPoints: [number, n
  * @param northeast 地图右上
  */
 function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, southwest: [number, number], northeast: [number, number]): void;
-function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, number] | [number, number][], point2?: [number, number]) {
+/**
+ * 设置地图最合适缩放位置中心
+ * @param map 地图实例
+ * @param point 点
+ * @param point2 点2
+ */
+function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, number] | [number, number][], point2?: [number, number]): void {
     let southwest: [number, number], northeast: [number, number];
     if (point.length == 0 || !point) return;
     if (tsIfTwoArr(point)) {
         // 传入坐标数组
-        let maxLat = Math.max(...point.map((e) => e[0])),
-            minLat = Math.min(...point.map((e) => e[0])),
-            maxLng = Math.max(...point.map((e) => e[1])),
-            minLng = Math.min(...point.map((e) => e[1]));
-        southwest = [minLat, minLng];
-        northeast = [maxLat, maxLng];
+        let maxLat = Math.max(...point.map((e) => e[1])),
+            minLat = Math.min(...point.map((e) => e[1])),
+            maxLng = Math.max(...point.map((e) => e[0])),
+            minLng = Math.min(...point.map((e) => e[0]));
+        southwest = [minLng, minLat];
+        northeast = [maxLng, maxLat];
     } else {
         southwest = point;
         northeast = point2 || point;
     }
     if (tsMapisLeaflet(map)) {
-        map.fitBounds([southwest, northeast]);
+        const bounds: LatLngBoundsExpression = [[southwest[1], southwest[0]], [northeast[1], northeast[0]]];
+        map.fitBounds(bounds);
     } else if (tsMapisAmap(map)) {
         /**84转火星 */
-        const { lat: swLat, lng: swLng } = togps84gcj02(southwest[1], southwest[0]);
-        const { lat: neLat, lng: neLng } = togps84gcj02(northeast[1], northeast[0]);
+        const { lat: swLat, lng: swLng } = togps84gcj02(southwest[0], southwest[1]);
+        const { lat: neLat, lng: neLng } = togps84gcj02(northeast[0], northeast[1]);
         const bounds = new AMap.Bounds([swLng, swLat], [neLng, neLat]);
         const [zoom, center] = map.getFitZoomAndCenterByBounds(bounds);
         map.setZoomAndCenter(zoom, center);
     } else if (tsMapisMapLibre(map)) {
-        const bounds: LngLatBoundsLike = [
-            [southwest[1], southwest[0]],
-            [northeast[1], northeast[0]]
-        ];
-        map.fitBounds(bounds, { padding: 100, duration: 0 });
+        map.fitBounds([southwest, northeast], { padding: 100, duration: 0 });
     }
 }
 
@@ -489,7 +496,7 @@ function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, numbe
  * @param ifDMS 是否是DMS度分秒格式，否则显示度格式，默认精度为5
  * @returns 经纬度字符串
  */
-function getLatlngByValue(value: number, ifLng: boolean, ifDMS?: boolean): string {
+function getLnglatByValue(value: number, ifLng: boolean, ifDMS?: boolean): string {
     let unit = "N";
     if (value < 0) unit = "S"
     if (ifLng) {
@@ -510,19 +517,19 @@ function getLatlngByValue(value: number, ifLng: boolean, ifDMS?: boolean): strin
 }
 /**根据地图事件获取经纬度
  * @param e 事件
- * @returns 经纬度[lat, lng]
+ * @returns 经纬度[lng, lat]
  */
-function getLatLngByEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): [number, number] | null {
+function getLngLatByEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): [number, number] | null {
     if (!e) return null;
     if (tsEventisLeaflet(e)) {
         const { lat, lng } = e.latlng;
-        return [lat, lng];
+        return [lng, lat];
     } else if (tsEventisAmap(e)) {
         const { lat, lng } = e.lnglat;
-        return [lat, lng];
+        return [lng, lat];
     } else if (tsEventisMapLibre(e)) {
         const { lat, lng } = e.lngLat;
-        return [lat, lng];
+        return [lng, lat];
     }
     return null;
 }
@@ -679,20 +686,20 @@ export {
     getBounds as u_mapGetBounds,
     getDiffLatitude as u_mapGetDiffLatitude,
     getDistance as u_mapGetDistance,
-    getLatLngByPoint as u_mapGetLatLngByPoint,
+    getLngLatByPoint as u_mapGetLngLatByPoint,
     getLngDiffByDistance as u_mapGetLngDiffByDistance,
-    getPointByLatlng as u_mapGetPointByLatlng,
-    getPointsByLatlngs as u_mapGetPointsByLatlngs,
-    getProjectedPointByLatlng as u_mapGetProjectedPointByLatlng,
-    getProjectedPointByLatlngs as u_mapGetProjectedPointByLatlngs,
+    getPointByLnglat as u_mapGetPointByLnglat,
+    getPointsByLnglats as u_mapGetPointsByLnglats,
+    getProjectedPointByLnglat as u_mapGetProjectedPointByLnglat,
+    getProjectedPointByLnglats as u_mapGetProjectedPointByLnglats,
     getSizeByMap as u_mapGetSizeByMap,
     getMapSize as u_mapGetMapSize,
     setMapStatus as u_mapSetMapStatus,
     getMapMouseEvent as u_mapGetMapMouseEvent,
     setFitBounds as u_mapSetFitBounds,
     setViewCenter as u_mapSetViewCenter,
-    getLatlngByValue as u_mapGetLatlngByValue,
-    getLatLngByEvent as u_mapGetLatLngByEvent,
+    getLnglatByValue as u_mapGetLnglatByValue,
+    getLngLatByEvent as u_mapGetLngLatByEvent,
     deepMergeOpt as u_deepMergeOpt,
 
     tsMapisLeaflet as u_tsMapisLeaflet,

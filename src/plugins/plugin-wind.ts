@@ -1,6 +1,6 @@
 import { OptMapPluginWind, DataMapGrid, GridBounds, DataMapWind, MapImage, Image } from "../types";
 import { MapCanvasDraw, SLUMap } from "../map";
-import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_mapGetLngLatByPoint, u_mapGetMapSize, u_mapGetPointByLnglat } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/plugin-grid-base";
 
 /**风速风向插件
@@ -68,18 +68,18 @@ export class MapPluginWind extends MapPluginGridBase {
     protected getViewBoundsGridWind(bounds: GridBounds, pixelInterval: number = 2): DataMapWind[] {
         const columns: DataMapWind[] = [];
         /**获取经纬度为[0,0]的点相对于容器的像素点(假设经纬度为[0,0]的点为必须渲染的点) */
-        let [x0, y0] = u_mapGetPointByLatlng(this.map, [0, 0]);
+        let [x0, y0] = u_mapGetPointByLnglat(this.map, [0, 0]);
         /**获取可视范围内需要渲染数据的起点x,y */
         let j = y0 % pixelInterval, k = x0 % pixelInterval;
         for (let y = j, len = bounds.height; y < len; y += pixelInterval) {
             for (let x = k, len2 = bounds.width; x < len2; x += pixelInterval) {
                 //得到可视区X , Y 点对应地图上的经纬度
-                let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
                     const wind = this.interpolate(lng, lat);
-                    if (wind) columns.push({ latlng: [lat, lng], speed: wind[0], direction: wind[1] })
+                    if (wind) columns.push({ lnglat: [lng, lat], speed: wind[0], direction: wind[1] })
                 }
             }
         }
@@ -102,7 +102,7 @@ export class MapPluginWind extends MapPluginGridBase {
                 sizeo: res.sizeo,
                 posX: res.posX,
                 posY: res.posY,
-                latlng: item.latlng,
+                lnglat: item.lnglat,
                 rotate: item.direction,
             });
         }

@@ -119,7 +119,7 @@ export declare class PluginVelocity {
     private distortion;
     /**根据经纬度获得像素点
      * @param lat 纬度
-     * @param lon 经度
+     * @param lng 经度
      * @returns [像素点X, 像素点Y]
      */
     private project;

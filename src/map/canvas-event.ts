@@ -1,5 +1,5 @@
 import { MapEventType, MapEventResponse, MapEvent, MapRbush, AMapMapsEvent, MapCursorPosition, MapEventRange } from "../types";
-import { u_arrItemDel, u_mapGetPointByLatlng, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
+import { u_arrItemDel, u_mapGetPointByLnglat, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
 import rbush, { BBox } from 'rbush'
 import { LeafletMouseEvent, Map as LMap } from "leaflet";
 import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
@@ -157,8 +157,8 @@ export class MapCanvasEvent {
         /**ifHide不显示,事件就不添加 */
         if (event.ifHide === true) return;
         let ev: MapEvent = {
-            latlng: event.latlng || undefined,
-            latlngs: event.latlngs || [],
+            lnglat: event.lnglat || undefined,
+            lnglats: event.lnglats || [],
             type: event.type,
             info: event.info,
             cb: event.cb
@@ -171,17 +171,17 @@ export class MapCanvasEvent {
     private transformRbush<T extends MapEvent>(event: T): void {
         /**ifHide不显示,事件就不添加 */
         if (event.ifHide === true) return;
-        let { range = [5, 5], latlng, latlngs = [], left = 0, top = 0 } = event;
-        if (latlng && latlng.length === 2) latlngs = [...latlngs, latlng];
-        latlngs.forEach(latlng => {
-            let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
+        let { range = [5, 5], lnglat, lnglats = [], left = 0, top = 0 } = event;
+        if (lnglat && lnglat.length === 2) lnglats = [...lnglats, lnglat];
+        lnglats.forEach(lnglat => {
+            let [onX, onY] = u_mapGetPointByLnglat(this.map, lnglat);
             let item: MapRbush = {
                 minX: onX - range[0] + left,
                 minY: onY - range[1] + top,
                 maxX: onX + range[0] + left,
                 maxY: onY + range[1] + top,
                 data: event,
-                latlng: latlng,
+                lnglat: lnglat,
             }
             this._allRbush.push(item)
         })
@@ -237,19 +237,19 @@ export class MapCanvasEvent {
         search.maxX = search.minX = x, search.maxY = search.minY = y;
         let ret = this.rbush.search(search);
         ret.forEach(res => {
-            let event: MapEvent = res.data, latlng = res.latlng, { minZoom = 1, maxZoom = 50 } = event
+            let event: MapEvent = res.data, lnglat = res.lnglat, { minZoom = 1, maxZoom = 50 } = event
             if (minZoom > zoom || maxZoom < zoom) return;
             /**事件位置信息 */
             let position: MapCursorPosition = Object.create(null);
             { }
-            position.latlng = latlng, position.page = [pageX, pageY], position.point = [x, y];
+            position.lnglat = lnglat, position.page = [pageX, pageY], position.point = [x, y];
             /**事件响应对象 */
             let response: MapEventResponse = Object.create(null);
             response.type = 'unset', response.position = position, response.event = event, response.info = event.info;
             curEvents.push(response);
             /**从之前的所有响应对象中查找是否存在位置一样的响应对象 */
             let per = leaveEvents.find(e =>
-                e.position.latlng[0] === latlng[0] && e.position.latlng[1] === latlng[1]
+                e.position.lnglat[0] === lnglat[0] && e.position.lnglat[1] === lnglat[1]
             );
             if (per) {
                 /**存在则说明鼠标没有离开,则从离开事件集合中移除 */
@@ -261,21 +261,21 @@ export class MapCanvasEvent {
         })
         // for (let i = 0, len = allEvents.length; i < len; i++) {
         //     let ev = allEvents[i];
-        //     let { latlng, latlngs = [], range = [5, 5], left = 0, top = 0, minZoom = 1, maxZoom = 50 } = ev;
+        //     let { lnglat, lnglats = [], range = [5, 5], left = 0, top = 0, minZoom = 1, maxZoom = 50 } = ev;
         //     if (minZoom > zoom || maxZoom < zoom) continue;
-        //     if (latlng && latlng.length === 2) latlngs = [...latlngs, latlng];
+        //     if (lnglat && lnglat.length === 2) lnglats = [...lnglats, lnglat];
         //     let sizeX = range[0], sizeY = range[1];
         //     /**判断是否在范围内 */
-        //     for (let p = 0, len2 = latlngs.length; p < len2; p++) {
-        //         let latlng = latlngs[p];
-        //         let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
+        //     for (let p = 0, len2 = lnglats.length; p < len2; p++) {
+        //         let lnglat = lnglats[p];
+        //         let [onX, onY] = u_mapGetPointByLnglat(this.map, lnglat);
         //         if ((onX - sizeX + left) <= x && x <= (onX + sizeX + left) && (onY - sizeY + top) <= y && y <= (onY + sizeY + top)) {
         //             /**当前响应对象 */
-        //             let res = this.genEventResponse(latlng, [onX, onY], ev, cursor);
+        //             let res = this.genEventResponse(lnglat, [onX, onY], ev, cursor);
         //             curEvents.push(res);
         //             /**从之前的所有响应对象中查找是否存在位置一样的响应对象 */
         //             let per = leaveEvents.find(e =>
-        //                 e.position.latlng[0] === res.position.latlng[0] && e.position.latlng[1] === res.position.latlng[1]
+        //                 e.position.lnglat[0] === res.position.lnglat[0] && e.position.lnglat[1] === res.position.lnglat[1]
         //             );
         //             if (per) {
         //                 /**存在则说明鼠标没有离开,则从离开事件集合中移除 */

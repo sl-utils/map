@@ -24,15 +24,15 @@ export declare class MapPluginHeat extends MapCanvasLayer {
     options: OptMapPluginHeat;
     /**渲染动态数据 */
     protected renderAnimation(): void;
-    /**重置[纬度，经度]集合
+    /**重置[经度,纬度]集合
      * @param heats 热力数据集合
     */
     setAllHeats(heats: DataMapHeat[]): void;
-    /**添加[纬度，经度],并重绘
+    /**添加[经度,纬度],并重绘
      * @param heat 热力数据
     */
     addHeat(heat: DataMapHeat): void;
-    /**删除[纬度，经度],并重绘
+    /**删除[经度,纬度],并重绘
      * @param heat 热力数据
     */
     delHeat(heat: DataMapHeat): void;

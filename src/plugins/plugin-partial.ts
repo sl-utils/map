@@ -1,4 +1,4 @@
-import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
+import { u_mapGetPointsByLnglats } from "../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUCanvas } from "../canvas";
 import { OptMapCanvas, DataMapParticle, CanvasPosition } from "../types";
@@ -40,7 +40,7 @@ export class MapPluginPartial extends MapCanvasLayer {
     this._allParticle.forEach((particle) => {
       particle.curPoints = [];
       particle.curve = [];
-      let points = (particle.points = u_mapGetPointsByLatlngs(this.map, particle.latlngs) || []);
+      let points = (particle.points = u_mapGetPointsByLnglats(this.map, particle.lnglats) || []);
       for (let i = 0, len = points.length - 1; i < len; i++) {
         const e0 = points[i],
           e1 = points[i + 1];

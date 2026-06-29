@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
-import { u_deepMergeOpt, u_mapGetAngle, u_mapGetDistance, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetAngle, u_mapGetDistance, u_mapGetLngLatByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLnglat } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas";
 import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "../types";
 import { LeafletMouseEvent } from "leaflet";
@@ -87,22 +87,22 @@ export class MapPluginRange extends MapCanvasLayer {
         this.ctrEvent.clearEventsByKey('range');
         // 暂存事件
         let eves: MapEvent[] = [];
-        const { lnglatLists, options } = this, { textPanel, colorFont, colorLine, colorArcStart, colorArc } = this.options;
+        const { lnglatLists, options } = this, { textPanel, colorFont, colorLine, colorArcStart, colorArc } = options;
         const lineLen = lnglatLists.length, lines: MapLine[] = [], arcs: MapArc[] = [], texts: MapText[] = [], imgs: MapImageEvent[] = [];
         for (let i = 0; i < lineLen; i++) {
-            const lnglats = lnglatLists[i], latlngs: [number, number][] = [];
+            const lnglats = lnglatLists[i], lngLats: [number, number][] = [];
             let allDis = 0;
             for (let j = 0, len = lnglats.length; j < len; j++) {
-                let cur = lnglats[j], latlng: [number, number] = [cur[1], cur[0]], text = '起点';
-                latlngs.push(latlng)
+                let cur = lnglats[j], lnglat: [number, number] = cur, text = '起点';
+                lngLats.push(lnglat)
                 if (j == 0) {
-                    let arc: MapArc = { latlng: latlngs[0], size: 3, colorFill: colorArcStart, colorLine: colorLine };
+                    let arc: MapArc = { lnglat: lngLats[0], size: 3, colorFill: colorArcStart, colorLine: colorLine };
                     arcs.push(arc);
-                    texts.push({ text, latlng, colorFill: colorFont, py: -12, px: 5, textAlign: 'right', panel: textPanel })
+                    texts.push({ text, lnglat, colorFill: colorFont, py: -12, px: 5, textAlign: 'right', panel: textPanel })
                 } else {
                     let per = lnglats[j - 1], pr = 5;
-                    let distance = u_mapGetDistance([per[1], per[0]], [cur[1], cur[0]], this.map);
-                    let θ = u_mapGetAngle(this.map, [per[1], per[0]], [cur[1], cur[0]])
+                    let distance = u_mapGetDistance(per, cur, this.map);
+                    let θ = u_mapGetAngle(this.map, per, cur)
                     allDis += distance;
                     text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
                     if (j == len - 1 && (i < lineLen - 1 || this.lnglat === undefined)) {
@@ -110,7 +110,7 @@ export class MapPluginRange extends MapCanvasLayer {
                         pr = 20;
                         // imgs.push(this.drawEndTextImg({ text, latlng, pr }, i))
                         imgs.push({
-                            latlng: latlng,
+                            lnglat: lnglat,
                             posX: 17,
                             posY: 34,
                             left: 20,
@@ -120,7 +120,7 @@ export class MapPluginRange extends MapCanvasLayer {
                             url: '/assets/icons/icon-16.png',
                         });
                         eves.push({
-                            latlng: latlng,
+                            lnglat: lnglat,
                             range: [8, 8],
                             type: 'click',
                             left: 20,
@@ -131,14 +131,14 @@ export class MapPluginRange extends MapCanvasLayer {
                         })
                     }
                     texts.push({
-                        text, colorFill: colorFont, latlng, py: -12, px: 5, textAlign: 'right', panel: textPanel
+                        text, colorFill: colorFont, lnglat, py: -12, px: 5, textAlign: 'right', panel: textPanel
                     })
                 }
             }
-            let arcLatlngs = [...latlngs];
-            arcLatlngs.shift()
-            let arc: MapArc = { latlngs: arcLatlngs, size: 3, colorFill: colorArc, colorLine: colorLine };
-            let line: MapLine = { latlngs, colorLine: colorLine };
+            let arcLnglats = [...lngLats];
+            arcLnglats.shift()
+            let arc: MapArc = { lnglats: arcLnglats, size: 3, colorFill: colorArc, colorLine: colorLine };
+            let line: MapLine = { lnglats, colorLine: colorLine };
             lines.push(line);
             arcs.push(arc);
         }
@@ -161,12 +161,12 @@ export class MapPluginRange extends MapCanvasLayer {
         const last = lnglatLists[lnglatLists.length - 1] || [];
         /**虚线绘制 */
         if (lng !== undefined && lat !== undefined && last.length > 0) {
-            const [lngEnd, latEnd] = last[last.length - 1], move: [number, number] = [lat, lng], end: [number, number] = [latEnd, lngEnd];
+            const end = last[last.length - 1], move: [number, number] = [lng, lat];
             let distance = u_mapGetDistance(move, end, this.map);
             let θ = u_mapGetAngle(this.map, end, move)
             let text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
-            layer.setAllLines([{ latlngs: [move, end], dash: [3, 3], colorLine: '#364A7D' }]);
-            layer.setAllTexts([{ latlng: move, text, colorFill: '#FFFFFF', panel: textPanel }])
+            layer.setAllLines([{ lnglats: [move, end], dash: [3, 3], colorLine: '#364A7D' }]);
+            layer.setAllTexts([{ lnglat: move, text, colorFill: '#FFFFFF', panel: textPanel }])
         }
         layer.drawMapAll();
     }
@@ -176,8 +176,8 @@ export class MapPluginRange extends MapCanvasLayer {
      * @returns MapImage实例
      */
     protected drawEndTextImg(info: MapText, lineId: number): MapImage {
-        let { latlng, panel, text = 'text' } = info;
-        let point = u_mapGetPointByLatlng(this.map, latlng)
+        let { lnglat, panel, text = 'text' } = info;
+        let point = u_mapGetPointByLnglat(this.map, lnglat)
         let ctx = document.createElement('canvas').getContext('2d')!
         /**字体配置决定meas的值，所以计算前需要设置配置 */
         SLUCanvas.setCtxPara(ctx, info);
@@ -193,9 +193,9 @@ export class MapPluginRange extends MapCanvasLayer {
         let y0 = point[1] - (y1 - y2) / 2;
         let size = 16;
         let px = x0 + w + 5 + size / 2, py = y0 - (y1 - y2) / 2;
-        let mapLatlng = u_mapGetLatLngByPoint(this.map, [px, py])
+        let mapLnglat = u_mapGetLngLatByPoint(this.map, [px, py])
         this.ctrEvent.pushEventByKey('text', {
-            latlng: mapLatlng,
+            lnglat: mapLnglat,
             point: [px, py],
             range: [10, 10],
             type: 'click',
@@ -205,7 +205,7 @@ export class MapPluginRange extends MapCanvasLayer {
             }
         })
         return {
-            latlng: mapLatlng,
+            lnglat: mapLnglat,
             url: '/assets/images/icon/icon-16.png',
             size: [16, 16],
             posX: 16,

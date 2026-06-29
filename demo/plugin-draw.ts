@@ -13,16 +13,16 @@ async function main() {
 
   const draw = new MapPluginDraw(map);
   draw.addRect({
-    latlngs: [
-      [26.3, 110.5],
-      [27.3, 112.5],
+    lnglats: [
+      [110.5, 26.3],
+      [112.5, 27.3],
     ],
     maxZoom: 18,
     width: 500,
     height: 50,
   });
   draw.addArc({
-    latlng: [22.5, 114.0],
+    lnglat: [114.0, 22.5],
     size: 100,
   });
 

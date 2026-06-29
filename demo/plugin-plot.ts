@@ -1,5 +1,4 @@
 import { MapPluginPlot, SLUMap } from "../src/index.ts";
-
 function createButton(text: string) {
   const button = document.createElement("button");
   button.className = "button";
@@ -10,6 +9,8 @@ function createButton(text: string) {
 async function main() {
   const map = new SLUMap("map");
   await map.init({ type: "A" });
+  // const mapstyle = "./assets/json/mapstyle-protomaps.json";
+  // await map.init({ type: "M", style: mapstyle });
 
   const plugin = new MapPluginPlot(map, {
     plotOpt: {
@@ -38,11 +39,11 @@ async function main() {
       type: "polygon",
       colorFill: "rgba(37,155,138,0.5)",
       colorLine: "#2c9b8a",
-      latLngs: [
-        [22.8042, 114.1074],
-        [22.7742, 114.1574],
-        [22.7442, 114.1474],
-        [22.6742, 113.6374],
+      lngLats: [
+        [114.1074, 22.8042],
+        [114.1574, 22.7742],
+        [114.1474, 22.7442],
+        [113.6374, 22.6742],
       ],
       name: "sample-polygon",
     },

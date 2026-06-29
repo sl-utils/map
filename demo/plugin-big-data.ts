@@ -49,7 +49,7 @@ function transformShipImage(item: any) {
   return {
     info: { ...item, typeCode: `A${code}` },
     url: new URL("./assets/icons/icon-16.png", import.meta.url).href,
-    latlng: [item.lat, item.lng],
+    lnglat: [item.lng, item.lat],
     size: [16, 16],
     sizeo: [16, 16],
     rotate: item.cog,
@@ -62,10 +62,7 @@ function transformShipImage(item: any) {
 async function main() {
   const map = new SLUMap("map");
   await map.init({ type: "L" });
-  map.setFitView([
-    [38.925008, 118.05103],
-    [38.94, 117.555],
-  ]);
+  map.setFitView([[118.05103, 38.925008], [117.555, 38.94],]);
 
   const plugin = new MapPluginBigData(map, {
     zIndex: 299,

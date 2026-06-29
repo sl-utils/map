@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-import { u_deepMergeOpt, u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetBounds, u_mapGetLngLatByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
 import { MapCanvasLayer, SLUMap } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
 import { LeafletMouseEvent } from "leaflet";
@@ -109,7 +109,7 @@ export class MapPluginFlow extends MapCanvasLayer {
         if (!this.windy) return;
         const self = this;
         const { containerPoint } = u_mapGetMapMouseEvent(e, this.map);
-        const [lat, lng] = u_mapGetLatLngByPoint(this.map, [containerPoint.x, containerPoint.y]);
+        const [lng, lat] = u_mapGetLngLatByPoint(this.map, [containerPoint.x, containerPoint.y]);
         const gridValue = this.windy.interpolate(lng, lat);
         let degrees = 0, speed = 0;
         if (gridValue && !isNaN(gridValue[0]) && !isNaN(gridValue[1]) && gridValue[2]) {

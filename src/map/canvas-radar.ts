@@ -1,6 +1,6 @@
 import { OptMapPluginRadar } from "../types";
 import { SLUCanvas } from "../canvas";
-import { u_deepMergeOpt, u_mapGetPointByLatlng, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetPointByLnglat, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
 import { Map as LMap } from 'leaflet';
 import { Map as MaplibreMap } from 'maplibre-gl';
 
@@ -34,7 +34,7 @@ export class MapCanvasRadar {
         gridDensity: 8,
         dashDensity: 3,
         sizeFix: [0, 0],
-        latlng: [0, 0]
+        lnglat: [0, 0]
     };
     /**所有的雷达数据 */
     private allRadars: OptMapPluginRadar[] = [];
@@ -92,7 +92,7 @@ export class MapCanvasRadar {
     private updatePoint(radar: OptMapPluginRadar): void {
         const { map } = this;
         radar.radius = u_mapGetSizeByMap(map, radar)[0];
-        radar.center = u_mapGetPointByLatlng(map, radar.latlng);
+        radar.center = u_mapGetPointByLnglat(map, radar.lnglat);
     }
     /**绘制雷达网格
      * @param radar 雷达数据

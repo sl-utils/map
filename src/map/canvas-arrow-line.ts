@@ -1,4 +1,4 @@
-import { u_deepMergeOpt, u_mapGetPointsByLatlngs } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetPointsByLnglats } from "../utils/slu-map";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
 import { OptMapPluginArrowLine, MapLine } from "../types";
@@ -65,11 +65,11 @@ export class MapCanvasArrowLine {
   /**更新所有线的点并绘制 */
   public update(): void {
     this.allPoints = this.allLines.map((line) => {
-      const { latlngs = [], latlng = [] } = line;
-      if (latlng.length) {
-        latlngs.push(latlng);
+      const { lnglats = [], lnglat = [] } = line;
+      if (lnglat.length) {
+        lnglats.push(lnglat);
       }
-      return u_mapGetPointsByLatlngs(this.map, latlngs);
+      return u_mapGetPointsByLnglats(this.map, lnglats);
     });
     this.draw();
   }

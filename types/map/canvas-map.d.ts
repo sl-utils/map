@@ -29,13 +29,13 @@ export declare class SLUMap {
      */
     init(options?: Partial<OptMap>): Promise<void>;
     /**设置合适的视图范围
-     * @param latlngs 纬度经度数组
+     * @param lnglats [经度,纬度][]
      * @returns SLUMap实例
      */
-    setFitView(latlngs: [number, number][]): SLUMap;
+    setFitView(lnglats: [number, number][]): SLUMap;
     /**
      * 设置地图中心
-     * @param center 中心 latlng顺序
+     * @param center 中心 [lng,lat]顺序
      * @param zoom 缩放级别
      * @param offset 中心 但需要偏移固定像素
      */

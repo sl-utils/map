@@ -40,11 +40,11 @@ declare function togcj02bd09(lng: number, lat: number): MapLatLng;
 declare function tobd09cj02(bd_lng: number, bd_lat: number): MapLatLng;
 /** 测算两点与Y轴形成的角度大小（Y轴方向 ↑ ）
 * @param map 当前的地图
-* @param latLngA 第一个点的[纬度，经度]
-* @param latLngB 第二个点的[纬度，经度]
+* @param lnglatA 第一个点的[经度,纬度]
+* @param lnglatB 第二个点的[经度,纬度]
 * @returns 两点与正北方的角度
 */
-declare function getAngle(map: AMAP.Map | L.Map | MaplibreMap, latLngA: [number, number], latLngB: [number, number]): number;
+declare function getAngle(map: AMAP.Map | L.Map | MaplibreMap, lnglatA: [number, number], lnglatB: [number, number]): number;
 /**
  * 获取地图边界
  * @params map 地图实例
@@ -56,50 +56,51 @@ declare function getBounds(map: AMAP.Map | L.Map | MaplibreMap): MapBounds;
 */
 declare function getDiffLatitude(distance: number | string): number;
 /**获取两点间的距离
- * @param latLngA A点的[纬度，经度]
- * @param latLngB B点的[纬度，经度]
+ * @param lnglatA A点的[经度,纬度]
+ * @param lnglatB B点的[经度,纬度]
  * @param map 地图实例
  * @returns 两点间的距离(米)
  */
-declare function getDistance(latLngA: [number, number], latLngB: [number, number], map: L.Map | AMAP.Map | MaplibreMap): number;
+declare function getDistance(lnglatA: [number, number], lnglatB: [number, number], map: L.Map | AMAP.Map | MaplibreMap): number;
 /** 将坐标系转换为经纬度数
  * @param map 地图实例
  * @param point 像素点位
- * @returns latlng [lat,lng]
+ * @returns lnglat [lng,lat]
  */
-declare function getLatLngByPoint(map: AMAP.Map | L.Map | MaplibreMap, point: [number, number] | undefined): [number, number];
+declare function getLngLatByPoint(map: AMAP.Map | L.Map | MaplibreMap, point: [number, number] | undefined): [number, number];
 /** 获取指定间隔距离的经度差值
  * @param map 地图实例
  * @param 间隔距离 @default 100
  * @param 纬度点位集合(纬度不同，相同距离经度变化差值不一样)
  */
-declare function getLngDiffByDistance(map: AMAP.Map | L.Map | MaplibreMap, distance: number, latLng: [number, number][]): number;
+declare function getLngDiffByDistance(map: AMAP.Map | L.Map | MaplibreMap, distance: number, lnglats: [number, number][]): number;
 /** 得到坐标系点位
  * @param map 当前的地图
- * @param latlng [纬度,经度]
- * @returns latlng有效时返回 [x,y] , 无效时返回 [-1000, -1000]
+ * @param lnglat [经度,纬度]
+ * @returns lnglat有效时返回 [x,y] , 无效时返回 [-1000, -1000]
  */
-declare function getPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, latlng: [number, number] | undefined): [number, number];
+declare function getPointByLnglat(map: AMAP.Map | L.Map | MaplibreMap, lnglat: [number, number] | undefined): [number, number];
 /** 将经纬度数组转换为坐标系
  * @param map 当前的地图
- * @param latlngs [纬度,经度][]
- * @returns latlngs有效时返回 [x,y][]
+ * @param lnglats [经度,纬度][]
+ * @returns lnglats有效时返回 [x,y][]
  */
-declare function getPointsByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined): [number, number][];
+declare function getPointsByLnglats(map: AMAP.Map | L.Map | MaplibreMap, lnglats: [number, number][] | undefined): [number, number][];
 /**
  * 经纬度数组 转 屏幕像素坐标
  * @param map 当前的地图
- * @param latlngs [纬度,经度][]
+ * @param lng 经度
+ * @param lat 纬度
  * @param zoom 缩放级别
  */
-declare function getProjectedPointByLatlng(map: AMAP.Map | L.Map | MaplibreMap, lng: number, lat: number, zoom: number): [number, number];
+declare function getProjectedPointByLnglat(map: AMAP.Map | L.Map | MaplibreMap, lng: number, lat: number, zoom: number): [number, number];
 /** 将经纬度数组转换为坐标系
  * @param map 当前的地图
- * @param latlngs [经度,纬度][]
+ * @param lnglats [经度,纬度][]
  * @param zoom 缩放级别
  * @returns latlngs有效时返回 [x,y][]
  */
-declare function getProjectedPointByLatlngs(map: AMAP.Map | L.Map | MaplibreMap, latlngs: [number, number][] | undefined, zoom: number): [number, number][];
+declare function getProjectedPointByLnglats(map: AMAP.Map | L.Map | MaplibreMap, lnglats: [number, number][] | undefined, zoom: number): [number, number][];
 /**对大小进行解析设置
  * @param map  当前的地图
  * @param info 大小信息和位置信息
@@ -134,7 +135,7 @@ declare function setMapStatus(map: AMAP.Map | L.Map | MaplibreMap, key: 'dragEna
 /**
  * 设置地图中心
  * @param map 地图实例
- * @param center 中心 latlng顺序
+ * @param center 中心 [lng,lat]顺序
  * @param zoom 缩放级别
  * @param offset 中心 但需要偏移固定像素
  */
@@ -152,18 +153,25 @@ declare function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, allPoints: [n
  * @param northeast 地图右上
  */
 declare function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, southwest: [number, number], northeast: [number, number]): void;
+/**
+ * 设置地图最合适缩放位置中心
+ * @param map 地图实例
+ * @param point 点
+ * @param point2 点2
+ */
+declare function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, number] | [number, number][], point2?: [number, number]): void;
 /**将数值转换为经纬度字符串
  * @param value 数值
  * @param ifLng 是否是经度
  * @param ifDMS 是否是DMS度分秒格式，否则显示度格式，默认精度为5
  * @returns 经纬度字符串
  */
-declare function getLatlngByValue(value: number, ifLng: boolean, ifDMS?: boolean): string;
+declare function getLnglatByValue(value: number, ifLng: boolean, ifDMS?: boolean): string;
 /**根据地图事件获取经纬度
  * @param e 事件
- * @returns 经纬度[lat, lng]
+ * @returns 经纬度[lng, lat]
  */
-declare function getLatLngByEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): [number, number] | null;
+declare function getLngLatByEvent(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): [number, number] | null;
 /**移除数组指定item，会改变原数组，不改变引用地址
  * @param arr 要操作的数组
  * @param item 要移除的对象或某个对象key属性的值
@@ -215,4 +223,4 @@ declare function tsisKeyOf<T extends object>(obj: T, key: PropertyKey): key is k
  * @param type 参数
  */
 declare function tsisMapEventType(type: string): asserts type is MapEventType;
-export { delItem as u_arrItemDel, tobd09gps84 as u_mapTobd09gps84, togcj02gps84 as u_mapTogcj02gps84, togps84bd09 as u_mapTogps84bd09, togps84gcj02 as u_mapTogps84gcj02, togcj02bd09 as u_mapTogcj02bd09, tobd09cj02 as u_mapTobd09cj02, getAngle as u_mapGetAngle, getBounds as u_mapGetBounds, getDiffLatitude as u_mapGetDiffLatitude, getDistance as u_mapGetDistance, getLatLngByPoint as u_mapGetLatLngByPoint, getLngDiffByDistance as u_mapGetLngDiffByDistance, getPointByLatlng as u_mapGetPointByLatlng, getPointsByLatlngs as u_mapGetPointsByLatlngs, getProjectedPointByLatlng as u_mapGetProjectedPointByLatlng, getProjectedPointByLatlngs as u_mapGetProjectedPointByLatlngs, getSizeByMap as u_mapGetSizeByMap, getMapSize as u_mapGetMapSize, setMapStatus as u_mapSetMapStatus, getMapMouseEvent as u_mapGetMapMouseEvent, setFitBounds as u_mapSetFitBounds, setViewCenter as u_mapSetViewCenter, getLatlngByValue as u_mapGetLatlngByValue, getLatLngByEvent as u_mapGetLatLngByEvent, tsMapisLeaflet as u_tsMapisLeaflet, tsMapisAmap as u_tsMapisAmap, tsMapisBaidu as u_tsMapisBaidu, tsMapisMapLibre as u_tsMapisMapLibre, tsEventisLeaflet as u_tsEventisLeaflet, tsEventisAmap as u_tsEventisAmap, tsEventisMapLibre as u_tsEventisMapLibre, tsLayerisLeaflet as u_tsLayerisLeaflet, tsLayerisAmap as u_tsLayerisAmap, tsLayerisMapLibre as u_tsLayerisMapLibre, tsIfOneArrTwoLen as u_tsIfOneArrTwoLen, tsisKeyOf as u_tsIsKeyOf, tsisMapEventType as u_tsIsMapEventType, };
+export { delItem as u_arrItemDel, tobd09gps84 as u_mapTobd09gps84, togcj02gps84 as u_mapTogcj02gps84, togps84bd09 as u_mapTogps84bd09, togps84gcj02 as u_mapTogps84gcj02, togcj02bd09 as u_mapTogcj02bd09, tobd09cj02 as u_mapTobd09cj02, getAngle as u_mapGetAngle, getBounds as u_mapGetBounds, getDiffLatitude as u_mapGetDiffLatitude, getDistance as u_mapGetDistance, getLngLatByPoint as u_mapGetLngLatByPoint, getLngDiffByDistance as u_mapGetLngDiffByDistance, getPointByLnglat as u_mapGetPointByLnglat, getPointsByLnglats as u_mapGetPointsByLnglats, getProjectedPointByLnglat as u_mapGetProjectedPointByLnglat, getProjectedPointByLnglats as u_mapGetProjectedPointByLnglats, getSizeByMap as u_mapGetSizeByMap, getMapSize as u_mapGetMapSize, setMapStatus as u_mapSetMapStatus, getMapMouseEvent as u_mapGetMapMouseEvent, setFitBounds as u_mapSetFitBounds, setViewCenter as u_mapSetViewCenter, getLnglatByValue as u_mapGetLnglatByValue, getLngLatByEvent as u_mapGetLngLatByEvent, tsMapisLeaflet as u_tsMapisLeaflet, tsMapisAmap as u_tsMapisAmap, tsMapisBaidu as u_tsMapisBaidu, tsMapisMapLibre as u_tsMapisMapLibre, tsEventisLeaflet as u_tsEventisLeaflet, tsEventisAmap as u_tsEventisAmap, tsEventisMapLibre as u_tsEventisMapLibre, tsLayerisLeaflet as u_tsLayerisLeaflet, tsLayerisAmap as u_tsLayerisAmap, tsLayerisMapLibre as u_tsLayerisMapLibre, tsIfOneArrTwoLen as u_tsIfOneArrTwoLen, tsisKeyOf as u_tsIsKeyOf, tsisMapEventType as u_tsIsMapEventType, };

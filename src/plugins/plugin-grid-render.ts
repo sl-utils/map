@@ -1,6 +1,6 @@
 import { MapCanvasLayer, SLUMap } from "../map";
 import { SLUWorker } from "../utils/slu-worker";
-import { u_deepMergeOpt, u_mapGetLatLngByPoint, u_mapGetMapSize } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetMapSize } from "../utils/slu-map";
 import { DataMapGrid, OptMapGrid, GridRenderWorkerInfo } from "../types";
 import { Map as MaplibreMap } from "maplibre-gl";
 import { PluginCoastlineMask } from "./plugin-coastline-mask";
@@ -126,9 +126,9 @@ export class MapPluginGridRender extends MapCanvasLayer {
       for (let gx = 0; gx < geoCols; gx++) {
         const px = Math.min(w, gx * geoStep);
         /**屏幕坐标 -> 经纬度 */
-        const latlng = u_mapGetLatLngByPoint(this.map, [px, py]);
-        lngLatBuffer[ptr++] = latlng[1];
-        lngLatBuffer[ptr++] = latlng[0];
+        const lnglat = u_mapGetLngLatByPoint(this.map, [px, py]);
+        lngLatBuffer[ptr++] = lnglat[0];
+        lngLatBuffer[ptr++] = lnglat[1];
       }
     }
     this.worker.post({

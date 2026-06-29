@@ -1,6 +1,6 @@
 import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
-import { u_deepMergeOpt, u_mapGetLatLngByPoint } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";
 import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "../../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
@@ -77,10 +77,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
      * @param bounds 可视区域的像素范围
      */
     protected interpolateFieldByWorker(bounds: GridBounds): void {
-        let [lat, lng] = u_mapGetLatLngByPoint(this.map, [0, 0]);
-        let [, lng1] = u_mapGetLatLngByPoint(this.map, [1, bounds.height]);
+        let [lng, lat] = u_mapGetLngLatByPoint(this.map, [0, 0]);
+        let [lng1, lat1] = u_mapGetLngLatByPoint(this.map, [1, bounds.height]);
         let lats: number[] = [];
-        for (let i = 0, len = bounds.height; i <= len; i++) lats[i] = u_mapGetLatLngByPoint(this.map, [0, i])[0];
+        for (let i = 0, len = bounds.height; i <= len; i++) lats[i] = u_mapGetLngLatByPoint(this.map, [0, i])[1];
         this.worker.post({
             id: this.workerId++,
             width: bounds.width,
@@ -103,7 +103,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
             const column: [number, number, number][] = [];
             for (let x = bounds.x, len2 = bounds.width; x <= len2; x += 2) {
                 //得到可视区X , Y 点对应地图上的经纬度
-                let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
@@ -127,7 +127,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
             let column: [number, number, number][] = [];
             for (let x = bounds.x, len2 = bounds.width; x <= len2; x += pixelInterval) {
                 //得到可视区X , Y 点对应地图上的经纬度
-                let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]

@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByLatlngs, u_mapGetSizeByMap } from '../utils/slu-map'
+import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapGetPointsByLnglats, u_mapGetSizeByMap } from '../utils/slu-map'
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
 import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '../types';
 import { Map as MaplibreMap } from 'maplibre-gl';
@@ -11,7 +11,7 @@ import { u_drawConvertgps84Togcj02 } from '../utils';
  * @param canvas 画布元素
  *  设置/新增/删除：点(arc) 线(line BezierLine) 多边形(rect) 图片(img) Gif(gif) 文本(text) 
  *  绘制：所有需要绘制的类(按drawIndex顺序)
- *  将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
+ *  将对象上经纬度数据(lnglats,lnglat)变换为像素XY的数据(points,point)
  *  设置图片/圆点的大小
  */
 export class MapCanvasDraw {
@@ -175,7 +175,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public addArc(arc: MapArc): MapCanvasDraw {
-    if (!arc.latlngs && !arc.latlng) return this;
+    if (!arc.lnglats && !arc.lnglat) return this;
     u_drawConvertgps84Togcj02(this.map, arc);
     this._allArcs.push(arc);
     return this;
@@ -185,7 +185,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public addLine(line: MapLine): MapCanvasDraw {
-    if (!line.latlngs) return this;
+    if (!line.lnglats) return this;
     u_drawConvertgps84Togcj02(this.map, line);
     this._allLines.push(line);
     return this;
@@ -195,7 +195,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public addBezierLine(line: MapLine): MapCanvasDraw {
-    if (!line.latlngs) return this;
+    if (!line.lnglats) return this;
     u_drawConvertgps84Togcj02(this.map, line);
     this._allBLins.push(line);
     return this;
@@ -205,7 +205,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public addRect(rect: MapRect): MapCanvasDraw {
-    if (!rect.latlngs) return this;
+    if (!rect.lnglats) return this;
     u_drawConvertgps84Togcj02(this.map, rect);
     this._allRects.push(rect);
     return this;
@@ -215,7 +215,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public addText(text: MapText): MapCanvasDraw {
-    if (!text.latlngs && !text.latlng) return this;
+    if (!text.lnglats && !text.lnglat) return this;
     u_drawConvertgps84Togcj02(this.map, text);
     this._allTexts.push(text);
     return this;
@@ -225,7 +225,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public addImg(img: MapImage): MapCanvasDraw {
-    if (!img.latlngs && !img.latlng) return this;
+    if (!img.lnglats && !img.lnglat) return this;
     u_drawConvertgps84Togcj02(this.map, img);
     this._allImgs.push(img);
     return this;
@@ -317,14 +317,14 @@ export class MapCanvasDraw {
     }
     return that;
   }
-  /**将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
-   * latlngs为undefined,points也为undefined
-   * latlng为undefined,point为[0,0]
+  /**将对象上经纬度数据(lnglats,lnglat)变换为像素XY的数据(points,point)
+   * lnglats为undefined,points也为undefined
+   * lnglat为undefined,point为[0,0]
    * @param info 对象
    */
   public transformXY(info: MapPosition & CanvasPosition): void {
-    info.points = u_mapGetPointsByLatlngs(this.map, info.latlngs);
-    info.point = u_mapGetPointByLatlng(this.map, info.latlng);
+    info.points = u_mapGetPointsByLnglats(this.map, info.lnglats);
+    info.point = u_mapGetPointByLnglat(this.map, info.lnglat);
   }
   /**设置图片的大小
    * @param img 图片

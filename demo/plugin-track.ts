@@ -59,21 +59,18 @@ async function main() {
 
   plugin.setTracks(tracks as any);
 
-  const latlngs = tracks
+  const lnglats = tracks
     .map((track: any) => track.data?.[0])
     .filter(Boolean)
-    .map((point: any) => [point.lat, point.lng]);
+    .map((point: any) => [point.lng, point.lat]);
 
-  if (latlngs.length > 0) {
-    const maxLat = Math.max(...latlngs.map((item) => item[0]));
-    const minLat = Math.min(...latlngs.map((item) => item[0]));
-    const maxLng = Math.max(...latlngs.map((item) => item[1]));
-    const minLng = Math.min(...latlngs.map((item) => item[1]));
+  if (lnglats.length > 0) {
+    const maxLat = Math.max(...lnglats.map((item) => item[1]));
+    const minLat = Math.min(...lnglats.map((item) => item[1]));
+    const maxLng = Math.max(...lnglats.map((item) => item[0]));
+    const minLng = Math.min(...lnglats.map((item) => item[0]));
 
-    map.setFitView([
-      [minLat, minLng],
-      [maxLat, maxLng],
-    ]);
+    map.setFitView([[minLng, minLat], [maxLng, maxLat],]);
   }
 
   plugin.addCbClickPoint((event) => {

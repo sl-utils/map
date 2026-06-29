@@ -24,7 +24,7 @@ export class SLUCanvasText {
   */
   public static drawText(info: CanvasTxt, ctx: CanvasRenderingContext2D = this.ctx): void {
     let { text = '', maxWidth = 0, font = ctx.font, ifHide } = info;
-    if (ifHide === true || !text) return null;
+    if (ifHide === true || !text) return;
     this.ctx = ctx;
     /**字体配置决定meas的值，所以计算前需要设置配置 */
     SLUCanvas.setCtxPara(ctx, info);

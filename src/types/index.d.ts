@@ -272,7 +272,7 @@ export type CanvasEvent<T extends CanvasEvent = any, I = any> = {
 export interface OptMap {
     /**地图的类型 @param L leaflet插件 @param A 高德地图 @param B 百度地图 @param M maplibre地图 @default L*/
     type: 'L' | 'A' | 'B' | 'M',
-    /**地图中心点 [lat,lng] @default [22.68471,114.12027] */
+    /**地图中心点 [lng,lat] @default [114.12027,22.68471] */
     center: [number, number],
     /**地图初始层级 @default 11*/
     zoom: number,
@@ -317,19 +317,19 @@ type MapEventType = 'unset' | 'click' | 'dblclick' | 'mousemove' | 'mousedown' |
 type ωCanvasMapImage<I = any> = CanvasImage<I>;
 /**抛出给地图扩展的Gif类 由于地图size可能采用固定m为单位，故采用不限定size的_BaseGif*/
 type ωCanvasMapGif<I = any> = CanvasGif<I>;
-/**地图上的纬度经度 [lat,lng] */
+/**地图上的纬度经度 [lng,lat] */
 interface MapPoint {
     /**单经纬度 */
-    latlng: [number, number],
+    lnglat: [number, number],
     /**经纬度集合 */
-    latlngs?: [number, number][],
+    lnglats?: [number, number][],
 }
-/**地图上的纬度经度 [lat,lng][] */
+/**地图上的纬度经度 [lng,lat][] */
 interface MapPoints {
     /**经纬度集合 */
-    latlngs: [number, number][],
+    lnglats: [number, number][],
     /**单经纬度 */
-    latlng?: [number, number],
+    lnglat?: [number, number],
 }
 /**地图上的大小 */
 interface Size_ {
@@ -356,7 +356,7 @@ export interface MapRbush<T = any> {
     /**最大Y坐标 */
     maxY: number,
     /**经纬度 */
-    latlng: [number, number],
+    lnglat: [number, number],
     /**数据 */
     data: T,
 }
@@ -405,8 +405,8 @@ export interface MapEventRange {
 }
 /**地图事件触发时鼠标位置发出的信息 */
 interface MapCursorPosition extends CanvasCursorPosition {
-    /**地图事件所定义的纬经度 [lat,lng] */
-    latlng: [number, number];
+    /**地图事件所定义的纬经度 [lng,lat] */
+    lnglat: [number, number];
 }
 /**地图控件信息 */
 interface MapControlInfo {
@@ -474,7 +474,7 @@ export type MapLineEvent<I = any> = MapLine & MapEvent<MapEvent, I>;
 
 
 /**配置--地图画布配置 */
-interface OptMapCanvas extends LayerOptions,CustomLayerOption {
+interface OptMapCanvas extends LayerOptions, CustomLayerOption {
     /**画布挂载的div节点 
      * @default 'canvas'
      * map默认创建 mapPane tilePane shadowPane overlayPane markerPane tooltipPane popupPane,
@@ -649,7 +649,7 @@ interface MapTrackInfos {
 /**每一条轨迹的信息 */
 type MapTrackInfo<T = {}> = CanvasLine & {
     /**构成线的点位 */
-    latlngs: [number, number][];
+    lnglats: [number, number][];
     /**个点位的信息（差异数据） */
     infos: MapTrackPointInfo[];
 } & T;
@@ -682,14 +682,14 @@ type MapTrackPointInfoByTime = {
 /**数据--热力图数据 */
 export interface DataMapHeat {
     /**经纬度点 */
-    latlng: [number, number]
+    lnglat: [number, number]
     /**权重 */
     weight?: number
 }
 /**数据--地图粒子数据 */
 export interface DataMapParticle extends Line {
     /**canvas上对应的坐标 */
-    latlngs?: [number, number][];
+    lnglats?: [number, number][];
     /**计算得到的贝塞尔曲线控制点*/
     curve?: [number, number][];
     /**粒子速度(小于0.1采用百分比)(每帧移动距离) */
@@ -715,10 +715,10 @@ export interface DataMapParticle extends Line {
 type MapPlotType = 'point' | 'line' | 'polygon' | 'circle' | 'rect';
 /**细分标绘类型 */
 type MapPlotDetailType =
-    | ({ type: 'point'; latLngs: [[number, number]] | []; } & CanvasImage)
-    | { type: 'circle'; latLngs: [[number, number], [number, number]] | [[number, number]] | []; rail?: number; }
-    | { type: 'rect'; latLngs: [[number, number], [number, number]] | []; }
-    | { type: 'line' | 'polygon'; latLngs: [number, number][]; };
+    | ({ type: 'point'; lngLats: [[number, number]] | []; } & CanvasImage)
+    | { type: 'circle'; lngLats: [[number, number], [number, number]] | [[number, number]] | []; rail?: number; }
+    | { type: 'rect'; lngLats: [[number, number], [number, number]] | []; }
+    | { type: 'line' | 'polygon'; lngLats: [number, number][]; };
 /**数据--地图标绘数据 */
 type DataMapPlot = OptCanvas & {
     /**名称 */
@@ -870,7 +870,7 @@ export interface OptMapPluginFixedHeat extends OptMapCanvas {
 /**数据--风速风向数据类型 */
 export interface DataMapWind {
     /**纬度经度 */
-    latlng: [number, number]
+    lnglat: [number, number]
     /**风速 */
     speed: number;
     /**风向 */

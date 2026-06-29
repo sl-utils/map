@@ -7,7 +7,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * @param canvas 画布元素
  *  设置/新增/删除：点(arc) 线(line BezierLine) 多边形(rect) 图片(img) Gif(gif) 文本(text)
  *  绘制：所有需要绘制的类(按drawIndex顺序)
- *  将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
+ *  将对象上经纬度数据(lnglats,lnglat)变换为像素XY的数据(points,point)
  *  设置图片/圆点的大小
  */
 export declare class MapCanvasDraw {
@@ -142,9 +142,9 @@ export declare class MapCanvasDraw {
      * @returns MapCanvasDraw实例
      */
     delAll(type?: 'all' | 'text' | 'arc' | 'line' | 'bezier' | 'rect' | 'img' | 'gif'): MapCanvasDraw;
-    /**将对象上经纬度数据(latlngs,latlng)变换为像素XY的数据(points,point)
-     * latlngs为undefined,points也为undefined
-     * latlng为undefined,point为[0,0]
+    /**将对象上经纬度数据(lnglats,lnglat)变换为像素XY的数据(points,point)
+     * lnglats为undefined,points也为undefined
+     * lnglat为undefined,point为[0,0]
      * @param info 对象
      */
     transformXY(info: MapPosition & CanvasPosition): void;

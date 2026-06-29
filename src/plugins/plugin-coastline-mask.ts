@@ -1,5 +1,5 @@
 import bboxClip from '@turf/bbox-clip';
-import { u_mapGetPointByLatlng } from '../utils/slu-map';
+import { u_mapGetPointByLnglat } from '../utils/slu-map';
 import { Map as LMap } from 'leaflet';
 import { Map as MaplibreMap } from 'maplibre-gl';
 import { BBox, DataCoastline } from '../types';
@@ -173,7 +173,7 @@ export class PluginCoastlineMask {
                         first = true;
                     }
                     prevLng = lng;
-                    const [x, y] = u_mapGetPointByLatlng(this.map, [lat, lng]);
+                    const [x, y] = u_mapGetPointByLnglat(this.map, [lng, lat]);
                     if (first) {
                         ctx.moveTo(x, y);
                         first = false;

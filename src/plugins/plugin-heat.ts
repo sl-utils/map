@@ -1,7 +1,7 @@
 import { MapCanvasLayer, SLUMap } from "../map";
 import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat } from "../utils/slu-map";
 import { OptMapPluginHeat, DataMapHeat } from "../types";
 import { u_drawConvertgps84Togcj02 } from "../utils";
 /**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] 
@@ -55,7 +55,7 @@ export class MapPluginHeat extends MapCanvasLayer {
             this._addGradient(this.computeZoomGradient().toString());
         }
     }
-    /**重置[纬度，经度]集合
+    /**重置[经度,纬度]集合
      * @param heats 热力数据集合
     */
     public setAllHeats(heats: DataMapHeat[]): void {
@@ -63,14 +63,14 @@ export class MapPluginHeat extends MapCanvasLayer {
         this._allHeats = heats;
         return this._redraw();
     }
-    /**添加[纬度，经度],并重绘
+    /**添加[经度,纬度],并重绘
      * @param heat 热力数据
     */
     public addHeat(heat: DataMapHeat): void {
         this._allHeats.push(heat);
         return this._redraw();
     }
-    /**删除[纬度，经度],并重绘
+    /**删除[经度,纬度],并重绘
      * @param heat 热力数据
     */
     public delHeat(heat: DataMapHeat): void {
@@ -115,7 +115,7 @@ export class MapPluginHeat extends MapCanvasLayer {
         for (i = 0, len = this._allHeats.length; i < len; i++) {
             let heat: DataMapHeat = this._allHeats[i]
             /**得到像素点位 */
-            let p = u_mapGetPointByLatlng(this.map, heat.latlng);
+            let p = u_mapGetPointByLnglat(this.map, heat.lnglat);
             /**判断点位是否在范围内 */
             if (bounds.contains(p)) {
                 /** X，Y拖动后同一经纬度对应的Point会变化，为确保热力图和之前的一模一样，故需要减去偏移量*/

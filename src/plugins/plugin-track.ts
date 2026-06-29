@@ -199,14 +199,14 @@ export class MapPluginTrack {
     let { widthLine, colorLine } = this.options,
       { data } = track,
       time = this.time;
-    let latlngs: [number, number][] = [];
+    let lnglats: [number, number][] = [];
     for (let i = 0, len = data.length; i < len; i++) {
       let e = data[i];
-      latlngs.push([e.lat, e.lng]);
+      lnglats.push([e.lng, e.lat]);
       if (e.timeStamp > time && i > 1) break;
     }
     let line: MapLine = {
-      latlngs,
+      lnglats,
       widthLine,
       colorLine,
       minZoom: 10,
@@ -221,11 +221,11 @@ export class MapPluginTrack {
       { data } = track;
     if (!ifArc) return;
     let time = 0;
-    let latlngs: [number, number][] = data.map((e, i) => {
-      if (arcInterval < 1000 && i % (arcInterval + 1) === 0) return [e.lat, e.lng];
+    let lnglats: [number, number][] = data.map((e, i) => {
+      if (arcInterval < 1000 && i % (arcInterval + 1) === 0) return [e.lng, e.lat];
       if (arcInterval >= 1000 && (e.timeStamp - time) / arcInterval > 1) {
         time = e.timeStamp;
-        return [e.lat, e.lng];
+        return [e.lng, e.lat];
       }
       return undefined;
     }).filter((e): e is [number, number] => e !== undefined);
@@ -234,7 +234,7 @@ export class MapPluginTrack {
       {
         size: sizeArc,
         colorFill: colorArcFill,
-        latlngs,
+        lnglats,
         colorLine: colorArc,
         minZoom: 10,
       }
@@ -253,12 +253,12 @@ export class MapPluginTrack {
     if (!data || data.length < 2) return;
     let s = data[0],
       e = data[data.length - 1];
-    let slatlng: [number, number] = [s.lat, s.lng],
-      elatlng: [number, number] = [e.lat, e.lng];
-    let sText: MapText = { latlng: slatlng, text: textStart, colorFill: colorTextStart, py: -10, ifShadow: true };
-    let eText: MapText = { latlng: elatlng, text: textEnd, colorFill: colorTextEnd, py: -10, ifShadow: true };
-    let sPoint: MapArc = { latlng: slatlng, colorFill: colorArcStart, size: sizeArc };
-    let ePoint: MapArc = { latlng: elatlng, colorFill: colorArcEnd, size: sizeArc };
+    let slatlng: [number, number] = [s.lng, s.lat],
+      elatlng: [number, number] = [e.lng, e.lat];
+    let sText: MapText = { lnglat: slatlng, text: textStart, colorFill: colorTextStart, py: -10, ifShadow: true };
+    let eText: MapText = { lnglat: elatlng, text: textEnd, colorFill: colorTextEnd, py: -10, ifShadow: true };
+    let sPoint: MapArc = { lnglat: slatlng, colorFill: colorArcStart, size: sizeArc };
+    let ePoint: MapArc = { lnglat: elatlng, colorFill: colorArcEnd, size: sizeArc };
     layerDraw.addText(sText);
     layerDraw.addText(eText);
     layerDraw.addArc(sPoint);
@@ -270,11 +270,11 @@ export class MapPluginTrack {
   */
   private addPointEvent(track: DataMapTrackGroup, eves: MapEvent[]): void {
     if (!this.cbClickPoint) return;
-    let latlngs: [number, number][] = track.data.map((e) => [e.lat, e.lng])!;
+    let lnglats: [number, number][] = track.data.map((e) => [e.lng, e.lat])!;
     eves.push({
       type: ["click"],
       minZoom: 10,
-      latlngs: latlngs,
+      lnglats: lnglats,
       info: track,
       range: [3, 3],
       cb: (e: MapEventResponse) => {
@@ -319,8 +319,8 @@ export class MapPluginTrack {
     if (sData == eData) {
       return { lat: sLat, lng: sLng, SPEED, time: new Date(time * 1000), rotate, speed: 0 };
     }
-    // let [sX, sY] = u_mapGetPointByLatlng(this.map, [sLat, sLng]),
-    //     [eX, eY] = u_mapGetPointByLatlng(this.map, [eLat, eLng]);
+    // let [sX, sY] = u_mapGetPointByLnglat(this.map, [sLng, sLat]),
+    //   [eX, eY] = u_mapGetPointByLnglat(this.map, [eLng, eLat]);
     /**Math.atan2 正X轴和点(x, y)与原点连线之间的偏移角度*/
     let angleY = 90 - (Math.atan2(eLat - sLat, eLng - sLng) * 180) / Math.PI;
     /**计算指定时间的经纬度 */

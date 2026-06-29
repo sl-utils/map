@@ -24,7 +24,7 @@ export declare class MapPluginPlot extends MapCanvasLayer {
     private plotList;
     /**正在动态绘制的标(仅仅改变图形不会动态改变原始数据) */
     plotAni?: DataMapPlot;
-    /**记录当前鼠标纬经度 */
+    /**记录当前鼠标经纬度 [lng, lat] */
     private curPoint?;
     /** 单击事件 */
     private eventClickTimer;
@@ -78,7 +78,7 @@ export declare class MapPluginPlot extends MapCanvasLayer {
      */
     private drawPlot;
     /**各个点的平均值计算中心点
-     * @param points 纬度经度点数组
+     * @param points [经度,纬度][]
      * @param type 标绘类型
      * @returns 中心点[number, number]
      */
@@ -94,12 +94,12 @@ export declare class MapPluginPlot extends MapCanvasLayer {
      */
     private calcCenter3;
     /**计算矩形的四个点
-     * @param latLngs 纬度经度点数组
+     * @param lnglats 经度纬度点数组
      * @returns 矩形四个点[number, number]
      */
     private calcRect;
     /**计算圆的半径
-     * @param latLngs 纬度经度点数组
+     * @param lnglats 经度纬度点数组
      * @returns 圆的半径
      */
     private calcRadius;
@@ -128,7 +128,7 @@ export declare class MapPluginPlot extends MapCanvasLayer {
      */
     private setRectEditPoint;
     /**添加响应事件
-     * @param latLng 经纬度
+     * @param lngLat 经纬度
      * @param i 索引
      * @param plotInfo 标绘数据
      * @param eves 事件

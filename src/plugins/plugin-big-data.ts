@@ -1,7 +1,7 @@
 import rbush, { BBox } from "rbush";
 import { MapPluginDraw } from "./plugin-draw";
 import { SLUCanvasImg, SLUCanvasText } from "../canvas";
-import { u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_mapGetPointByLnglat } from "../utils/slu-map";
 import { SLUMap } from "../map";
 import { OptMapCanvas, OptBigData, MapRbush, MapImage, MapImageEvent, MapImageRender } from "../types";
 import RBush from "rbush";
@@ -123,17 +123,17 @@ export class MapPluginBigData extends MapPluginDraw {
    * @returns rbush数据格式
    */
   private transformRbush(img: MapImage): MapRbush<MapImage> {
-    const { latlng, size = [0, 0], left = 0, top = 0 } = img;
+    const { lnglat, size = [0, 0], left = 0, top = 0 } = img;
     let sizeX: number = size[0],
       sizeY: number = size[1];
-    let [x, y] = u_mapGetPointByLatlng(this.map, latlng);
+    let [x, y] = u_mapGetPointByLnglat(this.map, lnglat);
     return {
       minX: x - sizeX / 2 + left,
       minY: y - sizeY / 2 + top,
       maxX: x + sizeX / 2 + left,
       maxY: y + sizeY / 2 + top,
       data: img,
-      latlng: latlng
+      lnglat: lnglat
     };
   }
   /**绘制所有需要绘制的类
