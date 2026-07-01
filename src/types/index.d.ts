@@ -293,7 +293,7 @@ export interface OptMap {
     /**显示标签(省会、地名等) @param AMap @default true  */
     showLabel: boolean,
     /**maplibre地图样式 url/json自定义样式 */
-    style: string | StyleSpecification,
+    style?: string | StyleSpecification,
 }
 /**高德地图图层配置项 */
 interface OptAMapLayer extends CustomLayerOption {

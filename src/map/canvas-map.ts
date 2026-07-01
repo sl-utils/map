@@ -187,7 +187,7 @@ export class SLUMap {
      * @returns maplibregl.Map实例
      */
     private async initMaplibre(ele: string, opt: Partial<OptMap>): Promise<MaplibreMap> {
-        const { style, zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
+        const { style = 'https://tiles.openfreemap.org/styles/bright', zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
         let map = new MaplibreMap({
             container: ele,
             style,
