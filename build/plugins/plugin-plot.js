@@ -1,6 +1,6 @@
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
-import { u_mapGetLatLngByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLatlng, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLnglat, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
 export class MapPluginPlot extends MapCanvasLayer {
     constructor(sluMap, options) {
         const map = sluMap.map, { plotOpt, editOpt, textOpt } = options || {};
@@ -10,7 +10,7 @@ export class MapPluginPlot extends MapCanvasLayer {
             className: 'plot',
         };
         this.editArc = {
-            latlng: [0, 0],
+            lnglat: [0, 0],
             colorFill: '#fff',
             colorLine: '#2C9B8A',
             size: 4,
@@ -22,7 +22,7 @@ export class MapPluginPlot extends MapCanvasLayer {
             ifShadow: true,
         };
         this.plotList = [];
-        this.plotAni = { latLngs: [], type: 'polygon', ifEdit: true };
+        this.plotAni = { lngLats: [], type: 'polygon', ifEdit: true };
         this.eventClickTimer = null;
         this.eventClick = (e) => {
             this.eventClickTimer = setTimeout(() => {
@@ -35,14 +35,14 @@ export class MapPluginPlot extends MapCanvasLayer {
                     const { lat, lng } = u_mapTogcj02gps84(latlng.lng, latlng.lat);
                     lat84 = lat, lng84 = lng;
                 }
-                const point = [lat84, lng84];
+                const point = [lng84, lat84];
                 if (plot.type === 'polygon' || plot.type === 'line') {
-                    plot.latLngs.push(point);
+                    plot.lngLats.push(point);
                 }
-                else if (plot.latLngs.length < 2) {
-                    plot.latLngs = [...plot.latLngs, point];
+                else if (plot.lngLats.length < 2) {
+                    plot.lngLats = [...plot.lngLats, point];
                 }
-                if ((plot.type === 'rect' || plot.type === 'circle') && plot.latLngs.length >= 2) {
+                if ((plot.type === 'rect' || plot.type === 'circle') && plot.lngLats.length >= 2) {
                     this.eventDblclick();
                 }
                 else {
@@ -58,7 +58,7 @@ export class MapPluginPlot extends MapCanvasLayer {
                 const { lat, lng } = u_mapTogcj02gps84(latlng.lng, latlng.lat);
                 lat84 = lat, lng84 = lng;
             }
-            this.curPoint = [lat84, lng84];
+            this.curPoint = [lng84, lat84];
             this.renderAnimation();
         };
         this.eventDblclick = () => {
@@ -69,8 +69,8 @@ export class MapPluginPlot extends MapCanvasLayer {
             const plot = this.plotAni;
             if (!plot)
                 return;
-            const { type, latLngs } = plot;
-            if (type === 'polygon' && latLngs.length < 3) {
+            const { type, lngLats } = plot;
+            if (type === 'polygon' && lngLats.length < 3) {
                 return;
             }
             this.close();
@@ -78,18 +78,22 @@ export class MapPluginPlot extends MapCanvasLayer {
             this._redraw();
         };
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        Object.assign(this.options, plotOpt);
-        this.ctrMapAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { className: this.options.className + ' ani' }));
+        if (plotOpt)
+            this.options = u_deepMergeOpt(this.options, plotOpt);
+        const aniOpt = u_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
+        this.ctrMapAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.ctrEvent = new MapCanvasEvent(map);
-        Object.assign(this.editArc, editOpt);
-        Object.assign(this.plotText, textOpt);
+        if (editOpt)
+            this.editArc = u_deepMergeOpt(this.editArc, editOpt);
+        if (textOpt)
+            this.plotText = u_deepMergeOpt(this.plotText, textOpt);
     }
     open(type) {
         let i = this.plotList.length - 1 > 0 ? this.plotList.length - 1 : 0;
         this.eventSwitch(true);
         let plot = this.plotList.find(info => info.ifEdit);
         if (plot) {
-            plot.latLngs = [];
+            plot.lngLats = [];
             plot.type = type;
             plot.ifEdit = true;
             this.plotAni = plot;
@@ -97,12 +101,12 @@ export class MapPluginPlot extends MapCanvasLayer {
         }
         if (this.plotAni && this.plotAni === this.plotList[i] && this.plotAni.ifEdit) {
             const cur = this.plotAni;
-            cur.latLngs = [];
+            cur.lngLats = [];
             cur.type = type;
             cur.ifEdit = true;
             return cur;
         }
-        if (this.plotList[i] && this.plotList[i].latLngs.length > 0)
+        if (this.plotList[i] && this.plotList[i].lngLats.length > 0)
             i++;
         const newplot = this.createPlot(type);
         this.plotList[i] = this.plotAni = newplot;
@@ -155,7 +159,7 @@ export class MapPluginPlot extends MapCanvasLayer {
         this.ctrMapDraw.delAll();
         this.ctrMapDraw.reSetCanvas();
         this.plotList.forEach((info, i) => {
-            if (info.latLngs.length > 0 && !info.ifEdit && info.ifHide !== true) {
+            if (info.lngLats.length > 0 && !info.ifEdit && info.ifHide !== true) {
                 this.drawPlot(this.ctrMapDraw, info, info.type);
             }
         });
@@ -169,14 +173,14 @@ export class MapPluginPlot extends MapCanvasLayer {
     createPlot(type) {
         switch (type) {
             case 'point':
-                return { type: 'point', latLngs: [], ifEdit: true, url: '', points: [] };
+                return { type: 'point', lngLats: [], ifEdit: true, url: '', points: [] };
             case 'circle':
-                return { type: 'circle', latLngs: [], ifEdit: true };
+                return { type: 'circle', lngLats: [], ifEdit: true };
             case 'rect':
-                return { type: 'rect', latLngs: [], ifEdit: true };
+                return { type: 'rect', lngLats: [], ifEdit: true };
             case 'line':
             case 'polygon':
-                return { type, latLngs: [], ifEdit: true };
+                return { type, lngLats: [], ifEdit: true };
         }
     }
     genAniPlot() {
@@ -186,9 +190,9 @@ export class MapPluginPlot extends MapCanvasLayer {
         let polygon = this.plotList.find(info => info.ifEdit);
         if (polygon) {
             this.plotAni = polygon;
-            let plotAni = { ...polygon }, latlngs = polygon.latLngs;
-            if (this.curPoint && (plotAni.type === 'circle' && latlngs.length < 2 || plotAni.type !== 'circle')) {
-                plotAni.latLngs = [...latlngs, this.curPoint];
+            let plotAni = { ...polygon }, lngLats = polygon.lngLats;
+            if (this.curPoint && (plotAni.type === 'circle' && lngLats.length < 2 || plotAni.type !== 'circle')) {
+                plotAni.lngLats = [...lngLats, this.curPoint];
             }
             this.drawPlot(this.ctrMapAniDraw, plotAni, plotAni.type);
             this.openMouseEdit(plotAni);
@@ -202,42 +206,42 @@ export class MapPluginPlot extends MapCanvasLayer {
         info.colorLine = info.colorLine || info.colorFill;
         switch (info.type) {
             case 'line':
-                layer.addLine({ ...info, latlngs: info.latLngs });
+                layer.addLine({ ...info, lnglats: info.lngLats });
                 break;
             case 'polygon':
-                let polygon = { ...info, latlngs: info.latLngs };
+                let polygon = { ...info, lnglats: info.lngLats };
                 layer.addRect(polygon);
                 break;
             case 'circle':
-                if (info.latLngs.length == 0)
+                if (info.lngLats.length == 0)
                     break;
-                let [slatlng, elatlng] = info.latLngs, rail = info.rail || 0;
-                if (!elatlng) {
-                    let [lat, lng] = slatlng;
-                    let lngDis = u_mapGetLngDiffByDistance(this.map, rail, [[lat, lng]]);
-                    info.latLngs[1] = [lat, lng + lngDis];
+                let [slnglat, elnglat] = info.lngLats, rail = info.rail || 0;
+                if (!elnglat) {
+                    let [lng, lat] = slnglat;
+                    let lngDis = u_mapGetLngDiffByDistance(this.map, rail, [slnglat]);
+                    info.lngLats[1] = [lng + lngDis, lat];
                 }
-                let size = this.calcRadius(info.latLngs);
-                layer.addArc({ ...info, size, latlng: slatlng });
+                let size = this.calcRadius(info.lngLats);
+                layer.addArc({ ...info, size, lnglat: slnglat });
                 break;
             case 'rect':
-                const latlngs = this.calcRect(info.latLngs);
-                let rect = { ...info, latlngs };
+                const lnglats = this.calcRect(info.lngLats);
+                let rect = { ...info, lnglats };
                 layer.addRect(rect);
                 break;
             case 'point':
-                if (!info.latLngs.length)
+                if (!info.lngLats.length)
                     break;
                 const { url, size: pSize = [16, 16] } = info;
                 if (url) {
-                    layer.addImg({ ...info, latlng: info.latLngs[0], size: pSize });
+                    layer.addImg({ ...info, lnglat: info.lngLats[0], size: pSize });
                 }
                 else {
-                    layer.addArc({ ...info, size: 4, dash: [0, 0], latlng: info.latLngs[0] });
+                    layer.addArc({ ...info, size: 4, dash: [0, 0], lnglat: info.lngLats[0] });
                 }
                 break;
         }
-        let name = { ...this.plotText, text: info.name || '', latlng: this.calcCenter(info.latLngs, type) };
+        let name = { ...this.plotText, text: info.name || '', lnglat: this.calcCenter(info.lngLats, type) };
         layer.addText(name);
     }
     calcCenter(points, type) {
@@ -299,22 +303,22 @@ export class MapPluginPlot extends MapCanvasLayer {
         const center = [xSum / areaSum, ySum / areaSum];
         return center;
     }
-    calcRect(latLngs) {
-        if (latLngs.length < 2)
-            return latLngs;
-        let latlngs = [];
-        let [latlng1, latlng2] = latLngs;
-        latlngs.push(latlng1);
-        latlngs.push([latlng1[0], latlng2[1]]);
-        latlngs.push(latlng2);
-        latlngs.push([latlng2[0], latlng1[1]]);
-        return latlngs;
+    calcRect(lnglats) {
+        if (lnglats.length < 2)
+            return lnglats;
+        let lngLats = [];
+        let [lnglat1, lnglat2] = lnglats;
+        lngLats.push(lnglat1);
+        lngLats.push([lnglat1[0], lnglat2[1]]);
+        lngLats.push(lnglat2);
+        lngLats.push([lnglat2[0], lnglat1[1]]);
+        return lngLats;
     }
-    calcRadius(latLngs) {
-        if (latLngs.length < 2)
+    calcRadius(lnglats) {
+        if (lnglats.length < 2)
             return 0;
-        let [px1, py1] = u_mapGetPointByLatlng(this.map, latLngs[0]);
-        let [px2, py2] = u_mapGetPointByLatlng(this.map, latLngs[1]);
+        let [px1, py1] = u_mapGetPointByLnglat(this.map, lnglats[0]);
+        let [px2, py2] = u_mapGetPointByLnglat(this.map, lnglats[1]);
         let x = Math.abs(px1 - px2);
         let y = Math.abs(py1 - py2);
         return Math.sqrt(x * x + y * y);
@@ -335,79 +339,79 @@ export class MapPluginPlot extends MapCanvasLayer {
         }
     }
     setCircleEditPoint(plotInfo) {
-        let { latLngs } = plotInfo, eves = [];
-        for (let i = 0, len = latLngs.length; i < len; i++) {
-            let s = latLngs[i];
+        let { lngLats } = plotInfo, eves = [];
+        for (let i = 0, len = lngLats.length; i < len; i++) {
+            let s = lngLats[i];
             this.addEvent(s, i, plotInfo, eves, false);
         }
-        let line = { ...this.options, latlngs: plotInfo.latLngs };
+        let line = { ...this.options, lnglats: plotInfo.lngLats };
         this.ctrMapAniDraw.addLine(line);
         this.ctrEvent.setEventsByKey(eves, 'circleEdit');
     }
     setPolygonEditPoint(plotInfo) {
-        let { latLngs } = plotInfo, eves = [];
-        for (let i = 0, len = latLngs.length; i < len; i++) {
-            let s = latLngs[i];
+        let { lngLats } = plotInfo, eves = [];
+        for (let i = 0, len = lngLats.length; i < len; i++) {
+            let s = lngLats[i];
             this.addEvent(s, i, plotInfo, eves, false);
             if (!this.curPoint) {
-                let next = i + 1 == len ? 0 : i + 1, e = latLngs[next];
-                let [px1, py1] = u_mapGetPointByLatlng(this.map, s);
-                let [px2, py2] = u_mapGetPointByLatlng(this.map, e);
+                let next = i + 1 == len ? 0 : i + 1, e = lngLats[next];
+                let [px1, py1] = u_mapGetPointByLnglat(this.map, s);
+                let [px2, py2] = u_mapGetPointByLnglat(this.map, e);
                 let x = (px1 + px2) / 2, y = (py1 + py2) / 2;
-                let point = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let point = u_mapGetLngLatByPoint(this.map, [x, y]);
                 this.addEvent(point, i, plotInfo, eves, true);
             }
         }
         this.ctrEvent.setEventsByKey(eves, 'polygonEdit');
     }
     setPointEdit(plotInfo) {
-        let { latLngs } = plotInfo;
-        if (!latLngs || latLngs.length != 2)
+        let { lngLats } = plotInfo;
+        if (!lngLats || !lngLats[0] || lngLats[0].length != 2)
             return;
         let eves = [];
-        this.addEvent(latLngs[0], 0, plotInfo, eves);
+        this.addEvent(lngLats[0], 0, plotInfo, eves);
         this.ctrEvent.setEventsByKey(eves, 'pointEdit');
     }
     setLineEditPoint(plotInfo) {
-        let { latLngs } = plotInfo, eves = [];
-        for (let i = 0, len = latLngs.length; i < len; i++) {
-            let s = latLngs[i];
+        let { lngLats } = plotInfo, eves = [];
+        for (let i = 0, len = lngLats.length; i < len; i++) {
+            let s = lngLats[i];
             this.addEvent(s, i, plotInfo, eves, false);
         }
         this.ctrEvent.setEventsByKey(eves, 'lineEdit');
     }
     setRectEditPoint(plotInfo) {
-        let { latLngs } = plotInfo, eves = [];
-        let latlngs = this.calcRect(latLngs);
-        for (let i = 0, len = latlngs.length; i < len; i++) {
-            let latLng = latlngs[i];
-            this.addEvent(latLng, i, plotInfo, eves, false);
+        let { lngLats } = plotInfo, eves = [];
+        let lnglats = this.calcRect(lngLats);
+        for (let i = 0, len = lnglats.length; i < len; i++) {
+            let lngLat = lnglats[i];
+            this.addEvent(lngLat, i, plotInfo, eves, false);
         }
         this.ctrEvent.setEventsByKey(eves, 'rectEdit');
     }
-    addEvent(latLng, i, plotInfo, eves, ifVirtual) {
+    addEvent(lngLat, i, plotInfo, eves, ifVirtual) {
         const that = this, { map } = that;
-        let circle = { ...this.editArc, latlng: latLng }, { latLngs, type } = plotInfo;
+        let circle = { ...this.editArc, lnglat: lngLat }, { lngLats, type } = plotInfo;
         if (ifVirtual) {
             circle.size = 3, circle.fillAlpha = 0.9;
         }
         ;
         this.ctrMapAniDraw.addArc(circle);
-        let hitLatLng = latLng;
+        let hitLnglat = lngLat;
         if (u_tsMapisAmap(this.map)) {
-            const { lat, lng } = u_mapTogps84gcj02(latLng[1], latLng[0]);
-            hitLatLng = [lat, lng];
+            const { lat, lng } = u_mapTogps84gcj02(lngLat[0], lngLat[1]);
+            hitLnglat = [lng, lat];
         }
         eves.push({
-            latlng: hitLatLng,
+            lnglat: hitLnglat,
             type: 'mousedown',
             cb: () => {
                 u_mapSetMapStatus(map, 'dragEnable', false);
                 if (ifVirtual) {
-                    for (let j = latLngs.length, end = i + 1; j > end; j--) {
-                        latLngs[j] = latLngs[j - 1];
+                    for (let j = lngLats.length, end = i + 1; j > end; j--) {
+                        lngLats[j] = lngLats[j - 1];
                     }
-                    latLngs[i + 1] = latLng;
+                    lngLats[i + 1] = lngLat;
                     this.cbPointChange && this.cbPointChange(this.plotAni);
                 }
                 this._redraw();
@@ -419,15 +423,15 @@ export class MapPluginPlot extends MapCanvasLayer {
                         lat84 = lat, lng84 = lng;
                     }
                     if (type === 'polygon' || type === 'circle' || type === 'point' || type === 'line') {
-                        latLng[0] = lat84;
-                        latLng[1] = lng84;
+                        lngLat[0] = lng84;
+                        lngLat[1] = lat84;
                     }
                     else if (type === 'rect') {
-                        let points = this.calcRect(latLngs);
+                        let points = this.calcRect(lngLats);
                         let index = (i + 2) % 4;
-                        let p1 = [lat84, lng84];
+                        let p1 = [lng84, lat84];
                         let p2 = points[index];
-                        this.plotAni.latLngs = [p1, p2].filter(p => !!p);
+                        this.plotAni.lngLats = [p1, p2].filter(p => !!p);
                     }
                     this.renderAnimation();
                 };

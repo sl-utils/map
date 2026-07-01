@@ -1,4 +1,4 @@
-import { u_arrItemDel, u_mapGetPointByLatlng, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
+import { u_arrItemDel, u_mapGetPointByLnglat, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
 import rbush from 'rbush';
 export class MapCanvasEvent {
     constructor(map) {
@@ -129,8 +129,8 @@ export class MapCanvasEvent {
         if (event.ifHide === true)
             return;
         let ev = {
-            latlng: event.latlng || undefined,
-            latlngs: event.latlngs || [],
+            lnglat: event.lnglat || undefined,
+            lnglats: event.lnglats || [],
             type: event.type,
             info: event.info,
             cb: event.cb
@@ -139,18 +139,18 @@ export class MapCanvasEvent {
     transformRbush(event) {
         if (event.ifHide === true)
             return;
-        let { range = [5, 5], latlng, latlngs = [], left = 0, top = 0 } = event;
-        if (latlng && latlng.length === 2)
-            latlngs = [...latlngs, latlng];
-        latlngs.forEach(latlng => {
-            let [onX, onY] = u_mapGetPointByLatlng(this.map, latlng);
+        let { range = [5, 5], lnglat, lnglats = [], left = 0, top = 0 } = event;
+        if (lnglat && lnglat.length === 2)
+            lnglats = [...lnglats, lnglat];
+        lnglats.forEach(lnglat => {
+            let [onX, onY] = u_mapGetPointByLnglat(this.map, lnglat);
             let item = {
                 minX: onX - range[0] + left,
                 minY: onY - range[1] + top,
                 maxX: onX + range[0] + left,
                 maxY: onY + range[1] + top,
                 data: event,
-                latlng: latlng,
+                lnglat: lnglat,
             };
             this._allRbush.push(item);
         });
@@ -175,16 +175,16 @@ export class MapCanvasEvent {
         search.maxX = search.minX = x, search.maxY = search.minY = y;
         let ret = this.rbush.search(search);
         ret.forEach(res => {
-            let event = res.data, latlng = res.latlng, { minZoom = 1, maxZoom = 50 } = event;
+            let event = res.data, lnglat = res.lnglat, { minZoom = 1, maxZoom = 50 } = event;
             if (minZoom > zoom || maxZoom < zoom)
                 return;
             let position = Object.create(null);
             { }
-            position.latlng = latlng, position.page = [pageX, pageY], position.point = [x, y];
+            position.lnglat = lnglat, position.page = [pageX, pageY], position.point = [x, y];
             let response = Object.create(null);
             response.type = 'unset', response.position = position, response.event = event, response.info = event.info;
             curEvents.push(response);
-            let per = leaveEvents.find(e => e.position.latlng[0] === latlng[0] && e.position.latlng[1] === latlng[1]);
+            let per = leaveEvents.find(e => e.position.lnglat[0] === lnglat[0] && e.position.lnglat[1] === lnglat[1]);
             if (per) {
                 u_arrItemDel(leaveEvents, per);
             }

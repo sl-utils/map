@@ -1,6 +1,5 @@
 import * as L from "leaflet";
 import { Layer } from "leaflet";
-import { u_mathGetPoint } from "./slu-math";
 import { Map as MaplibreMap, LngLat as MaplibreLngLat } from 'maplibre-gl';
 const a = 6378245.0;
 const pi = 3.1415926535897932384626;
@@ -99,8 +98,8 @@ function transformLng(x, y) {
     ret += (150.0 * Math.sin(x / 12.0 * pi) + 300.0 * Math.sin(x / 30.0 * pi)) * 2.0 / 3.0;
     return ret;
 }
-function getAngle(map, latLngA, latLngB) {
-    let [y0, x0] = getPointByLatlng(map, latLngA), [y1, x1] = getPointByLatlng(map, latLngB);
+function getAngle(map, lnglatA, lnglatB) {
+    let [y0, x0] = getPointByLnglat(map, lnglatA), [y1, x1] = getPointByLnglat(map, lnglatB);
     let θ = Math.atan2(x1 - x0, y1 - y0);
     θ = θ * 180 / Math.PI;
     θ = (90 + θ) < 0 ? 450 + θ : 90 + θ;
@@ -143,17 +142,17 @@ function getDiffLatitude(distance) {
     const delta_lat = 2 * Math.asin(d / (2 * R));
     return delta_lat * (180 / Math.PI);
 }
-function getDistance(latLngA, latLngB, map) {
-    let [latA, lngA] = latLngA, [latB, lngB] = latLngB, dis = 0;
+function getDistance(lnglatA, lnglatB, map) {
+    let [lngA, latA] = lnglatA, [lngB, latB] = lnglatB, dis = 0;
     if (tsMapisLeaflet(map)) {
-        dis = L.latLng(latLngA).distanceTo(latLngB);
+        dis = L.latLng([latA, lngA]).distanceTo([latB, lngB]);
     }
     else if (tsMapisAmap(map)) {
-        dis = AMap.GeometryUtil.distance([lngA, latA], [lngB, latB]);
+        dis = AMap.GeometryUtil.distance(lnglatA, lnglatB);
     }
     else if (tsMapisMapLibre(map)) {
-        const lngLatA = new MaplibreLngLat(latLngA[1], latLngA[0]);
-        const lngLatB = new MaplibreLngLat(latLngB[1], latLngB[0]);
+        const lngLatA = new MaplibreLngLat(lngA, latA);
+        const lngLatB = new MaplibreLngLat(lngB, latB);
         dis = lngLatA.distanceTo(lngLatB);
     }
     else {
@@ -161,7 +160,7 @@ function getDistance(latLngA, latLngB, map) {
     }
     return dis;
 }
-function getLatLngByPoint(map, point) {
+function getLngLatByPoint(map, point) {
     if (!point)
         return [0, 0];
     let p;
@@ -174,21 +173,21 @@ function getLatLngByPoint(map, point) {
     else {
         p = map.containerToLngLat(new AMap.Pixel(point[0], point[1]));
     }
-    return [p.lat, p.lng];
+    return [p.lng, p.lat];
 }
-function getLngDiffByDistance(map, distance = 100, latLng) {
-    if (latLng.length === 0) {
+function getLngDiffByDistance(map, distance = 100, lnglats) {
+    if (lnglats.length === 0) {
         return 0;
     }
-    let lng = 0.00001, lat = latLng.map(e => e[0]).reduce((s, v) => s + v) / latLng.length;
-    let positionA = [lat, 100], positionB = [lat, 100 + lng];
+    let lng = 0.00001, lat = lnglats.map(e => e[1]).reduce((s, v) => s + v) / lnglats.length;
+    let positionA = [100, lat], positionB = [100 + lng, lat];
     let xMeasure = getDistance(positionA, positionB, map);
     return distance / xMeasure * lng;
 }
-function getPointByLatlng(map, latlng) {
-    if (!latlng)
+function getPointByLnglat(map, lnglat) {
+    if (!lnglat)
         return [-1000, -1000];
-    let [lat = 90, lng = 180] = latlng, p;
+    let [lng = 180, lat = 90] = lnglat, p;
     if (isNaN(lat) || isNaN(lng))
         return [-1000, -1000];
     if (tsMapisLeaflet(map)) {
@@ -205,10 +204,10 @@ function getPointByLatlng(map, latlng) {
     }
     return [p.x, p.y];
 }
-function getPointsByLatlngs(map, latlngs) {
-    return latlngs?.map(e => getPointByLatlng(map, e)) || [];
+function getPointsByLnglats(map, lnglats) {
+    return lnglats?.map(e => getPointByLnglat(map, e)) || [];
 }
-function getProjectedPointByLatlng(map, lng, lat, zoom) {
+function getProjectedPointByLnglat(map, lng, lat, zoom) {
     if (tsMapisLeaflet(map)) {
         const p = map.project(L.latLng(lat, lng), zoom);
         return [p.x, p.y];
@@ -226,20 +225,20 @@ function project(lng, lat, zoom) {
     const y = (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale;
     return [x, y];
 }
-function getProjectedPointByLatlngs(map, latlngs, zoom) {
-    return latlngs?.map(e => getProjectedPointByLatlng(map, e[0], e[1], zoom)) || [];
+function getProjectedPointByLnglats(map, lnglats, zoom) {
+    return lnglats?.map(e => getProjectedPointByLnglat(map, e[0], e[1], zoom)) || [];
 }
 function getSizeByMap(map, info) {
-    let { sizeFix, latlng, size = [0, 0] } = info;
-    if (!sizeFix || !latlng) {
+    let { sizeFix, lnglat, size = [0, 0] } = info;
+    if (!sizeFix || !lnglat) {
         Array.isArray(size) || (size = [size, size]);
         return size;
     }
     let sizes = Array.isArray(sizeFix) ? sizeFix : [sizeFix, sizeFix];
-    let [x, y] = latlng;
-    let lngDiff = getLngDiffByDistance(map, sizes[1], [latlng]);
-    let [x0, y0] = getPointByLatlng(map, [x, y]);
-    let [x1, y1] = getPointByLatlng(map, [x, y + lngDiff]);
+    let [x, y] = lnglat;
+    let lngDiff = getLngDiffByDistance(map, sizes[1], [lnglat]);
+    let [x0, y0] = getPointByLnglat(map, [x, y]);
+    let [x1, y1] = getPointByLnglat(map, [x + lngDiff, y]);
     let xd = Math.abs(x1 - x0), yd = (xd * sizes[1]) / sizes[0];
     return [xd, yd];
 }
@@ -312,17 +311,21 @@ function setMapStatus(map, key, flag) {
 }
 function setViewCenter(map, center, zoom, offset) {
     if (offset) {
-        const centerPixel = getPointByLatlng(map, center);
-        center = getLatLngByPoint(map, [centerPixel[0] + offset[0], centerPixel[1] + offset[1]]);
+        const centerPixel = getPointByLnglat(map, center);
+        center = getLngLatByPoint(map, [centerPixel[0] + offset[0], centerPixel[1] + offset[1]]);
     }
     if (tsMapisLeaflet(map)) {
-        map.setView(center, zoom);
+        map.setView([center[1], center[0]], zoom);
     }
-    else if (tsMapisAmap(map) || tsMapisMapLibre(map)) {
-        const [lat, lng] = center;
+    else if (tsMapisAmap(map)) {
+        const [lng, lat] = center;
         const { lat: lat02, lng: lng02 } = togps84gcj02(lng, lat);
         const mapcenter = [lng02, lat02];
         map.setCenter(mapcenter);
+        map.setZoom(zoom);
+    }
+    else if (tsMapisMapLibre(map)) {
+        map.setCenter(center);
         map.setZoom(zoom);
     }
     else {
@@ -334,33 +337,30 @@ function setFitBounds(map, point, point2) {
     if (point.length == 0 || !point)
         return;
     if (tsIfTwoArr(point)) {
-        let maxLat = Math.max(...point.map((e) => e[0])), minLat = Math.min(...point.map((e) => e[0])), maxLng = Math.max(...point.map((e) => e[1])), minLng = Math.min(...point.map((e) => e[1]));
-        southwest = [minLat, minLng];
-        northeast = [maxLat, maxLng];
+        let maxLat = Math.max(...point.map((e) => e[1])), minLat = Math.min(...point.map((e) => e[1])), maxLng = Math.max(...point.map((e) => e[0])), minLng = Math.min(...point.map((e) => e[0]));
+        southwest = [minLng, minLat];
+        northeast = [maxLng, maxLat];
     }
     else {
         southwest = point;
         northeast = point2 || point;
     }
     if (tsMapisLeaflet(map)) {
-        map.fitBounds([southwest, northeast]);
+        const bounds = [[southwest[1], southwest[0]], [northeast[1], northeast[0]]];
+        map.fitBounds(bounds);
     }
     else if (tsMapisAmap(map)) {
-        const { lat: swLat, lng: swLng } = togps84gcj02(southwest[1], southwest[0]);
-        const { lat: neLat, lng: neLng } = togps84gcj02(northeast[1], northeast[0]);
+        const { lat: swLat, lng: swLng } = togps84gcj02(southwest[0], southwest[1]);
+        const { lat: neLat, lng: neLng } = togps84gcj02(northeast[0], northeast[1]);
         const bounds = new AMap.Bounds([swLng, swLat], [neLng, neLat]);
         const [zoom, center] = map.getFitZoomAndCenterByBounds(bounds);
         map.setZoomAndCenter(zoom, center);
     }
     else if (tsMapisMapLibre(map)) {
-        const bounds = [
-            [southwest[1], southwest[0]],
-            [northeast[1], northeast[0]]
-        ];
-        map.fitBounds(bounds, { padding: 100, duration: 0 });
+        map.fitBounds([southwest, northeast], { padding: 100, duration: 0 });
     }
 }
-function getLatlngByValue(value, ifLng, ifDMS) {
+function getLnglatByValue(value, ifLng, ifDMS) {
     let unit = "N";
     if (value < 0)
         unit = "S";
@@ -377,27 +377,27 @@ function getLatlngByValue(value, ifLng, ifDMS) {
     }
     value = Math.abs(value);
     if (!ifDMS)
-        return u_mathGetPoint(value, 5) + '°' + unit;
+        return Math.round(value * Math.pow(10, 5)) / Math.pow(10, 5) + '°' + unit;
     let f = value % 1 * 60;
     let m = (f % 1 * 60).toFixed(2);
     let d = Math.floor(value);
     f = Math.floor(f);
     return `${d}°${f}'${m}"${unit}`;
 }
-function getLatLngByEvent(e) {
+function getLngLatByEvent(e) {
     if (!e)
         return null;
     if (tsEventisLeaflet(e)) {
         const { lat, lng } = e.latlng;
-        return [lat, lng];
+        return [lng, lat];
     }
     else if (tsEventisAmap(e)) {
         const { lat, lng } = e.lnglat;
-        return [lat, lng];
+        return [lng, lat];
     }
     else if (tsEventisMapLibre(e)) {
         const { lat, lng } = e.lngLat;
-        return [lat, lng];
+        return [lng, lat];
     }
     return null;
 }
@@ -413,6 +413,26 @@ function delItem(arr, item, key) {
         index >= 0 && arr.splice(index, 1);
     }
     return arr || [];
+}
+function deepMergeOpt(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+        const sourceValue = source[key];
+        if (sourceValue === undefined) {
+            continue;
+        }
+        const targetValue = result[key];
+        if (tsIfPlainObject(targetValue) && tsIfPlainObject(sourceValue)) {
+            result[key] = deepMergeOpt(targetValue, sourceValue);
+        }
+        else {
+            result[key] = sourceValue;
+        }
+    }
+    return result;
+}
+function tsIfPlainObject(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 function tsIfTwoArr(value) {
     return value && Array.isArray(value[0]);
@@ -478,5 +498,5 @@ function tsisMapEventType(type) {
         throw new Error(`Invalid MapEventType: ${type}`);
     }
 }
-export { delItem as u_arrItemDel, tobd09gps84 as u_mapTobd09gps84, togcj02gps84 as u_mapTogcj02gps84, togps84bd09 as u_mapTogps84bd09, togps84gcj02 as u_mapTogps84gcj02, togcj02bd09 as u_mapTogcj02bd09, tobd09cj02 as u_mapTobd09cj02, getAngle as u_mapGetAngle, getBounds as u_mapGetBounds, getDiffLatitude as u_mapGetDiffLatitude, getDistance as u_mapGetDistance, getLatLngByPoint as u_mapGetLatLngByPoint, getLngDiffByDistance as u_mapGetLngDiffByDistance, getPointByLatlng as u_mapGetPointByLatlng, getPointsByLatlngs as u_mapGetPointsByLatlngs, getProjectedPointByLatlng as u_mapGetProjectedPointByLatlng, getProjectedPointByLatlngs as u_mapGetProjectedPointByLatlngs, getSizeByMap as u_mapGetSizeByMap, getMapSize as u_mapGetMapSize, setMapStatus as u_mapSetMapStatus, getMapMouseEvent as u_mapGetMapMouseEvent, setFitBounds as u_mapSetFitBounds, setViewCenter as u_mapSetViewCenter, getLatlngByValue as u_mapGetLatlngByValue, getLatLngByEvent as u_mapGetLatLngByEvent, tsMapisLeaflet as u_tsMapisLeaflet, tsMapisAmap as u_tsMapisAmap, tsMapisBaidu as u_tsMapisBaidu, tsMapisMapLibre as u_tsMapisMapLibre, tsEventisLeaflet as u_tsEventisLeaflet, tsEventisAmap as u_tsEventisAmap, tsEventisMapLibre as u_tsEventisMapLibre, tsLayerisLeaflet as u_tsLayerisLeaflet, tsLayerisAmap as u_tsLayerisAmap, tsLayerisMapLibre as u_tsLayerisMapLibre, tsIfOneArrTwoLen as u_tsIfOneArrTwoLen, tsisKeyOf as u_tsIsKeyOf, tsisMapEventType as u_tsIsMapEventType, };
+export { delItem as u_arrItemDel, tobd09gps84 as u_mapTobd09gps84, togcj02gps84 as u_mapTogcj02gps84, togps84bd09 as u_mapTogps84bd09, togps84gcj02 as u_mapTogps84gcj02, togcj02bd09 as u_mapTogcj02bd09, tobd09cj02 as u_mapTobd09cj02, getAngle as u_mapGetAngle, getBounds as u_mapGetBounds, getDiffLatitude as u_mapGetDiffLatitude, getDistance as u_mapGetDistance, getLngLatByPoint as u_mapGetLngLatByPoint, getLngDiffByDistance as u_mapGetLngDiffByDistance, getPointByLnglat as u_mapGetPointByLnglat, getPointsByLnglats as u_mapGetPointsByLnglats, getProjectedPointByLnglat as u_mapGetProjectedPointByLnglat, getProjectedPointByLnglats as u_mapGetProjectedPointByLnglats, getSizeByMap as u_mapGetSizeByMap, getMapSize as u_mapGetMapSize, setMapStatus as u_mapSetMapStatus, getMapMouseEvent as u_mapGetMapMouseEvent, setFitBounds as u_mapSetFitBounds, setViewCenter as u_mapSetViewCenter, getLnglatByValue as u_mapGetLnglatByValue, getLngLatByEvent as u_mapGetLngLatByEvent, deepMergeOpt as u_deepMergeOpt, tsMapisLeaflet as u_tsMapisLeaflet, tsMapisAmap as u_tsMapisAmap, tsMapisBaidu as u_tsMapisBaidu, tsMapisMapLibre as u_tsMapisMapLibre, tsEventisLeaflet as u_tsEventisLeaflet, tsEventisAmap as u_tsEventisAmap, tsEventisMapLibre as u_tsEventisMapLibre, tsLayerisLeaflet as u_tsLayerisLeaflet, tsLayerisAmap as u_tsLayerisAmap, tsLayerisMapLibre as u_tsLayerisMapLibre, tsIfOneArrTwoLen as u_tsIfOneArrTwoLen, tsisKeyOf as u_tsIsKeyOf, tsisMapEventType as u_tsIsMapEventType, };
 //# sourceMappingURL=slu-map.js.map

@@ -1,5 +1,5 @@
 import bboxClip from '@turf/bbox-clip';
-import { u_mapGetPointByLatlng } from '../utils/slu-map';
+import { u_mapGetPointByLnglat } from '../utils/slu-map';
 const clipGeometryTypes = ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
 export class PluginCoastlineMask {
     constructor(sources, map) {
@@ -113,7 +113,7 @@ export class PluginCoastlineMask {
                         first = true;
                     }
                     prevLng = lng;
-                    const [x, y] = u_mapGetPointByLatlng(this.map, [lat, lng]);
+                    const [x, y] = u_mapGetPointByLnglat(this.map, [lng, lat]);
                     if (first) {
                         ctx.moveTo(x, y);
                         first = false;

@@ -1,5 +1,5 @@
 import { Browser, DomUtil, Layer, Util, bind, extend } from "leaflet";
-import { u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
 export class MapCanvasLayer {
     constructor(map, opt) {
         this.canvas = document.createElement('canvas');
@@ -18,7 +18,8 @@ export class MapCanvasLayer {
             this.renderAnimation();
         };
         this.map = map;
-        Object.assign(this.options, opt);
+        if (opt)
+            this.options = u_deepMergeOpt(this.options, opt);
         this.initCanvas();
         if (u_tsMapisLeaflet(map)) {
             this._initLeaflet();
@@ -84,7 +85,7 @@ export class MapCanvasLayer {
         this.addMapEvents(map, key);
     }
     _initAMap() {
-        const opt = Object.assign({
+        const opt = u_deepMergeOpt({
             zooms: [3, 18],
             alwaysRender: false,
             zIndex: 200,

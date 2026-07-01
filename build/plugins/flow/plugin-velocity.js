@@ -1,4 +1,4 @@
-import { u_mapGetLatLngByPoint, u_mapGetPointByLatlng } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetPointByLnglat } from "../../utils/slu-map";
 export class PluginVelocity {
     constructor(options) {
         this.options = {
@@ -21,7 +21,7 @@ export class PluginVelocity {
         this.setOptions(options);
     }
     setOptions(options) {
-        options = Object.assign(this.options, options);
+        options = u_deepMergeOpt(this.options, options);
         this.map = options.map;
         this.MIN_VELOCITY_INTENSITY = options.minVelocity;
         this.MAX_VELOCITY_INTENSITY = options.maxVelocity;
@@ -105,32 +105,51 @@ export class PluginVelocity {
         };
     }
     interpolateField(bounds, extent) {
-        const mapArea = (extent.south - extent.north) * (extent.west - extent.east);
-        const velocityScale = this.VELOCITY_SCALE * Math.pow(mapArea, 0.4) * 0.01;
+        const mapArea = Math.abs((extent.south - extent.north) * (extent.west - extent.east));
+        const safeMapArea = Math.max(mapArea, 0.0001);
+        const velocityScale = this.VELOCITY_SCALE * Math.pow(safeMapArea, 0.4) * 0.01;
         const columns = [];
         this.allThreatIds.forEach(id => {
             cancelIdleCallback(id);
         });
         this.allThreatIds.length = 0;
-        for (let x = bounds.x, len = bounds.width; x < len; x += 2) {
-            let column = [];
-            const id = requestIdleCallback(() => {
-                for (let y = bounds.y, len = bounds.yMax; y <= len; y += 2) {
-                    let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
-                    if (isFinite(lng)) {
+        const promises = [];
+        const STEP = 4;
+        for (let x = bounds.x, len = bounds.width; x < len; x += STEP) {
+            const promise = new Promise((resolve) => {
+                const column = [];
+                const id = requestIdleCallback(() => {
+                    for (let y = bounds.y, len = bounds.yMax; y <= len; y += STEP) {
+                        const [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+                        if (!isFinite(lng) || !isFinite(lat)) {
+                            continue;
+                        }
                         let wind = this.interpolate(lng, lat);
-                        if (wind) {
-                            wind = this.distort(lng, lat, x, y, velocityScale, wind);
-                            column[y + 1] = column[y] = wind;
+                        if (!wind) {
+                            continue;
+                        }
+                        wind = this.distort(lng, lat, x, y, velocityScale, wind);
+                        for (let dy = 0; dy < STEP; dy++) {
+                            if (y + dy <= bounds.yMax) {
+                                column[y + dy] = wind;
+                            }
                         }
                     }
-                }
-                columns[x + 1] = columns[x] = column;
+                    for (let dx = 0; dx < STEP; dx++) {
+                        if (x + dx < bounds.width) {
+                            columns[x + dx] = column;
+                        }
+                    }
+                    resolve();
+                });
+                this.allThreatIds.push(id);
             });
-            this.allThreatIds.push(id);
+            promises.push(promise);
         }
-        let field = this.field = new PluginVelocityField(columns, bounds, this.NULL_WIND_VECTOR);
-        this.animate(bounds, field);
+        Promise.all(promises).then(() => {
+            let field = this.field = new PluginVelocityField(columns, bounds, this.NULL_WIND_VECTOR);
+            this.animate(bounds, field);
+        });
     }
     interpolate(lng, lat) {
         if (!this.grid)
@@ -180,8 +199,8 @@ export class PluginVelocity {
             (pφ[1] - y) / hφ,
         ];
     }
-    project(lat, lon) {
-        let [x, y] = u_mapGetPointByLatlng(this.map, [lat, lon]);
+    project(lat, lng) {
+        let [x, y] = u_mapGetPointByLnglat(this.map, [lng, lat]);
         return [x, y];
     }
     animate(bounds, field) {

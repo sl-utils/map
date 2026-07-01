@@ -1,6 +1,6 @@
 import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
-import { u_mapGetLatLngByPoint } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint } from "../../utils/slu-map";
 import { SLUWorker } from "../../utils/slu-worker";
 export class MapPluginGridBase extends MapCanvasLayer {
     constructor(map, options) {
@@ -14,7 +14,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
         this.dataLength = 1;
         this.worker = new SLUWorker('grid-worker', (data) => this.workerCb(data));
         this.workerId = 0;
-        Object.assign(this.options, options);
+        this.options = u_deepMergeOpt(this.options, options);
     }
     workerCb(data) {
         if (data.workerId && (this.workerId - 1) !== data.workerId)
@@ -37,11 +37,11 @@ export class MapPluginGridBase extends MapCanvasLayer {
         this.builder(datas);
     }
     interpolateFieldByWorker(bounds) {
-        let [lat, lng] = u_mapGetLatLngByPoint(this.map, [0, 0]);
-        let [, lng1] = u_mapGetLatLngByPoint(this.map, [1, bounds.height]);
+        let [lng, lat] = u_mapGetLngLatByPoint(this.map, [0, 0]);
+        let [lng1, lat1] = u_mapGetLngLatByPoint(this.map, [1, bounds.height]);
         let lats = [];
         for (let i = 0, len = bounds.height; i <= len; i++)
-            lats[i] = u_mapGetLatLngByPoint(this.map, [0, i])[0];
+            lats[i] = u_mapGetLngLatByPoint(this.map, [0, i])[1];
         this.worker.post({
             id: this.workerId++,
             width: bounds.width,
@@ -60,7 +60,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
         for (let y = bounds.x, len = bounds.height; y < len; y += 2) {
             const column = [];
             for (let x = bounds.x, len2 = bounds.width; x <= len2; x += 2) {
-                let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
                 if (isFinite(lng)) {
                     const wind = this.interpolate(lng, lat);
                     if (wind)
@@ -78,7 +78,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
         for (let y = bounds.x, len = bounds.height; y < len; y += pixelInterval) {
             let column = [];
             for (let x = bounds.x, len2 = bounds.width; x <= len2; x += pixelInterval) {
-                let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
                 if (isFinite(lng)) {
                     const wind = this.interpolate(lng, lat);
                     if (wind)

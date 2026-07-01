@@ -1,4 +1,4 @@
-import { u_mapGetBounds, u_mapGetLatLngByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetBounds, u_mapGetLngLatByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
 import { MapCanvasLayer } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
 export class MapPluginFlow extends MapCanvasLayer {
@@ -14,7 +14,8 @@ export class MapPluginFlow extends MapCanvasLayer {
             colorScale: null,
         };
         this.windy = null;
-        Object.assign(this.options, options);
+        if (options)
+            this.options = u_deepMergeOpt(this.options, options);
     }
     setData(datas) {
         this.options.data = datas;
@@ -34,13 +35,18 @@ export class MapPluginFlow extends MapCanvasLayer {
         }
         this.startWindy();
     }
+    onRemove() {
+        this.stopWindy();
+        this.windy = null;
+        return super.onRemove();
+    }
     addCbMouseClick(cb) {
         this.cbClick = cb;
     }
     renderFixedData() {
         let datas = this.options.data;
         if (datas && datas.length > 0 && this.windy) {
-            this.windy.stop();
+            this.stopWindy();
             this.startWindy();
         }
     }
@@ -71,7 +77,7 @@ export class MapPluginFlow extends MapCanvasLayer {
             return;
         const self = this;
         const { containerPoint } = u_mapGetMapMouseEvent(e, this.map);
-        const [lat, lng] = u_mapGetLatLngByPoint(this.map, [containerPoint.x, containerPoint.y]);
+        const [lng, lat] = u_mapGetLngLatByPoint(this.map, [containerPoint.x, containerPoint.y]);
         const gridValue = this.windy.interpolate(lng, lat);
         let degrees = 0, speed = 0;
         if (gridValue && !isNaN(gridValue[0]) && !isNaN(gridValue[1]) && gridValue[2]) {

@@ -1,4 +1,5 @@
+export type * from '../src/types/index';
 export * from './canvas';
-export * from './plugins';
 export * from './map';
+export * from './plugins';
 export * from './utils';

@@ -1,7 +1,6 @@
-import { u_mapGetPointsByLatlngs } from "../utils/slu-map";
+import { u_mapGetPointsByLnglats } from "../utils/slu-map";
 import { MapCanvasLayer } from "../map";
 import { SLUCanvas } from "../canvas";
-import { u_mathGetBezierPointByPercent } from "../utils/slu-math";
 import { u_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginPartial extends MapCanvasLayer {
     constructor(sluMap, options) {
@@ -19,7 +18,7 @@ export class MapPluginPartial extends MapCanvasLayer {
         this._allParticle.forEach((particle) => {
             particle.curPoints = [];
             particle.curve = [];
-            let points = (particle.points = u_mapGetPointsByLatlngs(this.map, particle.latlngs) || []);
+            let points = (particle.points = u_mapGetPointsByLnglats(this.map, particle.lnglats) || []);
             for (let i = 0, len = points.length - 1; i < len; i++) {
                 const e0 = points[i], e1 = points[i + 1];
                 let curve = SLUCanvas.getBezierCtrlPoint(e0, e1, particle.degree);
@@ -81,7 +80,7 @@ export class MapPluginPartial extends MapCanvasLayer {
                 break;
             }
             percent = percent > 0 ? percent : 0;
-            let point = u_mathGetBezierPointByPercent(percent, per, nex, ctrl);
+            let point = this.getBezierPointByPercent(percent, per, nex, ctrl);
             curPoints.push(point);
         }
         if (age == 1) {
@@ -90,6 +89,12 @@ export class MapPluginPartial extends MapCanvasLayer {
         }
         particle.age = age;
         particle.curPoints = curPoints;
+    }
+    getBezierPointByPercent(percent, p1, p2, cp) {
+        const [x1, y1] = p1, [cx, cy] = cp, [x2, y2] = p2, t = percent;
+        let x = (1 - t) * (1 - t) * x1 + 2 * t * (1 - t) * cx + t * t * x2;
+        let y = (1 - t) * (1 - t) * y1 + 2 * t * (1 - t) * cy + t * t * y2;
+        return [x, y];
     }
     drawParticle(particle) {
         let ctx = this.ctx;

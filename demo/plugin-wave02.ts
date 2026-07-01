@@ -17,9 +17,17 @@ async function main() {
   const low = await (await fetch("./assets/json/coast_low.json")).json();
   const mid = await (await fetch("./assets/json/coast_mid.json")).json();
   const high = await (await fetch("./assets/json/coast_high.json")).json();
-  let waveData: DataMapGrid[] = [], wavePlugin2: MapPluginGridRender;;
+  let waveData: DataMapGrid[] = [], wavePlugin2: MapPluginGridRender | null;;
   button.addEventListener("click", async () => {
+    if (wavePlugin2) {
+      wavePlugin2.onRemove();
+      wavePlugin2 = null;
+      button.textContent = "Show Wave";
+      return
+    }
+
     if (!wavePlugin2) {
+      button.textContent = "Hide Wave";
       const options = {
         zIndex: 120,
         mosaicColor: [
@@ -47,7 +55,6 @@ async function main() {
       );
       /**无需裁切海岸线 */
       // wavePlugin2 = new MapPluginGridRender(map, options);
-
       wavePlugin2 = new MapPluginGridRender(map, options, mask);
     }
     waveData = waveData.length ? waveData : (await genWave());

@@ -2,7 +2,7 @@ import { MapPluginFlow, SLUMap } from "../src/index.ts";
 
 async function main() {
   const map = new SLUMap("map");
-  await map.init({ type: "L" });
+  await map.init({ type: "M" });
 
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";

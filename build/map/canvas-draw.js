@@ -1,4 +1,4 @@
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapGetPointsByLatlngs, u_mapGetSizeByMap } from '../utils/slu-map';
+import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapGetPointsByLnglats, u_mapGetSizeByMap } from '../utils/slu-map';
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
 import { u_drawConvertgps84Togcj02 } from '../utils';
 export class MapCanvasDraw {
@@ -109,42 +109,42 @@ export class MapCanvasDraw {
         return this;
     }
     addArc(arc) {
-        if (!arc.latlngs && !arc.latlng)
+        if (!arc.lnglats && !arc.lnglat)
             return this;
         u_drawConvertgps84Togcj02(this.map, arc);
         this._allArcs.push(arc);
         return this;
     }
     addLine(line) {
-        if (!line.latlngs)
+        if (!line.lnglats)
             return this;
         u_drawConvertgps84Togcj02(this.map, line);
         this._allLines.push(line);
         return this;
     }
     addBezierLine(line) {
-        if (!line.latlngs)
+        if (!line.lnglats)
             return this;
         u_drawConvertgps84Togcj02(this.map, line);
         this._allBLins.push(line);
         return this;
     }
     addRect(rect) {
-        if (!rect.latlngs)
+        if (!rect.lnglats)
             return this;
         u_drawConvertgps84Togcj02(this.map, rect);
         this._allRects.push(rect);
         return this;
     }
     addText(text) {
-        if (!text.latlngs && !text.latlng)
+        if (!text.lnglats && !text.lnglat)
             return this;
         u_drawConvertgps84Togcj02(this.map, text);
         this._allTexts.push(text);
         return this;
     }
     addImg(img) {
-        if (!img.latlngs && !img.latlng)
+        if (!img.lnglats && !img.lnglat)
             return this;
         u_drawConvertgps84Togcj02(this.map, img);
         this._allImgs.push(img);
@@ -210,8 +210,8 @@ export class MapCanvasDraw {
         return that;
     }
     transformXY(info) {
-        info.points = u_mapGetPointsByLatlngs(this.map, info.latlngs);
-        info.point = u_mapGetPointByLatlng(this.map, info.latlng);
+        info.points = u_mapGetPointsByLnglats(this.map, info.lnglats);
+        info.point = u_mapGetPointByLnglat(this.map, info.lnglat);
     }
     transformImageSize(img) {
         let [x, y] = u_mapGetSizeByMap(this.map, img);

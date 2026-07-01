@@ -7,7 +7,7 @@ export class SLUCanvasText {
     static drawText(info, ctx = this.ctx) {
         let { text = '', maxWidth = 0, font = ctx.font, ifHide } = info;
         if (ifHide === true || !text)
-            return null;
+            return;
         this.ctx = ctx;
         SLUCanvas.setCtxPara(ctx, info);
         const texts = this.wordWrap(text, maxWidth, font);

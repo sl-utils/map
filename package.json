@@ -3,6 +3,12 @@
   "version": "1.0.18",
   "description": "Map utility library",
   "type": "module",
+  "scripts": {
+    "dev": "vite --open /demo/App.html",
+    "build": "tsc -p tsconfig.json && npm run build:types",
+    "build:vite": "vite build",
+    "build:types": "tsc -p tsconfig.types.json  && node scripts/postbuild-types.mjs"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -10,18 +16,13 @@
       "import": "./build/index.js",
       "default": "./build/index.js"
     },
-    "./styles/leaflet.css": "./src/styles/leaflet.css",
-    "./src/styles/leaflet.css": "./src/styles/leaflet.css"
+    "./index.css": "./src/styles/leaflet.css",
+    "./style.css": "./src/styles/leaflet.css",
+    "./styles.css": "./src/styles/leaflet.css"
   },
   "main": "./build/index.js",
   "module": "./build/index.js",
   "types": "./types/index.d.ts",
-  "scripts": {
-    "dev": "vite --open /demo/App.html",
-    "build": "tsc -p tsconfig.json",
-    "build:vite": "vite build",
-    "build:types": "tsc -p tsconfig.types.json && node scripts/postbuild-types.mjs"
-  },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",
     "@turf/bbox-clip": "^7.3.5",

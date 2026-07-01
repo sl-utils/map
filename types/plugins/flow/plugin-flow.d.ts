@@ -9,7 +9,7 @@ import { DataMapVeloctiyWind, OptMapPluginFlow } from "../../types";
  * @param options 基础配置
 */
 export declare class MapPluginFlow extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: Partial<OptMapPluginFlow>);
+    constructor(sluMap: SLUMap, options?: OptMapPluginFlow);
     /**基础配置项 */
     options: OptMapPluginFlow;
     /**运动粒子类对象 */

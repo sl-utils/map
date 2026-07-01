@@ -1,7 +1,7 @@
 import { MapCanvasLayer } from "../map";
 import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat } from "../utils/slu-map";
 import { u_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginHeat extends MapCanvasLayer {
     constructor(sluMap, options) {
@@ -68,7 +68,7 @@ export class MapPluginHeat extends MapCanvasLayer {
         let r = this._r, size = u_mapGetMapSize(map), sizePoint = L.point([size.w, size.h]), bounds = new L.Bounds(L.point([-r, -r]), sizePoint.add([r, r])), num = this.computeZoomGradient(), v = 1 / num, cellSize = r / 2, grid = [], panePos = map?._getMapPanePos?.() || { x: 0, y: 0 }, offsetX = panePos.x % cellSize, offsetY = panePos.y % cellSize, i, len, cell, x, y, j, len2, k;
         for (i = 0, len = this._allHeats.length; i < len; i++) {
             let heat = this._allHeats[i];
-            let p = u_mapGetPointByLatlng(this.map, heat.latlng);
+            let p = u_mapGetPointByLnglat(this.map, heat.lnglat);
             if (bounds.contains(p)) {
                 x = Math.floor((p[0] - offsetX) / cellSize) + 2;
                 y = Math.floor((p[1] - offsetY) / cellSize) + 2;

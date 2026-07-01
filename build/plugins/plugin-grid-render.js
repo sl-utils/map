@@ -1,6 +1,6 @@
 import { MapCanvasLayer } from "../map";
 import { SLUWorker } from "../utils/slu-worker";
-import { u_mapGetLatLngByPoint, u_mapGetMapSize } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetMapSize } from "../utils/slu-map";
 export class MapPluginGridRender extends MapCanvasLayer {
     constructor(sluMap, options, mask) {
         super(sluMap.map, options);
@@ -13,7 +13,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
                 "#FFCC00", "#FF6600", "#FF0000", "#B03060",],
             mosaicValue: [0.5, 1, 2, 3, 4, 5, 7, 9, 12, 15]
         };
-        Object.assign(this.options, options);
+        this.options = u_deepMergeOpt(this.options, options);
         this.mask = mask;
         this.offCanvas = document.createElement("canvas");
         this.offCtx = this.offCanvas.getContext("2d", { alpha: true, desynchronized: true });
@@ -62,9 +62,9 @@ export class MapPluginGridRender extends MapCanvasLayer {
             const py = Math.min(h, gy * geoStep);
             for (let gx = 0; gx < geoCols; gx++) {
                 const px = Math.min(w, gx * geoStep);
-                const latlng = u_mapGetLatLngByPoint(this.map, [px, py]);
-                lngLatBuffer[ptr++] = latlng[1];
-                lngLatBuffer[ptr++] = latlng[0];
+                const lnglat = u_mapGetLngLatByPoint(this.map, [px, py]);
+                lngLatBuffer[ptr++] = lnglat[0];
+                lngLatBuffer[ptr++] = lnglat[1];
             }
         }
         this.worker.post({

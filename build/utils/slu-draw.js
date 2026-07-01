@@ -7,14 +7,14 @@ function convertgps84Togcj02(map, plot) {
     if (!plot.length)
         return;
     for (const p of plot) {
-        if ('latlng' in p && p.latlng?.length) {
-            const { lat, lng } = u_mapTogps84gcj02(p.latlng[1], p.latlng[0]);
-            p.latlng = [lat, lng];
+        if ('lnglat' in p && p.lnglat?.length) {
+            const { lat, lng } = u_mapTogps84gcj02(p.lnglat[0], p.lnglat[1]);
+            p.lnglat = [lng, lat];
         }
-        if ('latlngs' in p && p.latlngs?.length) {
-            p.latlngs = p.latlngs.map((latlng) => {
-                const { lat, lng } = u_mapTogps84gcj02(latlng[1], latlng[0]);
-                return [lat, lng];
+        if ('lnglats' in p && p.lnglats?.length) {
+            p.lnglats = p.lnglats.map((lnglat) => {
+                const { lat, lng } = u_mapTogps84gcj02(lnglat[0], lnglat[1]);
+                return [lng, lat];
             });
         }
     }

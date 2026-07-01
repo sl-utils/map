@@ -34,6 +34,13 @@ export declare class MapPluginPartial extends MapCanvasLayer {
      * @param particle 粒子数据
      */
     private genCurBezierPoints;
+    /**获取二阶贝塞尔曲线指定百分比的点位置信息
+    * @param t 当前百分比
+    * @param p1 起点坐标
+    * @param p2 终点坐标
+    * @param cp 控制点
+    */
+    private getBezierPointByPercent;
     /**绘制粒子
      * @param particle 粒子数据
      */

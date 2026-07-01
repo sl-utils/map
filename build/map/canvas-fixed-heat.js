@@ -1,4 +1,4 @@
-import { u_mapGetPointByLatlng, u_mapGetProjectedPointByLatlng } from "../utils/slu-map";
+import { u_deepMergeOpt, u_mapGetPointByLnglat, u_mapGetProjectedPointByLnglat } from "../utils/slu-map";
 export class MapCanvasFixedHeat {
     constructor(map, ctx, heatOpt) {
         this.map = map;
@@ -26,7 +26,7 @@ export class MapCanvasFixedHeat {
         this.renderScale = 1;
         this.heatCanvas = null;
         this.bounds = null;
-        this.heatOpt = Object.assign({}, this.defaultOption, this.heatOpt);
+        this.heatOpt = u_deepMergeOpt(this.defaultOption, heatOpt);
     }
     setData(data) {
         this.data = data;
@@ -76,7 +76,7 @@ export class MapCanvasFixedHeat {
         this.bounds = { minLng, maxLng, minLat, maxLat };
         const refZoom = this.heatOpt.refZoom;
         const projPoints = data.map(d => {
-            const [x, y] = u_mapGetProjectedPointByLatlng(this.map, d[0], d[1], refZoom);
+            const [x, y] = u_mapGetProjectedPointByLnglat(this.map, d[0], d[1], refZoom);
             return [x, y, d[2]];
         });
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -209,8 +209,8 @@ export class MapCanvasFixedHeat {
         const { minZoom, maxZoom, opacity } = heatOpt;
         if (zoom < minZoom || zoom > maxZoom)
             return;
-        const sw = u_mapGetPointByLatlng(this.map, [bounds.minLat, bounds.minLng]);
-        const ne = u_mapGetPointByLatlng(this.map, [bounds.maxLat, bounds.maxLng]);
+        const sw = u_mapGetPointByLnglat(this.map, [bounds.minLng, bounds.minLat]);
+        const ne = u_mapGetPointByLnglat(this.map, [bounds.maxLng, bounds.maxLat]);
         const left = Math.min(sw[0], ne[0]);
         const right = Math.max(sw[0], ne[0]);
         const top = Math.min(sw[1], ne[1]);

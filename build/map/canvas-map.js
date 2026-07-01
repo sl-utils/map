@@ -1,7 +1,7 @@
 import { CRS, Map as LMap, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapGetDistance, u_mapGetLatLngByEvent, u_mapGetLatLngByPoint, u_mapGetLatlngByValue, u_mapGetMapSize, u_mapGetPointByLatlng, u_mapSetFitBounds, u_mapSetViewCenter, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsIsKeyOf, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
+import { u_mapGetBounds, u_mapGetDistance, u_mapGetLngLatByEvent, u_mapGetLngLatByPoint, u_mapGetLnglatByValue, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapSetFitBounds, u_mapSetViewCenter, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsIsKeyOf, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
 import { Map as MaplibreMap } from 'maplibre-gl';
 export class SLUMap {
     constructor(ele) {
@@ -9,14 +9,14 @@ export class SLUMap {
         this.ifDMS = true;
         this.curs = Object.create(null);
         this.setLatlng = (e) => {
-            const latlng = u_mapGetLatLngByEvent(e);
-            if (!latlng)
+            const lnglat = u_mapGetLngLatByEvent(e);
+            if (!lnglat)
                 return;
-            const [lat, lng] = latlng;
+            const [lng, lat] = lnglat;
             this.latLng.lat = lat;
             this.latLng.lng = lng;
-            this.controlInfo.lat = u_mapGetLatlngByValue(lat, false, this.ifDMS);
-            this.controlInfo.lng = u_mapGetLatlngByValue(lng, true, this.ifDMS);
+            this.controlInfo.lat = u_mapGetLnglatByValue(lat, false, this.ifDMS);
+            this.controlInfo.lng = u_mapGetLnglatByValue(lng, true, this.ifDMS);
             if (this.controlCb)
                 this.controlCb(this.controlInfo);
         };
@@ -40,9 +40,9 @@ export class SLUMap {
                 break;
         }
     }
-    setFitView(latlngs) {
+    setFitView(lnglats) {
         if (this._map) {
-            u_mapSetFitBounds(this._map, latlngs);
+            u_mapSetFitBounds(this._map, lnglats);
         }
         return this;
     }
@@ -97,8 +97,8 @@ export class SLUMap {
         this.eventSwitch(true);
         const latlng = this.latLng = this.getCenter();
         this.ifDMS = ifDMS;
-        this.controlInfo.lat = u_mapGetLatlngByValue(latlng.lat, false, ifDMS);
-        this.controlInfo.lng = u_mapGetLatlngByValue(latlng.lng, true, ifDMS);
+        this.controlInfo.lat = u_mapGetLnglatByValue(latlng.lat, false, ifDMS);
+        this.controlInfo.lng = u_mapGetLnglatByValue(latlng.lng, true, ifDMS);
         this.setZoomAndScale();
         return this.controlInfo;
     }
@@ -111,13 +111,13 @@ export class SLUMap {
     changeLatlngFormat(ifDMS) {
         this.ifDMS = ifDMS;
         const { lat, lng } = this.latLng;
-        this.controlInfo.lat = u_mapGetLatlngByValue(lat, false, ifDMS);
-        this.controlInfo.lng = u_mapGetLatlngByValue(lng, true, ifDMS);
+        this.controlInfo.lat = u_mapGetLnglatByValue(lat, false, ifDMS);
+        this.controlInfo.lng = u_mapGetLnglatByValue(lng, true, ifDMS);
         this.setZoomAndScale();
         return this.controlInfo;
     }
     initLeaflet(ele, opt) {
-        const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false } = opt;
+        const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false } = opt;
         let param = {
             dragging,
             zoomControl,
@@ -134,7 +134,7 @@ export class SLUMap {
         return Promise.resolve(map);
     }
     async initMaplibre(ele, opt) {
-        const { style, zoom = 11, minZoom = 2, maxZoom = 20, center: [lat, lng] = [22.68471, 114.12027], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
+        const { style = 'https://tiles.openfreemap.org/styles/bright', zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
         let map = new MaplibreMap({
             container: ele,
             style,
@@ -174,8 +174,8 @@ export class SLUMap {
         }
     }
     async initAmap(ele, opt) {
-        const { zoom = 11, minZoom = 2, maxZoom = 20, center = [22.68471, 114.12027], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
-        const { lat, lng } = u_mapTogps84gcj02(center[1], center[0]);
+        const { zoom = 11, minZoom = 2, maxZoom = 20, center = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
+        const { lat, lng } = u_mapTogps84gcj02(center[0], center[1]);
         return AMapLoader.load({
             "key": "87e1b1e9aa88724f69208972546fdd57",
             "version": "1.4.15",
@@ -222,10 +222,10 @@ export class SLUMap {
         if (!this.map)
             return;
         const { lat: averLat, lng: averLng } = this.getCenter();
-        const [x, y] = u_mapGetPointByLatlng(this.map, [averLat, averLng]);
+        const [x, y] = u_mapGetPointByLnglat(this.map, [averLng, averLat]);
         const point = [x + 50, y];
-        const targetLatLng = u_mapGetLatLngByPoint(this.map, point);
-        let dis = u_mapGetDistance([averLat, averLng], targetLatLng, this.map);
+        const targetLngLat = u_mapGetLngLatByPoint(this.map, point);
+        let dis = u_mapGetDistance([averLng, averLat], targetLngLat, this.map);
         let text = '';
         if (dis > 2000) {
             dis = dis / 1852;

@@ -153,13 +153,6 @@ declare function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, allPoints: [n
  * @param northeast 地图右上
  */
 declare function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, southwest: [number, number], northeast: [number, number]): void;
-/**
- * 设置地图最合适缩放位置中心
- * @param map 地图实例
- * @param point 点
- * @param point2 点2
- */
-declare function setFitBounds(map: L.Map | AMAP.Map | MaplibreMap, point: [number, number] | [number, number][], point2?: [number, number]): void;
 /**将数值转换为经纬度字符串
  * @param value 数值
  * @param ifLng 是否是经度
@@ -178,6 +171,13 @@ declare function getLngLatByEvent(e: LeafletMouseEvent | AMapMapsEvent | Maplibr
  * @param key 用于比较的key属性
 */
 declare function delItem<T>(arr: T[] | undefined, item: T, key?: keyof T): T[];
+/**
+ * 用于深度合并同类型的配置：入参类型一致,不改变原对象,返回合并后的新对象
+ * @param target 目标对象
+ * @param source 源对象
+ * @returns 合并后的新对象
+ */
+declare function deepMergeOpt<T>(target: T, source: T): T;
 /**判断参数是否是长度为2的一维数组
  * @param value 参数
  */
@@ -223,4 +223,4 @@ declare function tsisKeyOf<T extends object>(obj: T, key: PropertyKey): key is k
  * @param type 参数
  */
 declare function tsisMapEventType(type: string): asserts type is MapEventType;
-export { delItem as u_arrItemDel, tobd09gps84 as u_mapTobd09gps84, togcj02gps84 as u_mapTogcj02gps84, togps84bd09 as u_mapTogps84bd09, togps84gcj02 as u_mapTogps84gcj02, togcj02bd09 as u_mapTogcj02bd09, tobd09cj02 as u_mapTobd09cj02, getAngle as u_mapGetAngle, getBounds as u_mapGetBounds, getDiffLatitude as u_mapGetDiffLatitude, getDistance as u_mapGetDistance, getLngLatByPoint as u_mapGetLngLatByPoint, getLngDiffByDistance as u_mapGetLngDiffByDistance, getPointByLnglat as u_mapGetPointByLnglat, getPointsByLnglats as u_mapGetPointsByLnglats, getProjectedPointByLnglat as u_mapGetProjectedPointByLnglat, getProjectedPointByLnglats as u_mapGetProjectedPointByLnglats, getSizeByMap as u_mapGetSizeByMap, getMapSize as u_mapGetMapSize, setMapStatus as u_mapSetMapStatus, getMapMouseEvent as u_mapGetMapMouseEvent, setFitBounds as u_mapSetFitBounds, setViewCenter as u_mapSetViewCenter, getLnglatByValue as u_mapGetLnglatByValue, getLngLatByEvent as u_mapGetLngLatByEvent, tsMapisLeaflet as u_tsMapisLeaflet, tsMapisAmap as u_tsMapisAmap, tsMapisBaidu as u_tsMapisBaidu, tsMapisMapLibre as u_tsMapisMapLibre, tsEventisLeaflet as u_tsEventisLeaflet, tsEventisAmap as u_tsEventisAmap, tsEventisMapLibre as u_tsEventisMapLibre, tsLayerisLeaflet as u_tsLayerisLeaflet, tsLayerisAmap as u_tsLayerisAmap, tsLayerisMapLibre as u_tsLayerisMapLibre, tsIfOneArrTwoLen as u_tsIfOneArrTwoLen, tsisKeyOf as u_tsIsKeyOf, tsisMapEventType as u_tsIsMapEventType, };
+export { delItem as u_arrItemDel, tobd09gps84 as u_mapTobd09gps84, togcj02gps84 as u_mapTogcj02gps84, togps84bd09 as u_mapTogps84bd09, togps84gcj02 as u_mapTogps84gcj02, togcj02bd09 as u_mapTogcj02bd09, tobd09cj02 as u_mapTobd09cj02, getAngle as u_mapGetAngle, getBounds as u_mapGetBounds, getDiffLatitude as u_mapGetDiffLatitude, getDistance as u_mapGetDistance, getLngLatByPoint as u_mapGetLngLatByPoint, getLngDiffByDistance as u_mapGetLngDiffByDistance, getPointByLnglat as u_mapGetPointByLnglat, getPointsByLnglats as u_mapGetPointsByLnglats, getProjectedPointByLnglat as u_mapGetProjectedPointByLnglat, getProjectedPointByLnglats as u_mapGetProjectedPointByLnglats, getSizeByMap as u_mapGetSizeByMap, getMapSize as u_mapGetMapSize, setMapStatus as u_mapSetMapStatus, getMapMouseEvent as u_mapGetMapMouseEvent, setFitBounds as u_mapSetFitBounds, setViewCenter as u_mapSetViewCenter, getLnglatByValue as u_mapGetLnglatByValue, getLngLatByEvent as u_mapGetLngLatByEvent, deepMergeOpt as u_deepMergeOpt, tsMapisLeaflet as u_tsMapisLeaflet, tsMapisAmap as u_tsMapisAmap, tsMapisBaidu as u_tsMapisBaidu, tsMapisMapLibre as u_tsMapisMapLibre, tsEventisLeaflet as u_tsEventisLeaflet, tsEventisAmap as u_tsEventisAmap, tsEventisMapLibre as u_tsEventisMapLibre, tsLayerisLeaflet as u_tsLayerisLeaflet, tsLayerisAmap as u_tsLayerisAmap, tsLayerisMapLibre as u_tsLayerisMapLibre, tsIfOneArrTwoLen as u_tsIfOneArrTwoLen, tsisKeyOf as u_tsIsKeyOf, tsisMapEventType as u_tsIsMapEventType, };

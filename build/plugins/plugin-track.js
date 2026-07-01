@@ -1,6 +1,6 @@
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent } from "../map";
-import { u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
+import { u_deepMergeOpt, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
 export class MapPluginTrack {
     constructor(sluMap, options) {
         this.options = {
@@ -29,10 +29,12 @@ export class MapPluginTrack {
         this.cbs = Object.create(null);
         const map = sluMap.map;
         this.map = map;
-        Object.assign(this.options, options);
+        if (options)
+            this.options = u_deepMergeOpt(this.options, options);
         let zIndex = this.options.zIndex + 1;
         this.layerDraw = new MapPluginDraw(sluMap, this.options);
-        this.layerAniDraw = new MapPluginDraw(sluMap, Object.assign({}, this.options, { zIndex, className: "track ani" }));
+        const aniOpt = u_deepMergeOpt(this.options, { zIndex, className: "track ani" });
+        this.layerAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.allEvents = new MapCanvasEvent(map);
     }
     onRemove() {
@@ -132,15 +134,15 @@ export class MapPluginTrack {
     }
     drawLine(track) {
         let { widthLine, colorLine } = this.options, { data } = track, time = this.time;
-        let latlngs = [];
+        let lnglats = [];
         for (let i = 0, len = data.length; i < len; i++) {
             let e = data[i];
-            latlngs.push([e.lat, e.lng]);
+            lnglats.push([e.lng, e.lat]);
             if (e.timeStamp > time && i > 1)
                 break;
         }
         let line = {
-            latlngs,
+            lnglats,
             widthLine,
             colorLine,
             minZoom: 10,
@@ -152,19 +154,19 @@ export class MapPluginTrack {
         if (!ifArc)
             return;
         let time = 0;
-        let latlngs = data.map((e, i) => {
+        let lnglats = data.map((e, i) => {
             if (arcInterval < 1000 && i % (arcInterval + 1) === 0)
-                return [e.lat, e.lng];
+                return [e.lng, e.lat];
             if (arcInterval >= 1000 && (e.timeStamp - time) / arcInterval > 1) {
                 time = e.timeStamp;
-                return [e.lat, e.lng];
+                return [e.lng, e.lat];
             }
             return undefined;
         }).filter((e) => e !== undefined);
         let arc = Object.assign({}, {
             size: sizeArc,
             colorFill: colorArcFill,
-            latlngs,
+            lnglats,
             colorLine: colorArc,
             minZoom: 10,
         });
@@ -177,11 +179,11 @@ export class MapPluginTrack {
         if (!data || data.length < 2)
             return;
         let s = data[0], e = data[data.length - 1];
-        let slatlng = [s.lat, s.lng], elatlng = [e.lat, e.lng];
-        let sText = { latlng: slatlng, text: textStart, colorFill: colorTextStart, py: -10, ifShadow: true };
-        let eText = { latlng: elatlng, text: textEnd, colorFill: colorTextEnd, py: -10, ifShadow: true };
-        let sPoint = { latlng: slatlng, colorFill: colorArcStart, size: sizeArc };
-        let ePoint = { latlng: elatlng, colorFill: colorArcEnd, size: sizeArc };
+        let slatlng = [s.lng, s.lat], elatlng = [e.lng, e.lat];
+        let sText = { lnglat: slatlng, text: textStart, colorFill: colorTextStart, py: -10, ifShadow: true };
+        let eText = { lnglat: elatlng, text: textEnd, colorFill: colorTextEnd, py: -10, ifShadow: true };
+        let sPoint = { lnglat: slatlng, colorFill: colorArcStart, size: sizeArc };
+        let ePoint = { lnglat: elatlng, colorFill: colorArcEnd, size: sizeArc };
         layerDraw.addText(sText);
         layerDraw.addText(eText);
         layerDraw.addArc(sPoint);
@@ -190,11 +192,11 @@ export class MapPluginTrack {
     addPointEvent(track, eves) {
         if (!this.cbClickPoint)
             return;
-        let latlngs = track.data.map((e) => [e.lat, e.lng]);
+        let lnglats = track.data.map((e) => [e.lng, e.lat]);
         eves.push({
             type: ["click"],
             minZoom: 10,
-            latlngs: latlngs,
+            lnglats: lnglats,
             info: track,
             range: [3, 3],
             cb: (e) => {

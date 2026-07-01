@@ -1,5 +1,5 @@
 import { MapCanvasDraw } from "../map";
-import { u_mapGetLatLngByPoint, u_mapGetMapSize, u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_mapGetLngLatByPoint, u_mapGetMapSize, u_mapGetPointByLnglat } from "../utils/slu-map";
 import { MapPluginGridBase } from "./grid/plugin-grid-base";
 export class MapPluginWind extends MapPluginGridBase {
     constructor(sluMap, options) {
@@ -40,15 +40,15 @@ export class MapPluginWind extends MapPluginGridBase {
     }
     getViewBoundsGridWind(bounds, pixelInterval = 2) {
         const columns = [];
-        let [x0, y0] = u_mapGetPointByLatlng(this.map, [0, 0]);
+        let [x0, y0] = u_mapGetPointByLnglat(this.map, [0, 0]);
         let j = y0 % pixelInterval, k = x0 % pixelInterval;
         for (let y = j, len = bounds.height; y < len; y += pixelInterval) {
             for (let x = k, len2 = bounds.width; x < len2; x += pixelInterval) {
-                let [lat, lng] = u_mapGetLatLngByPoint(this.map, [x, y]);
+                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
                 if (isFinite(lng)) {
                     const wind = this.interpolate(lng, lat);
                     if (wind)
-                        columns.push({ latlng: [lat, lng], speed: wind[0], direction: wind[1] });
+                        columns.push({ lnglat: [lng, lat], speed: wind[0], direction: wind[1] });
                 }
             }
         }
@@ -69,7 +69,7 @@ export class MapPluginWind extends MapPluginGridBase {
                 sizeo: res.sizeo,
                 posX: res.posX,
                 posY: res.posY,
-                latlng: item.latlng,
+                lnglat: item.lnglat,
                 rotate: item.direction,
             });
         }

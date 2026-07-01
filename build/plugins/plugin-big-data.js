@@ -1,7 +1,7 @@
 import rbush from "rbush";
 import { MapPluginDraw } from "./plugin-draw";
 import { SLUCanvasImg } from "../canvas";
-import { u_mapGetPointByLatlng } from "../utils/slu-map";
+import { u_mapGetPointByLnglat } from "../utils/slu-map";
 import { u_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginBigData extends MapPluginDraw {
     constructor(sluMap, options) {
@@ -75,16 +75,16 @@ export class MapPluginBigData extends MapPluginDraw {
         return zoomOption[zooms[len - 1]];
     }
     transformRbush(img) {
-        const { latlng, size = [0, 0], left = 0, top = 0 } = img;
+        const { lnglat, size = [0, 0], left = 0, top = 0 } = img;
         let sizeX = size[0], sizeY = size[1];
-        let [x, y] = u_mapGetPointByLatlng(this.map, latlng);
+        let [x, y] = u_mapGetPointByLnglat(this.map, lnglat);
         return {
             minX: x - sizeX / 2 + left,
             minY: y - sizeY / 2 + top,
             maxX: x + sizeX / 2 + left,
             maxY: y + sizeY / 2 + top,
             data: img,
-            latlng: latlng
+            lnglat: lnglat
         };
     }
     drawMapAll() {
