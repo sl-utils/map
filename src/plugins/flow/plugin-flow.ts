@@ -57,6 +57,12 @@ export class MapPluginFlow extends MapCanvasLayer {
         }
         this.startWindy();
     }
+    /**移除插件 */
+    public onRemove(): MapCanvasLayer {
+        this.stopWindy();
+        this.windy = null;
+        return super.onRemove();
+    }
     /**添加鼠标点击时的回调函数
      * @param cb 回调函数
      * @param degrees 方向
@@ -70,7 +76,7 @@ export class MapPluginFlow extends MapCanvasLayer {
     protected renderFixedData(): void {
         let datas = this.options.data;
         if (datas && datas.length > 0 && this.windy) {
-            this.windy.stop();
+            this.stopWindy();
             this.startWindy();
         }
     }

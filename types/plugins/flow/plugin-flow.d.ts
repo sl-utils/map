@@ -25,6 +25,8 @@ export declare class MapPluginFlow extends MapCanvasLayer {
      * data[1] 为Y轴纬度latitude方向的数据
      */
     setData(datas: DataMapVeloctiyWind[]): void;
+    /**移除插件 */
+    onRemove(): MapCanvasLayer;
     /**添加鼠标点击时的回调函数
      * @param cb 回调函数
      * @param degrees 方向

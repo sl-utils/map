@@ -183,37 +183,51 @@ export class PluginVelocity {
    */
   private interpolateField(bounds: WindBounds, extent: WindMapBounds): void {
     /**数据地图面积 */
-    const mapArea = (extent.south - extent.north) * (extent.west - extent.east);
+    const mapArea = Math.abs((extent.south - extent.north) * (extent.west - extent.east));
     /**得到与可视区域的面积相关联的风速刻度*/
-    const velocityScale = this.VELOCITY_SCALE * Math.pow(mapArea, 0.4) * 0.01;
+    const safeMapArea = Math.max(mapArea, 0.0001);
+    const velocityScale = this.VELOCITY_SCALE * Math.pow(safeMapArea, 0.4) * 0.01;
     const columns: [number, number, number][][] = [];
     this.allThreatIds.forEach(id => {
       cancelIdleCallback(id);
     })
     this.allThreatIds.length = 0;
-    for (let x = bounds.x, len = bounds.width; x < len; x += 2) {
-      let column: [number, number, number][] = [];
-      const id = requestIdleCallback(() => {
-        for (let y = bounds.y, len = bounds.yMax; y <= len; y += 2) {
-          //得到X , Y 点对应地图上的经纬度
-          let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
-          /**是否是有效数字 */
-          if (isFinite(lng)) {
+    const promises: Promise<void>[] = [];
+    const STEP = 4;
+    for (let x = bounds.x, len = bounds.width; x < len; x += STEP) {
+      const promise = new Promise<void>((resolve) => {
+        const column: [number, number, number][] = [];
+        const id = requestIdleCallback(() => {
+          for (let y = bounds.y, len = bounds.yMax; y <= len; y += STEP) {
+            //得到X , Y 点对应地图上的经纬度
+            const [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+            if (!isFinite(lng) || !isFinite(lat)) { continue; }
             //获得指定经纬度的信息 [ 开始值 , 结束值 , 平均值 ]
             let wind = this.interpolate(lng, lat);
-            if (wind) {
-              //根据地图的缩放级别调整粒子的大小
-              wind = this.distort(lng, lat, x, y, velocityScale, wind);
-              column[y + 1] = column[y] = wind;
+            if (!wind) { continue; }
+            //根据地图的缩放级别调整粒子的大小
+            wind = this.distort(lng, lat, x, y, velocityScale, wind);
+            for (let dy = 0; dy < STEP; dy++) {
+              if (y + dy <= bounds.yMax) {
+                column[y + dy] = wind;
+              }
             }
           }
-        }
-        columns[x + 1] = columns[x] = column;
-      })
-      this.allThreatIds.push(id);
+          for (let dx = 0; dx < STEP; dx++) {
+            if (x + dx < bounds.width) {
+              columns[x + dx] = column;
+            }
+          }
+          resolve();
+        });
+        this.allThreatIds.push(id);
+      });
+      promises.push(promise);
     }
-    let field = this.field = new PluginVelocityField(columns, bounds, this.NULL_WIND_VECTOR);
-    this.animate(bounds, field);
+    Promise.all(promises).then(() => {
+      let field = this.field = new PluginVelocityField(columns, bounds, this.NULL_WIND_VECTOR);
+      this.animate(bounds, field);
+    })
   }
   /**获得指定经纬度的数据信息
    * @param lng 经度
