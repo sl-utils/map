@@ -1,6 +1,6 @@
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
-import { u_deepMergeOpt, u_mapGetAngle, u_mapGetDistance, u_mapGetLngLatByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLnglat } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getAngle, um_getDistance, um_getLngLatByPoint, um_getMapMouseEvent, um_getPointByLnglat } from "../utils";
 import { SLUCanvas } from "../canvas";
 export class MapPluginRange extends MapCanvasLayer {
     constructor(sluMap, options) {
@@ -36,7 +36,7 @@ export class MapPluginRange extends MapCanvasLayer {
         };
         this.eventClick = (e) => {
             this.flagTimeout = setTimeout(() => {
-                const { latlng: { lat, lng } } = u_mapGetMapMouseEvent(e, this.map);
+                const { latlng: { lat, lng } } = um_getMapMouseEvent(e, this.map);
                 const lnglats = this.lnglatLists[this.lnglatLists.length - 1] || [];
                 lnglats.push([lng, lat]);
                 this.renderFixedData();
@@ -46,7 +46,7 @@ export class MapPluginRange extends MapCanvasLayer {
         this.eventMousemove = (e) => {
             if (this.ifDrag)
                 return;
-            const { latlng: { lat, lng } } = u_mapGetMapMouseEvent(e, this.map);
+            const { latlng: { lat, lng } } = um_getMapMouseEvent(e, this.map);
             this.lnglat = [lng, lat];
             this.renderAnimation();
         };
@@ -61,9 +61,9 @@ export class MapPluginRange extends MapCanvasLayer {
             this.renderAnimation();
         };
         if (options)
-            this.options = u_deepMergeOpt(this.options, options);
+            this.options = um_deepMergeOpt(this.options, options);
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        const aniOpt = u_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
+        const aniOpt = um_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
         this.ctrMapAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.ctrEvent = new MapCanvasEvent(map);
     }
@@ -101,8 +101,8 @@ export class MapPluginRange extends MapCanvasLayer {
                 }
                 else {
                     let per = lnglats[j - 1], pr = 5;
-                    let distance = u_mapGetDistance(per, cur, this.map);
-                    let θ = u_mapGetAngle(this.map, per, cur);
+                    let distance = um_getDistance(per, cur, this.map);
+                    let θ = um_getAngle(this.map, per, cur);
                     allDis += distance;
                     text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
                     if (j == len - 1 && (i < lineLen - 1 || this.lnglat === undefined)) {
@@ -159,8 +159,8 @@ export class MapPluginRange extends MapCanvasLayer {
         const last = lnglatLists[lnglatLists.length - 1] || [];
         if (lng !== undefined && lat !== undefined && last.length > 0) {
             const end = last[last.length - 1], move = [lng, lat];
-            let distance = u_mapGetDistance(move, end, this.map);
-            let θ = u_mapGetAngle(this.map, end, move);
+            let distance = um_getDistance(move, end, this.map);
+            let θ = um_getAngle(this.map, end, move);
             let text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
             layer.setAllLines([{ lnglats: [move, end], dash: [3, 3], colorLine: '#364A7D' }]);
             layer.setAllTexts([{ lnglat: move, text, colorFill: '#FFFFFF', panel: textPanel }]);
@@ -169,7 +169,7 @@ export class MapPluginRange extends MapCanvasLayer {
     }
     drawEndTextImg(info, lineId) {
         let { lnglat, panel, text = 'text' } = info;
-        let point = u_mapGetPointByLnglat(this.map, lnglat);
+        let point = um_getPointByLnglat(this.map, lnglat);
         let ctx = document.createElement('canvas').getContext('2d');
         SLUCanvas.setCtxPara(ctx, info);
         let meas = ctx.measureText(text);
@@ -180,7 +180,7 @@ export class MapPluginRange extends MapCanvasLayer {
         let y0 = point[1] - (y1 - y2) / 2;
         let size = 16;
         let px = x0 + w + 5 + size / 2, py = y0 - (y1 - y2) / 2;
-        let mapLnglat = u_mapGetLngLatByPoint(this.map, [px, py]);
+        let mapLnglat = um_getLngLatByPoint(this.map, [px, py]);
         this.ctrEvent.pushEventByKey('text', {
             lnglat: mapLnglat,
             point: [px, py],

@@ -1,10 +1,43 @@
-import { OptMapPluginVelocity, DataMapVeloctiyWind } from "../../types";
-/**运动粒子类
+import type { MDataVeloctiyWind } from "./plugin-flow";
+/**
+ * 运动粒子类
+ *
+ * 用于实现流体动画效果，通过粒子系统模拟风场、洋流等流体运动。
+ * 支持自定义粒子颜色、速度、寿命等参数。
+ *
  * @constructor
- * @param options 配置项
+ * @param options 粒子配置
+ *
+ * @example
+ * ```typescript
+ * // 通常不直接使用此类，而是通过 MapPluginFlow 插件
+ * import { SLUMap, MapPluginFlow } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建流体动画插件（内部使用 PluginVelocity）
+ * const flow = new MapPluginFlow(map, {
+ *   maxVelocity: 15,
+ *   particleAge: 90,
+ *   velocityScale: 0.005,
+ *   colorScale: [
+ *     'rgb(36,104,180)',
+ *     'rgb(60,157,194)',
+ *     'rgb(128,205,193)',
+ *     'rgb(255,238,159)',
+ *     'rgb(255,182,100)',
+ *     'rgb(245,64,32)',
+ *     'rgb(180,0,35)'
+ *   ]
+ * });
+ *
+ * // 设置风场数据
+ * flow.setData(windData);
+ * ```
  */
 export declare class PluginVelocity {
-    constructor(options: Partial<OptMapPluginVelocity>);
+    constructor(options: Partial<MOptPluginVelocity>);
     /**基础配置项 */
     private options;
     /**地图实例 */
@@ -60,7 +93,7 @@ export declare class PluginVelocity {
     /**设置数据
      * @param data 数据
      */
-    setData(data: DataMapVeloctiyWind[]): void;
+    setData(data: MDataVeloctiyWind[]): void;
     /**停止运行 */
     stop(): void;
     /**开始运行
@@ -154,4 +187,72 @@ export declare class PluginVelocity {
      * @returns 是否是移动端
      */
     private isMobile;
+}
+/**风场边界 */
+export interface WindBounds {
+    /**起始X坐标 */
+    x: number;
+    /**起始Y坐标 */
+    y: number;
+    /**最大X坐标 */
+    xMax: number;
+    /**最大Y坐标 */
+    yMax: number;
+    /**宽度 */
+    width: number;
+    /**高度 */
+    height: number;
+}
+/**风场地图边界 */
+export interface WindMapBounds {
+    /**南边界 */
+    south: number;
+    /**北边界 */
+    north: number;
+    /**东边界 */
+    east: number;
+    /**西边界 */
+    west: number;
+    /**宽度 */
+    width: number;
+    /**高度 */
+    height: number;
+}
+/**风场粒子 */
+export interface WindParticle {
+    /**粒子年龄 */
+    age: number;
+    /**X坐标 */
+    x: number;
+    /**Y坐标 */
+    y: number;
+    /**目标X坐标 */
+    xt?: number;
+    /**目标Y坐标 */
+    yt?: number;
+}
+/**风向量 */
+export type WindVector = [number, number, number | null];
+/**速度插件配置 */
+export interface MOptPluginVelocity {
+    /**最小速度 */
+    minVelocity: number;
+    /**最大速度 */
+    maxVelocity: number;
+    /**速度缩放 */
+    velocityScale: number;
+    /**粒子寿命 */
+    particleAge: number;
+    /**线宽 */
+    lineWidth: number;
+    /**粒子数量倍数 */
+    particleMultiplier: number;
+    /**帧率 */
+    frameRate: number;
+    /**默认颜色刻度 */
+    defualtColorScale: string[];
+    /**数据 */
+    data: any[];
+    /**画布 */
+    canvas?: HTMLCanvasElement;
 }

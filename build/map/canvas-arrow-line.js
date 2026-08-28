@@ -1,4 +1,4 @@
-import { u_deepMergeOpt, u_mapGetPointsByLnglats } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getPointsByLnglats } from "../utils";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
 const ARROW_URL = "/assets/images/direction-arrow.png";
@@ -20,7 +20,7 @@ export class MapCanvasArrowLine {
         this.allLines = [];
         this.offset = 0;
         this.allPoints = [];
-        this.opt = opt ? u_deepMergeOpt(this.options, opt) : this.options;
+        this.opt = opt ? um_deepMergeOpt(this.options, opt) : this.options;
         this.initResource();
     }
     get imgUrl() {
@@ -48,7 +48,7 @@ export class MapCanvasArrowLine {
             if (lnglat.length) {
                 lnglats.push(lnglat);
             }
-            return u_mapGetPointsByLnglats(this.map, lnglats);
+            return um_getPointsByLnglats(this.map, lnglats);
         });
         this.draw();
     }

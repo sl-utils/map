@@ -1,8 +1,9 @@
-import { MapEventType, MapEventResponse, MapEvent, MapRbush, AMapMapsEvent, MapCursorPosition, MapEventRange } from "../types";
-import { u_arrItemDel, u_mapGetPointByLnglat, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
+import { um_arrItemDel, um_getPointByLnglat, um_tsEventisAmap, um_tsEventisLeaflet, um_tsEventisMapLibre, um_tsIsMapEventType, um_tsMapisMapLibre } from "../utils";
 import rbush, { BBox } from 'rbush'
 import { LeafletMouseEvent, Map as LMap } from "leaflet";
 import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+import { CanvasCursorPosition, CanvasEvent, CanvasEventResponse, CanvasImage, EventType } from "../canvas";
+import { MapArc, MapGif, MapImage, MapLine, MapPolygon, MapPosition, MapRect, MapShow, MapTextBase } from ".";
 
 /**地图事件控制类
  * @constructor
@@ -30,7 +31,7 @@ export class MapCanvasEvent {
     /**地图实例 */
     protected map: AMAP.Map | LMap | MaplibreMap;
     /**监听事件 */
-    protected _listenCbs: { [key in MapEventType]?: ((e: MapEventResponse<any>) => void)[] } = Object.create(null);
+    protected _listenCbs: { [key in EventType]?: ((e: MapEventResponse<any>) => void)[] } = Object.create(null);
     /**key 防止setEvent清除其他事件 */
     public _allMapEvents: Map<string, MapEvent[]> = new Map();
     /**Rbush查询子集 */
@@ -81,7 +82,7 @@ export class MapCanvasEvent {
      * @param type 事件类型
      * @param cb 事件回调函数
      */
-    public on<T extends MapEvent<any>>(type: MapEventType, cb: (e: MapEventResponse<T>) => void): void {
+    public on<T extends MapEvent<any>>(type: EventType, cb: (e: MapEventResponse<T>) => void): void {
         let cbs = this._listenCbs[type] = this._listenCbs[type] || [];
         cbs.push(cb);
     }
@@ -89,10 +90,10 @@ export class MapCanvasEvent {
      * @param type 事件类型
      * @param cb 事件回调函数
      */
-    public off<T extends MapEvent<any>>(type: MapEventType, cb?: (e: MapEventResponse<T>) => void): void {
+    public off<T extends MapEvent<any>>(type: EventType, cb?: (e: MapEventResponse<T>) => void): void {
         let cbs = this._listenCbs[type] = this._listenCbs[type] || [];
         if (cb) {
-            u_arrItemDel(cbs, cb);
+            um_arrItemDel(cbs, cb);
         } else {
             this._listenCbs[type].length = 0;
         }
@@ -174,7 +175,7 @@ export class MapCanvasEvent {
         let { range = [5, 5], lnglat, lnglats = [], left = 0, top = 0 } = event;
         if (lnglat && lnglat.length === 2) lnglats = [...lnglats, lnglat];
         lnglats.forEach(lnglat => {
-            let [onX, onY] = u_mapGetPointByLnglat(this.map, lnglat);
+            let [onX, onY] = um_getPointByLnglat(this.map, lnglat);
             let item: MapRbush = {
                 minX: onX - range[0] + left,
                 minY: onY - range[1] + top,
@@ -194,7 +195,7 @@ export class MapCanvasEvent {
         this._allMapEvents.forEach(eves => {
             allEvents = allEvents.concat(eves);
         });
-        if (u_tsMapisMapLibre(this.map)) {
+        if (um_tsMapisMapLibre(this.map)) {
             el = this.map.getCanvasContainer();
         } else {
             el = this.map.getContainer();
@@ -210,8 +211,8 @@ export class MapCanvasEvent {
         if (curEvents.length == 0) return
         MapCanvasEvent.ifInitCursor = false;
         style.cursor = 'pointer';
-        const type:string  = e.type as string;
-        u_tsIsMapEventType(type);
+        const type: string = e.type as string;
+        um_tsIsMapEventType(type);
         curEvents.forEach(resp => this.doCbByEventType(resp, type));
     };
     /**获取指针触发范围内的事件
@@ -220,18 +221,17 @@ export class MapCanvasEvent {
      */
     private getEventsByRange(e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): MapEventRange {
         let x: number = 0, y: number = 0, pageX: number = 0, pageY: number = 0, zoom: number = this.map.getZoom();
-        if (u_tsEventisLeaflet(e)) {
+        if (um_tsEventisLeaflet(e)) {
             let event = e;
             ({ x, y } = event.containerPoint, { pageX, pageY } = event.originalEvent);
-        } else if (u_tsEventisAmap(e)) {
+        } else if (um_tsEventisAmap(e)) {
             let event = e;
             ({ x, y } = event.pixel, { pageX, pageY } = event.originEvent);
-        } else if (u_tsEventisMapLibre(e)) {
+        } else if (um_tsEventisMapLibre(e)) {
             ({ x, y } = e.point, { pageX, pageY } = e.originalEvent);
         }
         /** curEvents 当前位置存在的所有事件  enterEvents 鼠标首次进入事件集合  leaveEvents 鼠标离开事件集合 */
         let curEvents: MapEventResponse[] = [], enterEvents: MapEventResponse[] = [], leaveEvents: MapEventResponse[] = this.perEvents;
-        if (e.type == 'click') console.time('start');
         // rbush查找
         const search = this.rbush_search;
         search.maxX = search.minX = x, search.maxY = search.minY = y;
@@ -253,52 +253,119 @@ export class MapCanvasEvent {
             );
             if (per) {
                 /**存在则说明鼠标没有离开,则从离开事件集合中移除 */
-                u_arrItemDel(leaveEvents, per)
+                um_arrItemDel(leaveEvents, per)
             } else {
                 /**不存在则说明鼠标刚刚进入,则添加到进入事件集合 */
                 enterEvents.push(response)
             };
         })
-        // for (let i = 0, len = allEvents.length; i < len; i++) {
-        //     let ev = allEvents[i];
-        //     let { lnglat, lnglats = [], range = [5, 5], left = 0, top = 0, minZoom = 1, maxZoom = 50 } = ev;
-        //     if (minZoom > zoom || maxZoom < zoom) continue;
-        //     if (lnglat && lnglat.length === 2) lnglats = [...lnglats, lnglat];
-        //     let sizeX = range[0], sizeY = range[1];
-        //     /**判断是否在范围内 */
-        //     for (let p = 0, len2 = lnglats.length; p < len2; p++) {
-        //         let lnglat = lnglats[p];
-        //         let [onX, onY] = u_mapGetPointByLnglat(this.map, lnglat);
-        //         if ((onX - sizeX + left) <= x && x <= (onX + sizeX + left) && (onY - sizeY + top) <= y && y <= (onY + sizeY + top)) {
-        //             /**当前响应对象 */
-        //             let res = this.genEventResponse(lnglat, [onX, onY], ev, cursor);
-        //             curEvents.push(res);
-        //             /**从之前的所有响应对象中查找是否存在位置一样的响应对象 */
-        //             let per = leaveEvents.find(e =>
-        //                 e.position.lnglat[0] === res.position.lnglat[0] && e.position.lnglat[1] === res.position.lnglat[1]
-        //             );
-        //             if (per) {
-        //                 /**存在则说明鼠标没有离开,则从离开事件集合中移除 */
-        //                 u_arrItemDel(leaveEvents, per)
-        //             } else {
-        //                 /**不存在则说明鼠标刚刚进入,则添加到进入事件集合 */
-        //                 enterEvents.push(res)
-        //             };
-        //         }
-        //     }
-        // }
-        if (e.type == 'click') console.timeEnd('start');
         return { curEvents, enterEvents, leaveEvents }
     }
     /**通过事件类型执行回调函数
      * @param resp 事件响应对象
      * @param type 事件类型
     */
-    private doCbByEventType(resp: MapEventResponse, type: MapEventType): void {
+    private doCbByEventType(resp: MapEventResponse, type: EventType): void {
         let types = resp.event.type;
         if (!Array.isArray(types)) types = [types];
         if (!types.includes(type)) return;
         resp.type = type;
         this.cbMapEvent(resp)
     }
+}
+
+// =============== 类型约束 ===============
+
+/**rbush空间索引查询类 */
+export interface MapRbush<T = any> {
+    /**最小X坐标 */
+    minX: number,
+    /**最小Y坐标 */
+    minY: number,
+    /**最大X坐标 */
+    maxX: number,
+    /**最大Y坐标 */
+    maxY: number,
+    /**经纬度 [lng, lat] */
+    lnglat: [number, number],
+    /**关联的数据 */
+    data: T,
+}
+
+/**地图上的事件类型，继承自CanvasEvent并添加地图位置和显示配置 */
+export type MapEvent<T extends MapEvent = any, I = any> = CanvasEvent<T, I> & MapPosition & MapShow;
+
+/**带事件的地图图片类 @template I 标识图片携带的info的类型 */
+export type MapImageEvent<I = any> = MapImage<I> & MapEvent<MapEvent, I>;
+
+/**地图上带事件的图片渲染类型 */
+export type MapImageRender = MapImageEvent & CanvasImage;
+
+/**带事件的地图文本类 @template I 标识文本携带的info的类型 */
+export type MapTextEvent<I = any> = MapTextBase<I> & MapEvent<MapEvent, I> & MapPosition;
+
+/**带事件的地图圆点类 @template I 标识圆点携带的info的类型 */
+export type MapArcEvent<I = any> = MapArc & MapEvent<MapEvent, I>;
+
+/**带事件的地图矩形类 @template I 标识矩形携带的info的类型 */
+export type MapRectEvent<I = any> = MapRect & MapEvent<MapEvent, I>;
+
+/**带事件的地图多边形类 @template I 标识多边形携带的info的类型 */
+export type MapPolygonEvent<I = any> = MapPolygon & MapEvent<MapEvent, I>;
+
+/**带事件的地图线条类 @template I 标识线条携带的info的类型 */
+export type MapLineEvent<I = any> = MapLine & MapEvent<MapEvent, I>;
+
+/**带事件的地图Gif类 @template I 标识Gif携带的info的类型 */
+export type MapGifEvent<I = any> = MapGif<I> & MapEvent<MapEvent, I>;
+
+/**地图鼠标事件 */
+export interface MapMouseEvent {
+    /**事件类型 */
+    type: EventType;
+    /**事件位置信息 */
+    latlng: { lat: number, lng: number };
+    /**事件容器位置 */
+    containerPoint: {
+        x: number;
+        y: number;
+    };
+    /**原始DOM事件 */
+    orginDOMEvent: MouseEvent;
+    /**原始地图事件 */
+    orginMapEvent: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent;
+}
+
+/**地图事件触发时的响应对象 @template T 挂载此次事件的对象(MapImage|MapArc|Event) @template I 对象携带的相关数据 */
+export type MapEventResponse<T extends MapEvent = MapEvent, I = any> = CanvasEventResponse<T, I> & {
+    /**事件位置信息，包含经纬度 */
+    position: MapCursorPosition;
+}
+
+/**地图事件触发时的范围，包含当前事件、进入事件和离开事件 */
+export interface MapEventRange {
+    /**当前事件 */
+    curEvents: MapEventResponse[];
+    /**进入事件 */
+    enterEvents: MapEventResponse[];
+    /**离开事件 */
+    leaveEvents: MapEventResponse[];
+}
+
+/**地图事件触发时鼠标位置发出的信息，继承自CanvasCursorPosition并添加经纬度 */
+export interface MapCursorPosition extends CanvasCursorPosition {
+    /**地图事件所定义的经纬度 [lng, lat] */
+    lnglat: [number, number];
+}
+
+/**高德地图地图插件原生事件触发后发出的对象 */
+export interface AMapMapsEvent {
+    /**事件位置信息 */
+    lnglat: { Q: number, R: number, lng: number, lat: number }
+    /**原始DOM事件 */
+    originEvent: MouseEvent,
+    /**事件容器位置 */
+    pixel: { x: number, y: number }
+    /**事件类型 */
+    type: EventType
 }

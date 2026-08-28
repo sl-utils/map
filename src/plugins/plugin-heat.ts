@@ -1,22 +1,65 @@
 import { MapCanvasLayer, SLUMap } from "../map";
 import * as L from "leaflet";
 import { SLUCanvas } from "../canvas";
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat } from "../utils/slu-map";
-import { OptMapPluginHeat, DataMapHeat } from "../types";
-import { u_drawConvertgps84Togcj02 } from "../utils";
-/**热力图图层  传入经纬度坐标[],也可传入系数 [纬度,经度,系数?] 
+import { um_arrItemDel, um_getMapSize, um_getPointByLnglat } from "../utils";
+import type { MOptCanvas } from "../map/canvas-layer";
+import { um_drawConvertgps84Togcj02 } from "../utils";
+
+/**
+ * 热力图图层插件
+ *
+ * 用于在地图上渲染热力图效果，支持动态数据更新和自定义渐变色。
+ * 传入经纬度坐标数组，可选传入权重系数 [经度, 纬度, 权重?]。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap 地图实例
- * @param options 热力图配置
-*/
+ * @param sluMap SLUMap 地图实例
+ * @param options 热力图配置项
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginHeat } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建热力图插件
+ * const heat = new MapPluginHeat(map, {
+ *   radius: 30,
+ *   blur: 15,
+ *   gradient: {
+ *     0.2: 'blue',
+ *     0.4: 'cyan',
+ *     0.6: 'lime',
+ *     0.8: 'yellow',
+ *     1.0: 'red'
+ *   }
+ * });
+ *
+ * // 设置热力数据
+ * heat.setAllHeats([
+ *   { lnglat: [114.12, 22.68], weight: 1 },
+ *   { lnglat: [114.15, 22.70], weight: 2 },
+ *   { lnglat: [114.18, 22.72], weight: 0.5 }
+ * ]);
+ *
+ * // 添加单个热力点
+ * heat.addHeat({ lnglat: [114.20, 22.75], weight: 3 });
+ *
+ * // 删除热力点
+ * heat.delHeat({ lnglat: [114.12, 22.68] });
+ *
+ * // 移除图层
+ * heat.onRemove();
+ * ```
+ */
 export class MapPluginHeat extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: OptMapPluginHeat) {
+    constructor(sluMap: SLUMap, options?: MOptPluginHeat) {
         super(sluMap.map, options);
         this.setOptions(options);
     }
     /**热力数据集合 */
-    private _allHeats: DataMapHeat[] = [];
+    private _allHeats: MDataHeat[] = [];
     /**计算后的热力图绘制数据 [位置x,位置y,权重W] */
     private heatDatas: [number, number, number][] = [];
     /**用于绘制阴影，决定渲染颜色层级 */
@@ -28,7 +71,7 @@ export class MapPluginHeat extends MapCanvasLayer {
     /**渐变元素 */
     private _gradEl!: HTMLCanvasElement;
     /**默认配置 */
-    public options: OptMapPluginHeat = {
+    public options: MOptPluginHeat = {
         pane: 'canvas',
         className: 'heat',
         radius: 20,
@@ -58,29 +101,29 @@ export class MapPluginHeat extends MapCanvasLayer {
     /**重置[经度,纬度]集合
      * @param heats 热力数据集合
     */
-    public setAllHeats(heats: DataMapHeat[]): void {
-        u_drawConvertgps84Togcj02(this.map, heats);
+    public setAllHeats(heats: MDataHeat[]): void {
+        um_drawConvertgps84Togcj02(this.map, heats);
         this._allHeats = heats;
         return this._redraw();
     }
     /**添加[经度,纬度],并重绘
      * @param heat 热力数据
     */
-    public addHeat(heat: DataMapHeat): void {
+    public addHeat(heat: MDataHeat): void {
         this._allHeats.push(heat);
         return this._redraw();
     }
     /**删除[经度,纬度],并重绘
      * @param heat 热力数据
     */
-    public delHeat(heat: DataMapHeat): void {
-        u_arrItemDel(this._allHeats, heat);
+    public delHeat(heat: MDataHeat): void {
+        um_arrItemDel(this._allHeats, heat);
         return this._redraw();
     }
     /**设置配置
      * @param options 热力图配置
      */
-    private setOptions(options?: OptMapPluginHeat): void {
+    private setOptions(options?: MOptPluginHeat): void {
         L.setOptions(this, options);
         this._updateOptions();
         return this._redraw();
@@ -99,7 +142,7 @@ export class MapPluginHeat extends MapCanvasLayer {
         let map: any = this.map;
         if (!map) { return []; }
         let r = this._r,
-            size = u_mapGetMapSize(map),
+            size = um_getMapSize(map),
             sizePoint = L.point([size.w, size.h]),
             /**可视范围+影响范围大小 扩大边界 */
             bounds = new L.Bounds(L.point([-r, -r]), sizePoint.add([r, r])),
@@ -113,9 +156,9 @@ export class MapPluginHeat extends MapCanvasLayer {
             i, len, cell, x, y, j, len2, k;
         /**对点位进行计算 */
         for (i = 0, len = this._allHeats.length; i < len; i++) {
-            let heat: DataMapHeat = this._allHeats[i]
+            let heat: MDataHeat = this._allHeats[i]
             /**得到像素点位 */
-            let p = u_mapGetPointByLnglat(this.map, heat.lnglat);
+            let p = um_getPointByLnglat(this.map, heat.lnglat);
             /**判断点位是否在范围内 */
             if (bounds.contains(p)) {
                 /** X，Y拖动后同一经纬度对应的Point会变化，为确保热力图和之前的一模一样，故需要减去偏移量*/
@@ -247,4 +290,32 @@ export class MapPluginHeat extends MapCanvasLayer {
             }
         }
     }
+}
+
+/**热力图数据点 */
+export interface MDataHeat {
+    /**经纬度 [lng, lat] */
+    lnglat: [number, number]
+    /**权重值 */
+    weight?: number
+}
+
+/**热力图插件配置 */
+export interface MOptPluginHeat extends MOptCanvas {
+    /**热力图半径 @default 20 */
+    radius?: number,
+    /**模糊程度 @default 15 */
+    blur?: number,
+    /**热力图渐变颜色 */
+    gradient?: any,
+    /**最小透明度 @default 0.05 */
+    minOpacity?: number,
+    /**渐变索引 */
+    gradientIndex?: number,
+    /**是否显示提示 */
+    ifTip?: boolean,
+    /**提示框水平偏移 */
+    tipX?: number,
+    /**提示框垂直偏移 */
+    tipY?: number,
 }

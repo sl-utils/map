@@ -18,4 +18,4 @@ declare function clearMultilineCache(): void;
  * 用于计算canvas measureText字符长度
  * 内部缓存其值增加计算速度
  */
-export { splitMultilineText as u_TextSplitMultilineText, clearMultilineCache as u_TextClearMultilineCache, };
+export { splitMultilineText as um_textSplitMultilineText, clearMultilineCache as um_textClearMultilineCache, };

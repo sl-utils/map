@@ -1,5 +1,5 @@
 import { MapCanvasLayer, MapCanvasRadar } from "../map";
-import { u_drawConvertgps84Togcj02 } from "../utils";
+import { um_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginRadar extends MapCanvasLayer {
     constructor(sluMap, options) {
         super(sluMap.map, options);
@@ -7,7 +7,7 @@ export class MapPluginRadar extends MapCanvasLayer {
         this.canvasRadar = new MapCanvasRadar(sluMap.map, this.ctx);
     }
     setAllRadars(radars) {
-        u_drawConvertgps84Togcj02(this.map, radars);
+        um_drawConvertgps84Togcj02(this.map, radars);
         this.canvasRadar.setAllRadars(radars);
         return this;
     }

@@ -1,4 +1,4 @@
-import { u_deepMergeOpt } from "../utils";
+import { um_deepMergeOpt } from "../utils";
 export class SLUCanvas {
     constructor() { }
     static drawArc(arc, ctx = this.ctx) {
@@ -124,7 +124,7 @@ export class SLUCanvas {
     static setCtxPara(ctx, fig = {}) {
         this.ctx = ctx;
         this.deletePara(fig);
-        fig = u_deepMergeOpt(this.ctxFig, fig);
+        fig = um_deepMergeOpt(this.ctxFig, fig);
         ctx.globalAlpha = fig.alpha;
         ctx.globalCompositeOperation = fig.globalCompositeOperation;
         ctx.fillStyle = fig.colorFill;

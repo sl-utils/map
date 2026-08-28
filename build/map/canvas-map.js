@@ -1,7 +1,7 @@
 import { CRS, Map as LMap, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapGetDistance, u_mapGetLngLatByEvent, u_mapGetLngLatByPoint, u_mapGetLnglatByValue, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapSetFitBounds, u_mapSetViewCenter, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsIsKeyOf, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
+import { um_getBounds, um_getDistance, um_getLngLatByEvent, um_getLngLatByPoint, um_getLnglatByValue, um_getMapSize, um_getPointByLnglat, um_setFitBounds, um_setViewCenter, um_togcj02gps84, um_togps84gcj02, um_tsIsKeyOf, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
 import { Map as MaplibreMap } from 'maplibre-gl';
 export class SLUMap {
     constructor(ele) {
@@ -9,14 +9,14 @@ export class SLUMap {
         this.ifDMS = true;
         this.curs = Object.create(null);
         this.setLatlng = (e) => {
-            const lnglat = u_mapGetLngLatByEvent(e);
+            const lnglat = um_getLngLatByEvent(e);
             if (!lnglat)
                 return;
             const [lng, lat] = lnglat;
             this.latLng.lat = lat;
             this.latLng.lng = lng;
-            this.controlInfo.lat = u_mapGetLnglatByValue(lat, false, this.ifDMS);
-            this.controlInfo.lng = u_mapGetLnglatByValue(lng, true, this.ifDMS);
+            this.controlInfo.lat = um_getLnglatByValue(lat, false, this.ifDMS);
+            this.controlInfo.lng = um_getLnglatByValue(lng, true, this.ifDMS);
             if (this.controlCb)
                 this.controlCb(this.controlInfo);
         };
@@ -42,20 +42,20 @@ export class SLUMap {
     }
     setFitView(lnglats) {
         if (this._map) {
-            u_mapSetFitBounds(this._map, lnglats);
+            um_setFitBounds(this._map, lnglats);
         }
         return this;
     }
     setCenter(center, zoom, offset) {
-        u_mapSetViewCenter(this._map, center, zoom, offset);
+        um_setViewCenter(this._map, center, zoom, offset);
     }
     getBound() {
-        return u_mapGetBounds(this._map);
+        return um_getBounds(this._map);
     }
     getCenter() {
         const center = this.map.getCenter();
-        if (u_tsMapisAmap(this.map)) {
-            const { lat, lng } = u_mapTogcj02gps84(center.lng, center.lat);
+        if (um_tsMapisAmap(this.map)) {
+            const { lat, lng } = um_togcj02gps84(center.lng, center.lat);
             return new AMap.LngLat(lng, lat);
         }
         return center;
@@ -64,11 +64,11 @@ export class SLUMap {
         return this.map.getZoom();
     }
     getSize() {
-        return u_mapGetMapSize(this._map);
+        return um_getMapSize(this._map);
     }
     showMap(names = []) {
         const { map, curs } = this;
-        if (map && u_tsMapisLeaflet(map)) {
+        if (map && um_tsMapisLeaflet(map)) {
             let mapSource = names[0].split('.')[0];
             let center = map.getCenter();
             let zoom = map.getZoom();
@@ -81,7 +81,7 @@ export class SLUMap {
                 curs[name] = net;
             });
             for (const key of Object.keys(curs)) {
-                if (!u_tsIsKeyOf(curs, key))
+                if (!um_tsIsKeyOf(curs, key))
                     continue;
                 let name = key;
                 let flag = names.includes(name);
@@ -97,8 +97,8 @@ export class SLUMap {
         this.eventSwitch(true);
         const latlng = this.latLng = this.getCenter();
         this.ifDMS = ifDMS;
-        this.controlInfo.lat = u_mapGetLnglatByValue(latlng.lat, false, ifDMS);
-        this.controlInfo.lng = u_mapGetLnglatByValue(latlng.lng, true, ifDMS);
+        this.controlInfo.lat = um_getLnglatByValue(latlng.lat, false, ifDMS);
+        this.controlInfo.lng = um_getLnglatByValue(latlng.lng, true, ifDMS);
         this.setZoomAndScale();
         return this.controlInfo;
     }
@@ -111,8 +111,8 @@ export class SLUMap {
     changeLatlngFormat(ifDMS) {
         this.ifDMS = ifDMS;
         const { lat, lng } = this.latLng;
-        this.controlInfo.lat = u_mapGetLnglatByValue(lat, false, ifDMS);
-        this.controlInfo.lng = u_mapGetLnglatByValue(lng, true, ifDMS);
+        this.controlInfo.lat = um_getLnglatByValue(lat, false, ifDMS);
+        this.controlInfo.lng = um_getLnglatByValue(lng, true, ifDMS);
         this.setZoomAndScale();
         return this.controlInfo;
     }
@@ -153,7 +153,7 @@ export class SLUMap {
     }
     changeLanguage(ifEn) {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const layers = map.getStyle().layers || [];
             const lang = ifEn ? 'en' : 'zh-Hans';
             layers.forEach((layer) => {
@@ -175,7 +175,7 @@ export class SLUMap {
     }
     async initAmap(ele, opt) {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
-        const { lat, lng } = u_mapTogps84gcj02(center[0], center[1]);
+        const { lat, lng } = um_togps84gcj02(center[0], center[1]);
         return AMapLoader.load({
             "key": "87e1b1e9aa88724f69208972546fdd57",
             "version": "1.4.15",
@@ -222,10 +222,10 @@ export class SLUMap {
         if (!this.map)
             return;
         const { lat: averLat, lng: averLng } = this.getCenter();
-        const [x, y] = u_mapGetPointByLnglat(this.map, [averLng, averLat]);
+        const [x, y] = um_getPointByLnglat(this.map, [averLng, averLat]);
         const point = [x + 50, y];
-        const targetLngLat = u_mapGetLngLatByPoint(this.map, point);
-        let dis = u_mapGetDistance([averLng, averLat], targetLngLat, this.map);
+        const targetLngLat = um_getLngLatByPoint(this.map, point);
+        let dis = um_getDistance([averLng, averLat], targetLngLat, this.map);
         let text = '';
         if (dis > 2000) {
             dis = dis / 1852;

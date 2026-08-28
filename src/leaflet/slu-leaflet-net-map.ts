@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 import 'proj4leaflet';
-import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
+import { um_togps84bd09, um_togps84gcj02 } from "../utils";
 'use strict';
 /**坐标转换关键代码(加载后GridLayer自行转换) */
 (function (window, document) {
@@ -14,9 +14,9 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
             let center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
-                    center = u_mapTogps84gcj02(_center.lng, _center.lat);
+                    center = um_togps84gcj02(_center.lng, _center.lat);
                 } else if (this.options.corrdType == 'bd09') {
-                    center = u_mapTogps84bd09(_center.lng, _center.lat);
+                    center = um_togps84bd09(_center.lng, _center.lat);
                 }
             }
             const scale = this._map.getZoomScale(zoom, level.zoom),
@@ -37,9 +37,9 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
             let center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
-                    center = u_mapTogps84gcj02(_center.lng, _center.lat);
+                    center = um_togps84gcj02(_center.lng, _center.lat);
                 } else if (this.options.corrdType == 'bd09') {
-                    center = u_mapTogps84bd09(_center.lng, _center.lat);
+                    center = um_togps84bd09(_center.lng, _center.lat);
                 }
             }
             const map = this._map,

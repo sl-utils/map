@@ -1,8 +1,8 @@
-import { OptMapPluginRadar } from "../types";
 import { SLUCanvas } from "../canvas";
-import { u_deepMergeOpt, u_mapGetPointByLnglat, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getPointByLnglat, um_getSizeByMap, um_tsIfOneArrTwoLen } from "../utils";
 import { Map as LMap } from 'leaflet';
 import { Map as MaplibreMap } from 'maplibre-gl';
+import type { MapShow, MapPoint, SizeFix_, MapEvent } from ".";
 
 /**地图canvas绘制雷达类
  * @constructor
@@ -18,7 +18,7 @@ export class MapCanvasRadar {
     /**上一动画时间(毫秒) */
     private pertime: number;
     /**雷达的默认设置 */
-    private options: OptMapPluginRadar = {
+    private options: MOptPluginRadar = {
         animeId: '0',
         angle: [0, 90],
         ifClockwise: true,
@@ -37,21 +37,21 @@ export class MapCanvasRadar {
         lnglat: [0, 0]
     };
     /**所有的雷达数据 */
-    private allRadars: OptMapPluginRadar[] = [];
+    private allRadars: MOptPluginRadar[] = [];
     /**重设雷达绘制类
      * @param radars 雷达数据集合
      * @returns MapCanvasRadar实例
      */
-    public setAllRadars(radars: OptMapPluginRadar[]): MapCanvasRadar {
-        this.allRadars = radars.filter(e => e).map(e => e = u_deepMergeOpt(this.options, e));
+    public setAllRadars(radars: MOptPluginRadar[]): MapCanvasRadar {
+        this.allRadars = radars.filter(e => e).map(e => e = um_deepMergeOpt(this.options, e));
         return this;
     }
     /**添加雷达绘制类
      * @param radar 雷达数据
      * @returns MapCanvasRadar实例
      */
-    public addRadar(radar: OptMapPluginRadar): MapCanvasRadar {
-        const newRadar = u_deepMergeOpt(this.options, radar);
+    public addRadar(radar: MOptPluginRadar): MapCanvasRadar {
+        const newRadar = um_deepMergeOpt(this.options, radar);
         this.allRadars.push(newRadar);
         return this;
     }
@@ -89,15 +89,15 @@ export class MapCanvasRadar {
     /**更新所有雷达位置和大小
      * @param radar 雷达数据
      */
-    private updatePoint(radar: OptMapPluginRadar): void {
+    private updatePoint(radar: MOptPluginRadar): void {
         const { map } = this;
-        radar.radius = u_mapGetSizeByMap(map, radar)[0];
-        radar.center = u_mapGetPointByLnglat(map, radar.lnglat);
+        radar.radius = um_getSizeByMap(map, radar)[0];
+        radar.center = um_getPointByLnglat(map, radar.lnglat);
     }
     /**绘制雷达网格
      * @param radar 雷达数据
      */
-    private drawGrid(radar: OptMapPluginRadar): void {
+    private drawGrid(radar: MOptPluginRadar): void {
         const { ctx } = this, { center, radius, gridDensity, colorGrid } = radar, [x, y] = center;
         ctx.save();
         ctx.beginPath();
@@ -137,12 +137,12 @@ export class MapCanvasRadar {
     /**虚线圈到中心点距离
      * @param radar 雷达数据
      */
-    private drawDashArc(radar: OptMapPluginRadar): void {
+    private drawDashArc(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius, colorRadar, dashDensity, arcDash } = radar,
             [x, y] = center;
         const sizeFix = radar.sizeFix;
-        if (arcDash.length > 0 || !u_tsIfOneArrTwoLen(sizeFix)) return;
+        if (arcDash.length > 0 || !um_tsIfOneArrTwoLen(sizeFix)) return;
         // 虚线圆 间距px
         const diff = radius / dashDensity;
         /**虚线每圈间隔米数显示 */
@@ -166,12 +166,12 @@ export class MapCanvasRadar {
     /**绘制自定义的虚线圈
      * @param radar 雷达数据
      */
-    private drawCustomDashArc(radar: OptMapPluginRadar): void {
+    private drawCustomDashArc(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius, colorDash, arcDash = [] } = radar,
             [x, y] = center;
         const sizeFix = radar.sizeFix;
-        if (arcDash.length == 0 || !u_tsIfOneArrTwoLen(sizeFix)) return;
+        if (arcDash.length == 0 || !um_tsIfOneArrTwoLen(sizeFix)) return;
         /**像素 m 之间比例 */
         const pixelMeter = radius / sizeFix[0];
         ctx.save();
@@ -197,7 +197,7 @@ export class MapCanvasRadar {
     /**绘制轮廓
      * @param radar 雷达数据
      */
-    private drawOutline(radar: OptMapPluginRadar): void {
+    private drawOutline(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius, colorRadar } = radar,
             [x, y] = center;
@@ -212,7 +212,7 @@ export class MapCanvasRadar {
     /**绘制边缘单元
      * @param radar 雷达数据
      */
-    private drawOutlineUnit(radar: OptMapPluginRadar): void {
+    private drawOutlineUnit(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius, colorRadar } = radar,
             [x, y] = center;
@@ -244,7 +244,7 @@ export class MapCanvasRadar {
     /**雷达背景蒙版 中间泛白
      * @param radar 雷达数据
      */
-    private drawBackground(radar: OptMapPluginRadar): void {
+    private drawBackground(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius } = radar,
             [x, y] = center;
@@ -254,7 +254,7 @@ export class MapCanvasRadar {
     /**绘制文字描述
      * @param radar 雷达数据
      */
-    private drawText(radar: OptMapPluginRadar): void {
+    private drawText(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius, colorText } = radar,
             [x, y] = center;
@@ -300,7 +300,7 @@ export class MapCanvasRadar {
     /**绘制扫描范围
      * @param radar 雷达数据
      */
-    private drawScanRange(radar: OptMapPluginRadar): void {
+    private drawScanRange(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { angle, center, radius, colorRadar } = radar,
             [x, y] = center;
@@ -318,7 +318,7 @@ export class MapCanvasRadar {
      * @param radar 雷达数据
      * @param diffTime 时间差
      */
-    private updateAngle(radar: OptMapPluginRadar, diffTime: number): void {
+    private updateAngle(radar: MOptPluginRadar, diffTime: number): void {
         let { angle: [startAngle, endAngle], currentAngle, ifClockwise, time } = radar;
         startAngle -= 90;
         endAngle -= 90;
@@ -334,7 +334,7 @@ export class MapCanvasRadar {
     /**绘制扫描部分(动态)
      * @param radar 雷达数据
      */
-    private drawScan(radar: OptMapPluginRadar): void {
+    private drawScan(radar: MOptPluginRadar): void {
         const { ctx } = this,
             { center, radius, currentAngle, colorSector } = radar,
             [x, y] = center;
@@ -360,7 +360,7 @@ export class MapCanvasRadar {
      * 绘制扇形区域
      * @param sectorDeg 扇形渐变角度
      */
-    private drawSector(radar: OptMapPluginRadar): void {
+    private drawSector(radar: MOptPluginRadar): void {
         let { ctx } = this,
             { angle: [startAngle, endAngle], center, radius, ifClockwise, currentAngle, colorSector, sectorAngle } = radar,
             [centerX, centerY] = center;
@@ -430,3 +430,48 @@ export class MapCanvasRadar {
         return dashRgb;
     }
 }
+
+// =============== 类型约束 ===============
+
+/**雷达插件配置 @template I 标识雷达携带的info的类型 */
+export interface MOptPluginRadar<I = any> extends MapShow, MapPoint, SizeFix_ {
+    /**动画唯一标识 */
+    animeId: string
+    /**角度范围 [start, end] */
+    angle?: [number, number],
+    /**是否顺时针旋转 */
+    ifClockwise?: boolean
+    /**旋转时间(毫秒) */
+    time?: number
+    /**当前角度 */
+    currentAngle?: number
+    /**扇形角度 */
+    sectorAngle?: number;
+    /**扇形颜色 */
+    colorSector?: string;
+    /**网格颜色 */
+    colorGrid?: string;
+    /**文本颜色 */
+    colorText?: string;
+    /**雷达颜色 */
+    colorRadar?: string
+    /**虚线颜色 */
+    colorDash?: string[];
+    /**圆弧虚线配置 */
+    arcDash?: number[];
+    /**网格密度 */
+    gridDensity?: number;
+    /**虚线密度 */
+    dashDensity?: number;
+    /**是否隐藏 */
+    ifHide?: boolean
+    /**半径 */
+    radius?: number;
+    /**中心点 */
+    center?: [number, number]
+    /**自定义信息 */
+    info?: I
+}
+
+/**雷达扫描事件类型 @template I 标识雷达携带的info的类型 */
+export type MapRadarScanEvent<I = any> = MOptPluginRadar<I> & MapEvent<MapEvent, I>;

@@ -1,27 +1,82 @@
-import { Browser, DomUtil, Map as LMap, Layer, Util, ZoomAnimEvent, bind, extend } from "leaflet";
-import { u_deepMergeOpt, u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
-import { OptMapCanvas } from "../types";
+import { Browser, DomUtil, Map as LMap, Layer, LayerOptions, Util, ZoomAnimEvent, bind, extend } from "leaflet";
+import { um_deepMergeOpt, um_getMapSize, um_tsLayerisAmap, um_tsLayerisLeaflet, um_tsLayerisMapLibre, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
 import { Map as MaplibreMap, CustomLayerInterface } from 'maplibre-gl';
+import type { OptCanvas } from "../canvas";
+import type { CustomLayerOption } from "../amap";
 declare var AMap: any;
-/** 地图canvas基础图层类(基本所有插件都要继承此类) 删除永远比新增简单 
+/**
+ * 地图 Canvas 基础图层类
+ *
+ * 所有 Canvas 插件的基类，封装了 Leaflet、高德、MapLibre 三种地图引擎的图层实现。
+ * 提供统一的 Canvas 生命周期管理、事件监听、重绘机制等。
+ *
  * @constructor
  * @param MAP 地图实例
  * @param opt 图层配置项
-*/
+ *
+ * @example
+ * ```typescript
+ * // 通常不直接使用此类，而是继承它实现自定义插件
+ * import { MapCanvasLayer, SLUMap } from '@sl-utils/map';
+ *
+ * // 自定义插件示例
+ * class MyPlugin extends MapCanvasLayer {
+ *   constructor(sluMap, options) {
+ *     super(sluMap.map, options);
+ *   }
+ *
+ *   // 静态数据绘制
+ *   protected renderFixedData() {
+ *     this.resetCanvas();
+ *     const ctx = this.ctx;
+ *     ctx.fillStyle = '#FF0000';
+ *     ctx.fillRect(10, 10, 100, 100);
+ *   }
+ *
+ *   // 动态数据绘制
+ *   protected renderAnimation() {
+ *     this.resetCanvas();
+ *     // 动画逻辑...
+ *     this.flagAnimation = requestAnimationFrame(() => {
+ *       this.renderAnimation();
+ *     });
+ *   }
+ *
+ *   // 添加地图事件监听
+ *   protected addMapEvents(map, key) {
+ *     map[key]('moveend', () => this._redraw());
+ *     map[key]('zoomend', () => this._redraw());
+ *   }
+ * }
+ *
+ * // 使用自定义插件
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * const plugin = new MyPlugin(map, {
+ *   pane: 'canvas',
+ *   className: 'my-plugin',
+ *   zIndex: 100
+ * });
+ *
+ * // 移除图层
+ * plugin.onRemove();
+ * ```
+ */
 export class MapCanvasLayer {
-    constructor(MAP: LMap, opt?: OptMapCanvas)
-    constructor(MAP: MaplibreMap, opt?: OptMapCanvas)
+    constructor(MAP: LMap, opt?: MOptCanvas)
+    constructor(MAP: MaplibreMap, opt?: MOptCanvas)
     constructor(MAP: AMAP.Map, opt?: AMAP.CustomLayerOption)
-    constructor(MAP: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas)
-    constructor(map: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | OptMapCanvas){
+    constructor(MAP: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | MOptCanvas)
+    constructor(map: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | MOptCanvas) {
         this.map = map;
-        if (opt) this.options = u_deepMergeOpt(this.options, opt);
+        if (opt) this.options = um_deepMergeOpt(this.options, opt);
         this.initCanvas();
-        if (u_tsMapisLeaflet(map)) {
+        if (um_tsMapisLeaflet(map)) {
             this._initLeaflet();
-        } else if (u_tsMapisAmap(map)) {
+        } else if (um_tsMapisAmap(map)) {
             this._initAMap();
-        } else if (u_tsMapisMapLibre(map)) {
+        } else if (um_tsMapisMapLibre(map)) {
             this._initMapLibreAsync();
         }
     }
@@ -38,7 +93,7 @@ export class MapCanvasLayer {
     /**画布高度 */
     protected height: number = 0;
     /**图层配置项 */
-    public readonly options: OptMapCanvas = {
+    public readonly options: MOptCanvas = {
         pane: 'canvas',
     };
     /**动画循环的id标识 */
@@ -55,11 +110,11 @@ export class MapCanvasLayer {
     /**清空并重新设置画布 */
     public resetCanvas(): void {
         const { canvas, map } = this;
-        if (u_tsMapisLeaflet(map)) {
+        if (um_tsMapisLeaflet(map)) {
             const topLeft = map.containerPointToLayerPoint([0, 0]);
             DomUtil.setPosition(canvas, topLeft);
         }
-        const { w, h } = u_mapGetMapSize(map);
+        const { w, h } = um_getMapSize(map);
         canvas.style.width = w + 'px';
         canvas.style.height = h + 'px';
         //清除画布
@@ -135,7 +190,7 @@ export class MapCanvasLayer {
     /**------------------------------高德地图的实现------------------------------*/
     /**初始化高德地图的图层 */
     private _initAMap(): void {
-        const opt = u_deepMergeOpt({
+        const opt = um_deepMergeOpt({
             zooms: [3, 18],
             alwaysRender: false,//缩放过程中是否重绘，复杂绘制建议设为false
             zIndex: 200,
@@ -147,7 +202,7 @@ export class MapCanvasLayer {
     /**将图层添加到map实例中显示 */
     private _onAmapAdd(): void {
         const { map, layer } = this;
-        if (u_tsMapisAmap(map) && u_tsLayerisAmap(layer)) {
+        if (um_tsMapisAmap(map) && um_tsLayerisAmap(layer)) {
             layer.setMap(map);
             layer.render = this._redraw;
         }
@@ -155,7 +210,7 @@ export class MapCanvasLayer {
     /**移除图层 */
     private _onAmapRemove(): void {
         const { map, layer } = this;
-        if (u_tsMapisAmap(map) && u_tsLayerisAmap(layer)) {
+        if (um_tsMapisAmap(map) && um_tsLayerisAmap(layer)) {
             map.remove(layer);
             // layer.destroy();
         }
@@ -170,7 +225,7 @@ export class MapCanvasLayer {
     /**初始化画布并添加到Pane中 */
     private initLeafletCanvas(): void {
         const { canvas, map, options } = this;
-        if (!u_tsMapisLeaflet(map)) return;
+        if (!um_tsMapisLeaflet(map)) return;
         let pane = options.pane || 'overlayPane', paneEle = map.getPane(pane) || map.createPane(pane);
         /**如果指定的pane不存在就自己创建(往map添加div Pane) */
         paneEle.appendChild(canvas);
@@ -186,7 +241,7 @@ export class MapCanvasLayer {
     /**移除图层 */
     private _onLeafletRemove(): void {
         let { map, layer, options } = this;
-        if (u_tsMapisLeaflet(map) && u_tsLayerisLeaflet(layer)) {
+        if (um_tsMapisLeaflet(map) && um_tsLayerisLeaflet(layer)) {
             let pane = options.pane;
             pane && map.getPane(pane)?.removeChild(this.canvas);
             layer.remove();
@@ -198,7 +253,7 @@ export class MapCanvasLayer {
      */
     private addLeafletEvent(flag: boolean = true): void {
         const map = this.map;
-        if (u_tsMapisLeaflet(map)) {
+        if (um_tsMapisLeaflet(map)) {
             /**为了和高德保持一致，初始化后渲染一次 */
             requestAnimationFrame(() => this._reset());
             const key: 'on' | 'off' = flag ? 'on' : 'off';
@@ -227,13 +282,13 @@ export class MapCanvasLayer {
     }
     /**画布加载完成 */
     private _onCanvasLoad(): void {
-        if (u_tsLayerisLeaflet(this.layer)) this.layer.fire('load');
+        if (um_tsLayerisLeaflet(this.layer)) this.layer.fire('load');
     }
     /**------------------------------MapLibre地图的实现------------------------------*/
     /**异步初始化MapLibre地图的图层 */
     private _initMapLibreAsync(): void {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const isReady = map.loaded?.() || map.isStyleLoaded?.() || !!map.getStyle?.();
             if (isReady) {
                 this._initMapLibre();
@@ -249,7 +304,7 @@ export class MapCanvasLayer {
     /**添加MapLibre图层到地图上 */
     private _initMapLibre(): void {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const layerId = `slu-canvas-${Math.random().toString(36).slice(2)}`;
             const customLayer: CustomLayerInterface = {
                 id: layerId,
@@ -268,7 +323,7 @@ export class MapCanvasLayer {
     /**将图层添加到容器 */
     private _onMapLibreAdd(): void {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const container = map.getCanvasContainer();
             this.canvas.style.position = 'absolute';
             this.canvas.style.top = '0';
@@ -279,7 +334,7 @@ export class MapCanvasLayer {
     }
     /**移除图层 */
     private _onMapLibreRemove(): void {
-        if (u_tsMapisMapLibre(this.map) && u_tsLayerisMapLibre(this.layer)) {
+        if (um_tsMapisMapLibre(this.map) && um_tsLayerisMapLibre(this.layer)) {
             if (this.canvas.parentNode) {
                 this.canvas.parentNode.removeChild(this.canvas);
             }
@@ -294,7 +349,7 @@ export class MapCanvasLayer {
      */
     private addMaplibreEvent(flag: boolean = true): void {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             /**为了和高德保持一致，初始化后渲染一次 */
             requestAnimationFrame(() => this._reset());
             const key: 'on' | 'off' = flag ? 'on' : 'off';
@@ -304,4 +359,22 @@ export class MapCanvasLayer {
             map[key]('moveend', () => this._reset());
         };
     }
+}
+
+// ===================== 类型约束 =====================
+
+/**地图画布配置 */
+export interface MOptCanvas extends OptCanvas, LayerOptions, CustomLayerOption {
+    /**画布挂载的div节点名称 @default 'canvas'
+     * map默认创建mapPane、tilePane、shadowPane、overlayPane、markerPane、tooltipPane、popupPane，
+     * 不存在时CanvasLayer会调用创建方法。
+     * 类名会去掉Pane，例如XPane和X都生成类名为leaflet-X-pane的div节点，但是属于不同的pane
+     */
+    pane?: string;
+    /**画布的class名称 */
+    className?: string
+    /**画布层级，默认100，最大400(受挂载的div影响，可修改) */
+    zIndex?: number;
+    /**zoom调整时是否开启缩放动画 @default true */
+    zoomAnimation?: boolean;
 }

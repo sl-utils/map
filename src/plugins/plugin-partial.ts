@@ -1,17 +1,68 @@
-import { u_mapGetPointsByLnglats } from "../utils/slu-map";
-import { MapCanvasLayer, SLUMap } from "../map";
-import { SLUCanvas } from "../canvas";
-import { OptMapCanvas, DataMapParticle, CanvasPosition } from "../types";
+import { um_getPointsByLnglats } from "../utils";
+import { MapCanvasLayer, type MOptCanvas, type SLUMap } from "../map";
+import { CanvasLine, SLUCanvas } from "../canvas";
+import { CanvasPosition } from "../canvas";
 import { Map as MaplibreMap } from 'maplibre-gl';
-import { u_drawConvertgps84Togcj02 } from "../utils";
-/**用于绘制地图上的粒子效果
+import { um_drawConvertgps84Togcj02 } from "../utils";
+/**
+ * 粒子效果插件
+ *
+ * 用于在地图上绘制流动的粒子效果，支持贝塞尔曲线路径、自定义粒子颜色和速度。
+ * 常用于表示洋流、气流、航线等流动数据。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap 地图实例
- * @param options 地图初始化参数
+ * @param sluMap SLUMap 地图实例
+ * @param options 粒子配置
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginPartial } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建粒子插件
+ * const partial = new MapPluginPartial(map, {
+ *   pane: 'canvas',
+ *   zIndex: 150
+ * });
+ *
+ * // 设置粒子数据
+ * partial.setAllParticles([
+ *   {
+ *     lnglats: [
+ *       [114.12, 22.68],
+ *       [114.15, 22.70],
+ *       [114.18, 22.72],
+ *       [114.20, 22.75]
+ *     ],
+ *     colorParticle: '#00FFFF',
+ *     speed: 0.002,        // 移动速度
+ *     length: 0.05,        // 粒子长度占比
+ *     dense: 1,            // 密度
+ *     showParticle: true
+ *   },
+ *   {
+ *     lnglats: [
+ *       [114.25, 22.80],
+ *       [114.30, 22.85],
+ *       [114.35, 22.90]
+ *     ],
+ *     colorParticle: '#FF6600',
+ *     speed: 0.003,
+ *     length: 0.08,
+ *     degree: 0.3,         // 贝塞尔曲线曲度
+ *     showParticle: true
+ *   }
+ * ]);
+ *
+ * // 移除图层
+ * partial.onRemove();
+ * ```
  */
 export class MapPluginPartial extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options?: OptMapCanvas) {
+  constructor(sluMap: SLUMap, options?: MOptCanvas) {
     super(sluMap.map, options);
   }
   /**
@@ -22,12 +73,12 @@ export class MapPluginPartial extends MapCanvasLayer {
    * */
   private isDrag: boolean = false;
   /**所有的粒子效果数据 */
-  private _allParticle: (DataMapParticle & CanvasPosition)[] = [];
+  private _allParticle: (MDataParticle & CanvasPosition)[] = [];
   /**设置所有粒子数据
    * @param particles 粒子数据
    */
-  public setAllParticles(particles: (DataMapParticle & CanvasPosition)[]): void {
-    u_drawConvertgps84Togcj02(this.map, particles);
+  public setAllParticles(particles: (MDataParticle & CanvasPosition)[]): void {
+    um_drawConvertgps84Togcj02(this.map, particles);
     /**渲染内部会添加CanvasPosition到数据 */
     this._allParticle = particles;
     this._redraw();
@@ -40,7 +91,7 @@ export class MapPluginPartial extends MapCanvasLayer {
     this._allParticle.forEach((particle) => {
       particle.curPoints = [];
       particle.curve = [];
-      let points = (particle.points = u_mapGetPointsByLnglats(this.map, particle.lnglats) || []);
+      let points = (particle.points = um_getPointsByLnglats(this.map, particle.lnglats) || []);
       for (let i = 0, len = points.length - 1; i < len; i++) {
         const e0 = points[i],
           e1 = points[i + 1];
@@ -85,7 +136,7 @@ export class MapPluginPartial extends MapCanvasLayer {
   /**获取当前贝塞尔曲线的粒子点位
    * @param particle 粒子数据
    */
-  private genCurBezierPoints(particle: DataMapParticle & CanvasPosition): void {
+  private genCurBezierPoints(particle: MDataParticle & CanvasPosition): void {
     /**画布坐标*/
     let { points = [], index: i = 0, dense = 1 } = particle;
     let j = i + 1;
@@ -153,7 +204,7 @@ export class MapPluginPartial extends MapCanvasLayer {
   /**绘制粒子
    * @param particle 粒子数据
    */
-  private drawParticle(particle: DataMapParticle): void {
+  private drawParticle(particle: MDataParticle): void {
     let ctx = this.ctx;
     let points = particle.curPoints || [];
     for (let i = 0, len = points.length; i < len; i++) {
@@ -187,4 +238,30 @@ export class MapPluginPartial extends MapCanvasLayer {
   private drawEnd(): void {
     this.isDrag = true;
   }
+}
+
+// ==================== 类型约束 ====================
+
+/**粒子数据 */
+export interface MDataParticle extends CanvasLine {
+  /**经纬度集合 */
+  lnglats?: [number, number][];
+  /**曲线控制点 */
+  curve?: [number, number][];
+  /**移动速度 */
+  speed?: number;
+  /**粒子长度 */
+  length?: number;
+  /**密度 */
+  dense?: number;
+  /**当前点集合 */
+  curPoints?: [number, number][];
+  /**粒子年龄 */
+  age?: number;
+  /**索引 */
+  index?: number;
+  /**粒子颜色 */
+  colorParticle?: string;
+  /**是否显示粒子 */
+  showParticle?: boolean;
 }

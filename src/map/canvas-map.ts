@@ -1,13 +1,92 @@
 import { CRS, Map as LMap, LatLng, LeafletMouseEvent, MapOptions, latLng } from "leaflet";
 import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { u_mapGetBounds, u_mapGetDistance, u_mapGetLngLatByEvent, u_mapGetLngLatByPoint, u_mapGetLnglatByValue, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapSetFitBounds, u_mapSetViewCenter, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsIsKeyOf, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
-import { AMapMapsEvent, MapBounds, MapControlInfo, MapLatLng, OptMap } from "../types";
-import { Map as MaplibreMap, LngLat as MaplibreLngLat, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+import { um_getBounds, um_getDistance, um_getLngLatByEvent, um_getLngLatByPoint, um_getLnglatByValue, um_getMapSize, um_getPointByLnglat, um_setFitBounds, um_setViewCenter, um_togcj02gps84, um_togps84gcj02, um_tsIsKeyOf, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
+import { type CustomLayerInterface, type StyleSpecification, Map as MaplibreMap, type LngLat as MaplibreLngLat, type MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+import { AMapMapsEvent } from ".";
 declare var AMap: any;
-/**地图
+/**
+ * SLUMap 地图核心类
+ *
+ * 封装了 Leaflet、高德、MapLibre 三种地图引擎，提供统一的 API 接口。
+ * 支持地图初始化、视图控制、坐标转换、比例尺计算等功能。
+ *
  * @constructor
- * @param ele 地图容器元素
+ * @param ele 地图容器元素 ID
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap } from '@sl-utils/map';
+ *
+ * // 创建地图实例
+ * const map = new SLUMap('map');
+ *
+ * // 初始化 Leaflet 地图（默认）
+ * await map.init({
+ *   type: 'L',
+ *   center: [114.12, 22.68],
+ *   zoom: 11,
+ *   minZoom: 2,
+ *   maxZoom: 20
+ * });
+ *
+ * // 或初始化高德地图
+ * await map.init({
+ *   type: 'A',
+ *   center: [114.12, 22.68],
+ *   zoom: 11
+ * });
+ *
+ * // 或初始化 MapLibre 地图
+ * await map.init({
+ *   type: 'M',
+ *   center: [114.12, 22.68],
+ *   zoom: 11,
+ *   style: 'https://tiles.openfreemap.org/styles/bright'
+ * });
+ *
+ * // 设置地图中心
+ * map.setCenter([114.15, 22.70], 12);
+ *
+ * // 设置合适的视图范围
+ * map.setFitView([
+ *   [114.12, 22.68],
+ *   [114.15, 22.70],
+ *   [114.18, 22.72]
+ * ]);
+ *
+ * // 获取地图边界
+ * const bounds = map.getBound();
+ * console.log(`经度范围: ${bounds.lngLeft} - ${bounds.lngRight}`);
+ * console.log(`纬度范围: ${bounds.latBottom} - ${bounds.latTop}`);
+ *
+ * // 获取地图中心
+ * const center = map.getCenter();
+ * console.log(`中心: ${center.lng}, ${center.lat}`);
+ *
+ * // 获取缩放级别
+ * const zoom = map.getZoom();
+ *
+ * // 显示网络图层（仅 Leaflet）
+ * map.showMap([
+ *   MapNameType.tianDiTuNormalMap,
+ *   MapNameType.tianDiTuNormalAnnotion
+ * ]);
+ *
+ * // 打开地图控件
+ * const controlInfo = map.openControl(true);
+ * map.onControlUpdate((info) => {
+ *   console.log(`鼠标位置: ${info.lng}, ${info.lat}`);
+ *   console.log(`缩放级别: ${info.zoom}`);
+ *   console.log(`比例尺: ${info.scale}`);
+ * });
+ *
+ * // 切换中英文（仅 MapLibre）
+ * map.changeLanguage(true);
+ *
+ * // 关闭地图控件
+ * map.closeControl();
+ * ```
  */
 export class SLUMap {
     constructor(ele: string) {
@@ -34,7 +113,7 @@ export class SLUMap {
     /**初始实例化地图
      * @param options @default {} 地图初始化参数
      */
-    public async init(options: Partial<OptMap> = {}): Promise<void> {
+    public async init(options: Partial<MOpt> = {}): Promise<void> {
         const { type } = options, ele = this.ele;
         switch (type) {
             case "A": this._map = await this.initAmap(ele, options); break;
@@ -50,7 +129,7 @@ export class SLUMap {
      */
     public setFitView(lnglats: [number, number][]): SLUMap {
         if (this._map) {
-            u_mapSetFitBounds(this._map, lnglats);
+            um_setFitBounds(this._map, lnglats);
         }
         return this
     }
@@ -61,21 +140,21 @@ export class SLUMap {
      * @param offset 中心 但需要偏移固定像素
      */
     public setCenter(center: [number, number], zoom: number, offset?: [number, number]): void {
-        u_mapSetViewCenter(this._map, center, zoom, offset);
+        um_setViewCenter(this._map, center, zoom, offset);
     }
     /**获取地图边界
      * @returns 地图边界信息
      */
     public getBound(): MapBounds {
-        return u_mapGetBounds(this._map);
+        return um_getBounds(this._map);
     }
     /**获取地图中心
      * @returns 地图中心
      */
     public getCenter(): LatLng | AMAP.LngLat | MaplibreLngLat {
         const center = this.map.getCenter();
-        if (u_tsMapisAmap(this.map)) {
-            const { lat, lng } = u_mapTogcj02gps84(center.lng, center.lat);
+        if (um_tsMapisAmap(this.map)) {
+            const { lat, lng } = um_togcj02gps84(center.lng, center.lat);
             return new AMap.LngLat(lng, lat);
         }
         return center;
@@ -90,7 +169,7 @@ export class SLUMap {
      * @returns 地图大小{ w: number; h: number }
      */
     public getSize(): { w: number; h: number } {
-        return u_mapGetMapSize(this._map);
+        return um_getMapSize(this._map);
     }
     /**显示指定的网络图层
      * @param names @default [] 网络图层名称数组
@@ -98,7 +177,7 @@ export class SLUMap {
      */
     public showMap(names: Array<MapNameType> = []): SLUMap {
         const { map, curs } = this;
-        if (map && u_tsMapisLeaflet(map)) {
+        if (map && um_tsMapisLeaflet(map)) {
             let mapSource: string = names[0].split('.')[0]
             let center = map.getCenter();
             let zoom = map.getZoom();
@@ -112,7 +191,7 @@ export class SLUMap {
                 curs[name] = net;
             });
             for (const key of Object.keys(curs)) {
-                if (!u_tsIsKeyOf(curs, key)) continue;
+                if (!um_tsIsKeyOf(curs, key)) continue;
                 let name: MapNameType = key;
                 let flag = names.includes(name);
                 if (flag) continue;
@@ -130,8 +209,8 @@ export class SLUMap {
         this.eventSwitch(true);
         const latlng = this.latLng = this.getCenter();
         this.ifDMS = ifDMS;
-        this.controlInfo.lat = u_mapGetLnglatByValue(latlng.lat, false, ifDMS);
-        this.controlInfo.lng = u_mapGetLnglatByValue(latlng.lng, true, ifDMS);
+        this.controlInfo.lat = um_getLnglatByValue(latlng.lat, false, ifDMS);
+        this.controlInfo.lng = um_getLnglatByValue(latlng.lng, true, ifDMS);
         this.setZoomAndScale();
         return this.controlInfo;
     }
@@ -152,8 +231,8 @@ export class SLUMap {
     public changeLatlngFormat(ifDMS: boolean): MapControlInfo {
         this.ifDMS = ifDMS;
         const { lat, lng } = this.latLng;
-        this.controlInfo.lat = u_mapGetLnglatByValue(lat, false, ifDMS);
-        this.controlInfo.lng = u_mapGetLnglatByValue(lng, true, ifDMS);
+        this.controlInfo.lat = um_getLnglatByValue(lat, false, ifDMS);
+        this.controlInfo.lng = um_getLnglatByValue(lng, true, ifDMS);
         this.setZoomAndScale();
         return this.controlInfo;
     }
@@ -163,7 +242,7 @@ export class SLUMap {
      * @param opt 地图初始化参数
      * @returns LMap实例
      */
-    private initLeaflet(ele: string, opt: Partial<OptMap>): Promise<LMap> {
+    private initLeaflet(ele: string, opt: Partial<MOpt>): Promise<LMap> {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false } = opt;
         let param: MapOptions = {
             dragging,
@@ -186,7 +265,7 @@ export class SLUMap {
      * @param opt 地图初始化参数
      * @returns maplibregl.Map实例
      */
-    private async initMaplibre(ele: string, opt: Partial<OptMap>): Promise<MaplibreMap> {
+    private async initMaplibre(ele: string, opt: Partial<MOpt>): Promise<MaplibreMap> {
         const { style = 'https://tiles.openfreemap.org/styles/bright', zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
         let map = new MaplibreMap({
             container: ele,
@@ -209,7 +288,7 @@ export class SLUMap {
      */
     public changeLanguage(ifEn: boolean): void {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const layers = map.getStyle().layers || [];
             const lang = ifEn ? 'en' : 'zh-Hans';
             layers.forEach((layer) => {
@@ -234,9 +313,9 @@ export class SLUMap {
      * @param opt 地图初始化参数
      * @returns AMap实例
      */
-    private async initAmap(ele: string, opt: Partial<OptMap>): Promise<AMAP.Map> {
+    private async initAmap(ele: string, opt: Partial<MOpt>): Promise<AMAP.Map> {
         const { zoom = 11, minZoom = 2, maxZoom = 20, center = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
-        const { lat, lng } = u_mapTogps84gcj02(center[0], center[1]);
+        const { lat, lng } = um_togps84gcj02(center[0], center[1]);
         return AMapLoader.load({
             "key": "87e1b1e9aa88724f69208972546fdd57",   // 申请好的Web端开发者Key，首次调用 load 时必填
             "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
@@ -281,13 +360,13 @@ export class SLUMap {
      * @param e 鼠标事件
      */
     private setLatlng = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
-        const lnglat = u_mapGetLngLatByEvent(e);
+        const lnglat = um_getLngLatByEvent(e);
         if (!lnglat) return;
         const [lng, lat] = lnglat;
         this.latLng.lat = lat;
         this.latLng.lng = lng;
-        this.controlInfo.lat = u_mapGetLnglatByValue(lat, false, this.ifDMS);
-        this.controlInfo.lng = u_mapGetLnglatByValue(lng, true, this.ifDMS);
+        this.controlInfo.lat = um_getLnglatByValue(lat, false, this.ifDMS);
+        this.controlInfo.lng = um_getLnglatByValue(lng, true, this.ifDMS);
         if (this.controlCb) this.controlCb(this.controlInfo);
     }
     /**设置地图层级和比例尺 */
@@ -302,11 +381,11 @@ export class SLUMap {
     private setScale(): void {
         if (!this.map) return;
         const { lat: averLat, lng: averLng } = this.getCenter();
-        const [x, y] = u_mapGetPointByLnglat(this.map, [averLng, averLat]);
+        const [x, y] = um_getPointByLnglat(this.map, [averLng, averLat]);
         const point: [number, number] = [x + 50, y];
-        const targetLngLat = u_mapGetLngLatByPoint(this.map, point);
+        const targetLngLat = um_getLngLatByPoint(this.map, point);
         /**计算距离中心点 50px 对应的实际距离（米） */
-        let dis = u_mapGetDistance([averLng, averLat], targetLngLat, this.map);
+        let dis = um_getDistance([averLng, averLat], targetLngLat, this.map);
         let text = '';
         if (dis > 2000) {
             dis = dis / 1852;
@@ -334,3 +413,66 @@ export class SLUMap {
     }
 }
 
+// =============== 类型约束 ===============
+
+/**地图配置项 */
+export interface MOpt {
+    /**地图的类型 @param L leaflet插件 @param A 高德地图 @param B 百度地图 @param M maplibre地图 @default L */
+    type: 'L' | 'A' | 'B' | 'M',
+    /**地图中心点 [lng, lat] @default [114.12027, 22.68471] */
+    center: [number, number],
+    /**地图初始层级 @default 11 */
+    zoom: number,
+    /**最小层级 @default 2 */
+    minZoom: number,
+    /**最大层级 @default 20 */
+    maxZoom: number,
+    /**是否启用拖拽功能 @default true */
+    dragging: boolean,
+    /**是否显示层级控制器 @default false */
+    zoomControl: boolean,
+    /**是否显示属性控制器 @default false */
+    attributionControl: boolean,
+    /**是否启用双击放大层级 @default false */
+    doubleClickZoom: boolean,
+    /**是否点击关闭弹窗 @default false */
+    closePopupOnClick: boolean,
+    /**是否显示标签(省会、地名等)，仅适用于高德地图 @default true */
+    showLabel: boolean,
+    /**maplibre地图样式，支持url或json自定义样式 */
+    style?: string | StyleSpecification,
+}
+
+/**地图边界信息 */
+export interface MapBounds {
+    /**最小经度 */
+    lngLeft: number;
+    /**最大纬度 */
+    latTop: number;
+    /**最大经度 */
+    lngRight: number;
+    /**最小纬度 */
+    latBottom: number;
+}
+
+/**地图控件信息 */
+export interface MapControlInfo {
+    /**纬度 */
+    lat?: string;
+    /**经度 */
+    lng?: string;
+    /**层级 */
+    zoom?: number;
+    /**比例尺 */
+    scale?: string;
+    /**比例尺对应像素宽度 */
+    width?: string;
+}
+
+/**地图上的经纬度对象 */
+export interface MapLatLng {
+    /**纬度 */
+    lat: number;
+    /**经度 */
+    lng: number;
+}

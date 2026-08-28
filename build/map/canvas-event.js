@@ -1,4 +1,4 @@
-import { u_arrItemDel, u_mapGetPointByLnglat, u_tsEventisAmap, u_tsEventisLeaflet, u_tsEventisMapLibre, u_tsIsMapEventType, u_tsMapisMapLibre } from "../utils/slu-map";
+import { um_arrItemDel, um_getPointByLnglat, um_tsEventisAmap, um_tsEventisLeaflet, um_tsEventisMapLibre, um_tsIsMapEventType, um_tsMapisMapLibre } from "../utils";
 import rbush from 'rbush';
 export class MapCanvasEvent {
     constructor(map) {
@@ -40,7 +40,7 @@ export class MapCanvasEvent {
             this._allMapEvents.forEach(eves => {
                 allEvents = allEvents.concat(eves);
             });
-            if (u_tsMapisMapLibre(this.map)) {
+            if (um_tsMapisMapLibre(this.map)) {
                 el = this.map.getCanvasContainer();
             }
             else {
@@ -61,7 +61,7 @@ export class MapCanvasEvent {
             MapCanvasEvent.ifInitCursor = false;
             style.cursor = 'pointer';
             const type = e.type;
-            u_tsIsMapEventType(type);
+            um_tsIsMapEventType(type);
             curEvents.forEach(resp => this.doCbByEventType(resp, type));
         };
         this.map = map;
@@ -88,7 +88,7 @@ export class MapCanvasEvent {
     off(type, cb) {
         let cbs = this._listenCbs[type] = this._listenCbs[type] || [];
         if (cb) {
-            u_arrItemDel(cbs, cb);
+            um_arrItemDel(cbs, cb);
         }
         else {
             this._listenCbs[type].length = 0;
@@ -143,7 +143,7 @@ export class MapCanvasEvent {
         if (lnglat && lnglat.length === 2)
             lnglats = [...lnglats, lnglat];
         lnglats.forEach(lnglat => {
-            let [onX, onY] = u_mapGetPointByLnglat(this.map, lnglat);
+            let [onX, onY] = um_getPointByLnglat(this.map, lnglat);
             let item = {
                 minX: onX - range[0] + left,
                 minY: onY - range[1] + top,
@@ -157,20 +157,18 @@ export class MapCanvasEvent {
     }
     getEventsByRange(e) {
         let x = 0, y = 0, pageX = 0, pageY = 0, zoom = this.map.getZoom();
-        if (u_tsEventisLeaflet(e)) {
+        if (um_tsEventisLeaflet(e)) {
             let event = e;
             ({ x, y } = event.containerPoint, { pageX, pageY } = event.originalEvent);
         }
-        else if (u_tsEventisAmap(e)) {
+        else if (um_tsEventisAmap(e)) {
             let event = e;
             ({ x, y } = event.pixel, { pageX, pageY } = event.originEvent);
         }
-        else if (u_tsEventisMapLibre(e)) {
+        else if (um_tsEventisMapLibre(e)) {
             ({ x, y } = e.point, { pageX, pageY } = e.originalEvent);
         }
         let curEvents = [], enterEvents = [], leaveEvents = this.perEvents;
-        if (e.type == 'click')
-            console.time('start');
         const search = this.rbush_search;
         search.maxX = search.minX = x, search.maxY = search.minY = y;
         let ret = this.rbush.search(search);
@@ -186,15 +184,13 @@ export class MapCanvasEvent {
             curEvents.push(response);
             let per = leaveEvents.find(e => e.position.lnglat[0] === lnglat[0] && e.position.lnglat[1] === lnglat[1]);
             if (per) {
-                u_arrItemDel(leaveEvents, per);
+                um_arrItemDel(leaveEvents, per);
             }
             else {
                 enterEvents.push(response);
             }
             ;
         });
-        if (e.type == 'click')
-            console.timeEnd('start');
         return { curEvents, enterEvents, leaveEvents };
     }
     doCbByEventType(resp, type) {

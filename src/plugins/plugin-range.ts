@@ -1,30 +1,75 @@
 import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
-import { u_deepMergeOpt, u_mapGetAngle, u_mapGetDistance, u_mapGetLngLatByPoint, u_mapGetMapMouseEvent, u_mapGetPointByLnglat } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getAngle, um_getDistance, um_getLngLatByPoint, um_getMapMouseEvent, um_getPointByLnglat } from "../utils";
 import { SLUCanvas } from "../canvas";
-import { OptMapPluginRange, MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent } from "../types";
+import type { MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent ,MOptCanvas} from "../map";
+import type { CanvasTextPanel } from "../canvas";
 import { LeafletMouseEvent } from "leaflet";
 import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
-/**测绘类
+
+/**
+ * 测距插件
+ *
+ * 用于在地图上进行距离测量，支持多点测距、实时距离显示、方位角计算等。
+ * 支持多条测距线同时存在，可删除单条测距线。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap 地图实例
- * @param options 测绘配置
+ * @param sluMap SLUMap 地图实例
+ * @param options 测距配置
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginRange } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建测距插件
+ * const range = new MapPluginRange(map, {
+ *   colorLine: '#364A7D',
+ *   colorArc: '#FFF',
+ *   colorArcStart: '#415880',
+ *   colorFont: '#333333',
+ *   textPanel: {
+ *     radius: 3,
+ *     pl: 2, pr: 2, pt: 2, pb: 2,
+ *     colorFill: '#fff',
+ *     fillAlpha: 0.8,
+ *     colorLine: '#90A4A4',
+ *     widthLine: 1
+ *   }
+ * });
+ *
+ * // 开启测距模式
+ * range.open();
+ *
+ * // 监听测距结束
+ * range.onEnd(() => {
+ *   console.log('测距结束');
+ * });
+ *
+ * // 关闭测距模式
+ * range.close();
+ *
+ * // 移除图层
+ * range.onRemove();
+ * ```
  */
 export class MapPluginRange extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: OptMapPluginRange) {
+    constructor(sluMap: SLUMap, options?: MOptPluginRange) {
         const map = sluMap.map;
         super(map, options);
-        if (options) this.options = u_deepMergeOpt(this.options, options);
+        if (options) this.options = um_deepMergeOpt(this.options, options);
         /** 动态绘制图层 */
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
-        const aniOpt = u_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
+        const aniOpt = um_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
         this.ctrMapAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.ctrEvent = new MapCanvasEvent(map);
     }
     /**默认配置 */
-    public options: OptMapPluginRange = {
+    public options: MOptPluginRange = {
         pane: 'canvas',
         className: 'range',
         colorLine: '#364A7D',
@@ -101,8 +146,8 @@ export class MapPluginRange extends MapCanvasLayer {
                     texts.push({ text, lnglat, colorFill: colorFont, py: -12, px: 5, textAlign: 'right', panel: textPanel })
                 } else {
                     let per = lnglats[j - 1], pr = 5;
-                    let distance = u_mapGetDistance(per, cur, this.map);
-                    let θ = u_mapGetAngle(this.map, per, cur)
+                    let distance = um_getDistance(per, cur, this.map);
+                    let θ = um_getAngle(this.map, per, cur)
                     allDis += distance;
                     text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
                     if (j == len - 1 && (i < lineLen - 1 || this.lnglat === undefined)) {
@@ -162,8 +207,8 @@ export class MapPluginRange extends MapCanvasLayer {
         /**虚线绘制 */
         if (lng !== undefined && lat !== undefined && last.length > 0) {
             const end = last[last.length - 1], move: [number, number] = [lng, lat];
-            let distance = u_mapGetDistance(move, end, this.map);
-            let θ = u_mapGetAngle(this.map, end, move)
+            let distance = um_getDistance(move, end, this.map);
+            let θ = um_getAngle(this.map, end, move)
             let text = (distance > 1852 ? ((distance / 1852).toFixed(2) + ' nm') : (distance.toFixed(0) + ' m')) + '/' + θ.toFixed(2) + '°';
             layer.setAllLines([{ lnglats: [move, end], dash: [3, 3], colorLine: '#364A7D' }]);
             layer.setAllTexts([{ lnglat: move, text, colorFill: '#FFFFFF', panel: textPanel }])
@@ -177,7 +222,7 @@ export class MapPluginRange extends MapCanvasLayer {
      */
     protected drawEndTextImg(info: MapText, lineId: number): MapImage {
         let { lnglat, panel, text = 'text' } = info;
-        let point = u_mapGetPointByLnglat(this.map, lnglat)
+        let point = um_getPointByLnglat(this.map, lnglat)
         let ctx = document.createElement('canvas').getContext('2d')!
         /**字体配置决定meas的值，所以计算前需要设置配置 */
         SLUCanvas.setCtxPara(ctx, info);
@@ -193,7 +238,7 @@ export class MapPluginRange extends MapCanvasLayer {
         let y0 = point[1] - (y1 - y2) / 2;
         let size = 16;
         let px = x0 + w + 5 + size / 2, py = y0 - (y1 - y2) / 2;
-        let mapLnglat = u_mapGetLngLatByPoint(this.map, [px, py])
+        let mapLnglat = um_getLngLatByPoint(this.map, [px, py])
         this.ctrEvent.pushEventByKey('text', {
             lnglat: mapLnglat,
             point: [px, py],
@@ -240,7 +285,7 @@ export class MapPluginRange extends MapCanvasLayer {
      */
     private eventClick = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
         this.flagTimeout = setTimeout(() => {
-            const { latlng: { lat, lng } } = u_mapGetMapMouseEvent(e, this.map);
+            const { latlng: { lat, lng } } = um_getMapMouseEvent(e, this.map);
             const lnglats = this.lnglatLists[this.lnglatLists.length - 1] || [];
             lnglats.push([lng, lat]);
             this.renderFixedData();
@@ -252,7 +297,7 @@ export class MapPluginRange extends MapCanvasLayer {
      */
     private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
         if (this.ifDrag) return;
-        const { latlng: { lat, lng } } = u_mapGetMapMouseEvent(e, this.map);
+        const { latlng: { lat, lng } } = um_getMapMouseEvent(e, this.map);
         this.lnglat = [lng, lat];
         this.renderAnimation();
     }
@@ -267,4 +312,20 @@ export class MapPluginRange extends MapCanvasLayer {
         this.renderFixedData();
         this.renderAnimation();
     }
+}
+
+/**范围标注插件配置 */
+export interface MOptPluginRange extends MOptCanvas {
+    /**线条颜色 */
+    colorLine?: string;
+    /**圆弧颜色 */
+    colorArc?: string;
+    /**起始圆弧颜色 */
+    colorArcStart?: string;
+    /**字体颜色 */
+    colorFont?: string;
+    /**语言类型 */
+    lang?: 'cn' | 'en';
+    /**文本面板配置 */
+    textPanel?: CanvasTextPanel;
 }

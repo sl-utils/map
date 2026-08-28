@@ -1,15 +1,53 @@
 import { Map as LMap } from 'leaflet';
 import { Map as MaplibreMap } from 'maplibre-gl';
-import { BBox, DataCoastline } from '../types';
-/**海岸线Mask生成器: bbox裁剪、自动按zoom切换海岸线精度
+/**
+ * 海岸线 Mask 生成器
+ *
+ * 用于根据海岸线数据生成遮罩，支持 bbox 裁剪和按 zoom 自动切换海岸线精度。
+ * 常用于风浪流数据裁剪、海洋粒子遮罩、气象海洋渲染等场景。
+ *
  * @constructor
- * @param sources 海岸线数据源
+ * @param sources 海岸线数据源数组，按精度分级
  * @param map 地图实例
- * 适用于：
- * - 风浪流裁剪
- * - 海洋粒子遮罩
- * - 海岸线mask
- * - 气象海洋渲染
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, PluginCoastlineMask, MapPluginGridRender } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 加载不同精度的海岸线数据
+ * const low = await (await fetch('./assets/json/coast_low.json')).json();   // 低精度 (zoom 0-4)
+ * const mid = await (await fetch('./assets/json/coast_mid.json')).json();   // 中精度 (zoom 5-7)
+ * const high = await (await fetch('./assets/json/coast_high.json')).json(); // 高精度 (zoom 8-20)
+ *
+ * // 创建海岸线 Mask
+ * const mask = new PluginCoastlineMask(
+ *   [
+ *     { minZoom: 0, maxZoom: 4, data: low },
+ *     { minZoom: 5, maxZoom: 7, data: mid },
+ *     { minZoom: 8, maxZoom: 20, data: high }
+ *   ],
+ *   map.map
+ * );
+ *
+ * // 获取指定区域的 Mask Canvas
+ * const bbox = [100, 20, 130, 40]; // [west, south, east, north]
+ * const zoom = 8;
+ * const width = 800;
+ * const height = 600;
+ * const maskCanvas = mask.getMask(bbox, zoom, width, height);
+ *
+ * // 使用 Mask 裁剪色斑图
+ * const gridRender = new MapPluginGridRender(map, {
+ *   mosaicColor: ['#337FFC', '#32AAFC', '#FF0000'],
+ *   mosaicValue: [1, 5, 15]
+ * }, mask);
+ *
+ * // 清除缓存
+ * mask.clearCache();
+ * ```
  */
 export declare class PluginCoastlineMask {
     constructor(sources: DataCoastline[], map: AMAP.Map | LMap | MaplibreMap);
@@ -74,4 +112,15 @@ export declare class PluginCoastlineMask {
     private buildCacheKey;
     /**清除缓存 */
     clearCache(): void;
+}
+/**边界框 */
+export type BBox = [number, number, number, number];
+/**海岸线数据 */
+export interface DataCoastline {
+    /**最小层级 */
+    minZoom: number;
+    /**最大层级 */
+    maxZoom: number;
+    /**GeoJSON数据 */
+    data: GeoJSON.FeatureCollection;
 }

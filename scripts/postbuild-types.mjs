@@ -13,14 +13,14 @@ const files = [
   // },
 ];
 
-const entryPath = resolve('types/index.d.ts');
-const entryImport = "export type * from '../src/types/index';\n";
+// const entryPath = resolve('types/index.d.ts');
+// const entryImport = "export type * from '../src/types/index';\n";
 
-const entryContent = await readFile(entryPath, 'utf8');
+// const entryContent = await readFile(entryPath, 'utf8');
 
-if (!entryContent.startsWith(entryImport)) {
-  await writeFile(entryPath, `${entryImport}${entryContent}`, 'utf8');
-}
+// if (!entryContent.startsWith(entryImport)) {
+//   await writeFile(entryPath, `${entryImport}${entryContent}`, 'utf8');
+// }
 
 // for (const file of files) {
 //   await mkdir(dirname(file.path), { recursive: true });

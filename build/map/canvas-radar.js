@@ -1,5 +1,5 @@
 import { SLUCanvas } from "../canvas";
-import { u_deepMergeOpt, u_mapGetPointByLnglat, u_mapGetSizeByMap, u_tsIfOneArrTwoLen } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getPointByLnglat, um_getSizeByMap, um_tsIfOneArrTwoLen } from "../utils";
 export class MapCanvasRadar {
     constructor(map, ctx) {
         this.map = map;
@@ -28,11 +28,11 @@ export class MapCanvasRadar {
         return this.map.getZoom();
     }
     setAllRadars(radars) {
-        this.allRadars = radars.filter(e => e).map(e => e = u_deepMergeOpt(this.options, e));
+        this.allRadars = radars.filter(e => e).map(e => e = um_deepMergeOpt(this.options, e));
         return this;
     }
     addRadar(radar) {
-        const newRadar = u_deepMergeOpt(this.options, radar);
+        const newRadar = um_deepMergeOpt(this.options, radar);
         this.allRadars.push(newRadar);
         return this;
     }
@@ -67,8 +67,8 @@ export class MapCanvasRadar {
     }
     updatePoint(radar) {
         const { map } = this;
-        radar.radius = u_mapGetSizeByMap(map, radar)[0];
-        radar.center = u_mapGetPointByLnglat(map, radar.lnglat);
+        radar.radius = um_getSizeByMap(map, radar)[0];
+        radar.center = um_getPointByLnglat(map, radar.lnglat);
     }
     drawGrid(radar) {
         const { ctx } = this, { center, radius, gridDensity, colorGrid } = radar, [x, y] = center;
@@ -96,7 +96,7 @@ export class MapCanvasRadar {
     drawDashArc(radar) {
         const { ctx } = this, { center, radius, colorRadar, dashDensity, arcDash } = radar, [x, y] = center;
         const sizeFix = radar.sizeFix;
-        if (arcDash.length > 0 || !u_tsIfOneArrTwoLen(sizeFix))
+        if (arcDash.length > 0 || !um_tsIfOneArrTwoLen(sizeFix))
             return;
         const diff = radius / dashDensity;
         const diffMeter = Number(Math.round(sizeFix[0] / dashDensity));
@@ -119,7 +119,7 @@ export class MapCanvasRadar {
     drawCustomDashArc(radar) {
         const { ctx } = this, { center, radius, colorDash, arcDash = [] } = radar, [x, y] = center;
         const sizeFix = radar.sizeFix;
-        if (arcDash.length == 0 || !u_tsIfOneArrTwoLen(sizeFix))
+        if (arcDash.length == 0 || !um_tsIfOneArrTwoLen(sizeFix))
             return;
         const pixelMeter = radius / sizeFix[0];
         ctx.save();

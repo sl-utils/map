@@ -1,9 +1,9 @@
 import * as L from 'leaflet';
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapGetPointsByLnglats, u_mapGetSizeByMap } from '../utils/slu-map'
+import { um_arrItemDel, um_getMapSize, um_getPointByLnglat, um_getPointsByLnglats, um_getSizeByMap } from '../utils'
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
-import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '../types';
+import type { CanvasGif, CanvasImage, CanvasPosition, CanvasTextPanel, OptCanvas, TextOverlap } from '../canvas';
 import { Map as MaplibreMap } from 'maplibre-gl';
-import { u_drawConvertgps84Togcj02 } from '../utils';
+import { um_drawConvertgps84Togcj02 } from '../utils';
 
 /** 地图canvas基础图形绘制类
  * @constructor
@@ -49,7 +49,7 @@ export class MapCanvasDraw {
   /**清空并重新设置画布 */
   public reSetCanvas(): void {
     let { canvas, map, ctx } = this;
-    const { w, h } = u_mapGetMapSize(map);
+    const { w, h } = um_getMapSize(map);
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
     //清除画布
@@ -112,7 +112,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllArcs(arcs: MapArc[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, arcs);
+    um_drawConvertgps84Togcj02(this.map, arcs);
     this._allArcs = arcs;
     return this;
   }
@@ -121,7 +121,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllLines(lines: MapLine[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, lines);
+    um_drawConvertgps84Togcj02(this.map, lines);
     this._allLines = lines;
     return this;
   }
@@ -130,7 +130,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllBezierLines(lines: MapLine[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, lines);
+    um_drawConvertgps84Togcj02(this.map, lines);
     this._allBLins = lines;
     return this;
   }
@@ -139,7 +139,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllRects(rects: MapRect[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, rects);
+    um_drawConvertgps84Togcj02(this.map, rects);
     this._allRects = rects;
     return this;
   }
@@ -148,7 +148,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllTexts(texts: MapText[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, texts);
+    um_drawConvertgps84Togcj02(this.map, texts);
     this._allTexts = texts;
     return this;
   }
@@ -157,7 +157,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllImgs(imgs: MapImage[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, imgs);
+    um_drawConvertgps84Togcj02(this.map, imgs);
     this._allImgs = imgs;
     return this;
   }
@@ -166,7 +166,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public setAllGifs(gifs: MapGif[]): MapCanvasDraw {
-    u_drawConvertgps84Togcj02(this.map, gifs);
+    um_drawConvertgps84Togcj02(this.map, gifs);
     this._allGifs = gifs;
     return this;
   }
@@ -176,7 +176,7 @@ export class MapCanvasDraw {
    */
   public addArc(arc: MapArc): MapCanvasDraw {
     if (!arc.lnglats && !arc.lnglat) return this;
-    u_drawConvertgps84Togcj02(this.map, arc);
+    um_drawConvertgps84Togcj02(this.map, arc);
     this._allArcs.push(arc);
     return this;
   }
@@ -186,7 +186,7 @@ export class MapCanvasDraw {
    */
   public addLine(line: MapLine): MapCanvasDraw {
     if (!line.lnglats) return this;
-    u_drawConvertgps84Togcj02(this.map, line);
+    um_drawConvertgps84Togcj02(this.map, line);
     this._allLines.push(line);
     return this;
   }
@@ -196,7 +196,7 @@ export class MapCanvasDraw {
    */
   public addBezierLine(line: MapLine): MapCanvasDraw {
     if (!line.lnglats) return this;
-    u_drawConvertgps84Togcj02(this.map, line);
+    um_drawConvertgps84Togcj02(this.map, line);
     this._allBLins.push(line);
     return this;
   }
@@ -206,7 +206,7 @@ export class MapCanvasDraw {
    */
   public addRect(rect: MapRect): MapCanvasDraw {
     if (!rect.lnglats) return this;
-    u_drawConvertgps84Togcj02(this.map, rect);
+    um_drawConvertgps84Togcj02(this.map, rect);
     this._allRects.push(rect);
     return this;
   }
@@ -216,7 +216,7 @@ export class MapCanvasDraw {
    */
   public addText(text: MapText): MapCanvasDraw {
     if (!text.lnglats && !text.lnglat) return this;
-    u_drawConvertgps84Togcj02(this.map, text);
+    um_drawConvertgps84Togcj02(this.map, text);
     this._allTexts.push(text);
     return this;
   }
@@ -226,7 +226,7 @@ export class MapCanvasDraw {
    */
   public addImg(img: MapImage): MapCanvasDraw {
     if (!img.lnglats && !img.lnglat) return this;
-    u_drawConvertgps84Togcj02(this.map, img);
+    um_drawConvertgps84Togcj02(this.map, img);
     this._allImgs.push(img);
     return this;
   }
@@ -235,7 +235,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public delArc(arc: MapArc): MapCanvasDraw {
-    u_arrItemDel(this._allArcs, arc);
+    um_arrItemDel(this._allArcs, arc);
     return this;
   }
   /**删除指定线
@@ -243,7 +243,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public delLine(line: MapLine): MapCanvasDraw {
-    u_arrItemDel(this._allLines, line);
+    um_arrItemDel(this._allLines, line);
     return this;
   }
   /**删除指定贝塞尔曲线
@@ -251,7 +251,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public delBezierLine(line: MapLine): MapCanvasDraw {
-    u_arrItemDel(this._allBLins, line);
+    um_arrItemDel(this._allBLins, line);
     return this;
   }
   /**删除指定多边形
@@ -259,7 +259,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public delRect(rect: MapRect): MapCanvasDraw {
-    u_arrItemDel(this._allRects, rect);
+    um_arrItemDel(this._allRects, rect);
     return this;
   }
   /**删除指定文本
@@ -267,7 +267,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public delText(text: MapText): MapCanvasDraw {
-    u_arrItemDel(this._allTexts, text);
+    um_arrItemDel(this._allTexts, text);
     return this;
   }
   /**删除指定Img
@@ -275,7 +275,7 @@ export class MapCanvasDraw {
    * @returns MapCanvasDraw实例
    */
   public delImg(img: MapImage): MapCanvasDraw {
-    u_arrItemDel(this._allImgs, img);
+    um_arrItemDel(this._allImgs, img);
     return this;
   }
   /**清空
@@ -323,22 +323,120 @@ export class MapCanvasDraw {
    * @param info 对象
    */
   public transformXY(info: MapPosition & CanvasPosition): void {
-    info.points = u_mapGetPointsByLnglats(this.map, info.lnglats);
-    info.point = u_mapGetPointByLnglat(this.map, info.lnglat);
+    info.points = um_getPointsByLnglats(this.map, info.lnglats);
+    info.point = um_getPointByLnglat(this.map, info.lnglat);
   }
   /**设置图片的大小
    * @param img 图片
    */
   public transformImageSize(img: MapImage): void {
-    let [x, y] = u_mapGetSizeByMap(this.map, img)
+    let [x, y] = um_getSizeByMap(this.map, img)
     img.size = [x, y];
   }
   /**设置圆点的大小
    * @param arc 圆点
    */
   private transformArcSize(arc: MapArc): void {
-    let [x, y] = u_mapGetSizeByMap(this.map, arc);
+    let [x, y] = um_getSizeByMap(this.map, arc);
     /**经度的差值为X故 */
     arc.size = x;
   }
 }
+
+// =============== 类型约束 ===============
+
+/**地图上的单点位信息 */
+export interface MapPoint {
+  /**单经纬度 [lng, lat] */
+  lnglat: [number, number],
+  /**经纬度集合 */
+  lnglats?: [number, number][],
+}
+
+/**地图上的多点位信息 */
+export interface MapPoints {
+  /**经纬度集合 */
+  lnglats: [number, number][],
+  /**单经纬度 */
+  lnglat?: [number, number],
+}
+
+/**地图上的大小配置(可选固定大小) */
+interface Size_ {
+  /**图片大小 */
+  size: [number, number] | number
+  /**固定的图片大小 */
+  sizeFix?: [number, number] | number
+}
+
+/**地图上的固定大小配置(以米为单位) */
+export interface SizeFix_ {
+  /**图片大小 */
+  size?: [number, number] | number
+  /**固定的图片大小，以米为单位 */
+  sizeFix: [number, number] | number
+}
+
+/**地图元素显示的相关配置 */
+export interface MapShow {
+  /**显示的最大地图级别(包含此级别) */
+  maxZoom?: number,
+  /**显示的最小地图级别(包含此级别) */
+  minZoom?: number,
+  /**绘制层级，类似z-index */
+  index?: number,
+}
+
+/**地图上的图片(无事件) @template I 标识图片携带的info的类型 */
+type CanavsImageNoPosition<I> = Omit<CanvasImage<I>, keyof CanvasPosition>;
+
+/**地图上的位置数据，支持单点或多点 */
+export type MapPosition = MapPoint | MapPoints;
+
+/**地图上的大小配置，支持普通大小或固定大小 */
+export type MapSize = Size_ | SizeFix_;
+
+/**地图上的图片(无事件) @template I 标识图片携带的info的类型 */
+export type MapImage<I = any> = CanavsImageNoPosition<I> & MapShow & MapPosition & MapSize;
+
+/**地图上的Gif(无事件) @template I 标识Gif携带的info的类型 */
+export type MapGif<I = any> = CanvasGif<I> & MapShow & MapPosition & MapSize;
+
+
+
+/**地图文本基础配置 @template I 标识文本携带的info的类型 */
+export interface MapTextBase<I = any> extends OptCanvas {
+  /**文本内容 */
+  text?: string;
+  /**是否描边 */
+  ifShadow?: boolean;
+  /**水平偏移量 */
+  px?: number;
+  /**垂直偏移量 */
+  py?: number;
+  /**文本行间距 */
+  lineHeight?: number;
+  /**文本最大宽度 */
+  maxWidth?: number;
+  /**背景板配置 */
+  panel?: CanvasTextPanel;
+  /**文本重叠处理配置 */
+  overlap?: TextOverlap;
+  /**自定义信息 */
+  info?: I;
+}
+
+/**不带事件的地图文本类 @template I 标识文本携带的info的类型 */
+export type MapText<I = any> = MapTextBase<I> & MapShow & MapPosition;
+
+/**不带事件的地图圆点类 */
+export type MapArc = OptCanvas & MapShow & MapPosition & MapSize;
+
+/**不带事件的地图矩形类 */
+export type MapRect = OptCanvas & MapShow & MapPoints;
+
+/**不带事件的地图多边形类 */
+export type MapPolygon = OptCanvas & MapShow & MapPoints;
+
+/**不带事件的地图线条类 */
+export type MapLine = OptCanvas & MapShow & MapPoints;

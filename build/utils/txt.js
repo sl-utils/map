@@ -174,5 +174,5 @@ function clearMultilineCache() {
     hyperMaps.clear();
     metrics.clear();
 }
-export { splitMultilineText as u_TextSplitMultilineText, clearMultilineCache as u_TextClearMultilineCache, };
+export { splitMultilineText as um_textSplitMultilineText, clearMultilineCache as um_textClearMultilineCache, };
 //# sourceMappingURL=txt.js.map

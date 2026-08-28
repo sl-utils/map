@@ -1,6 +1,7 @@
-import { MapEventType, MapEventResponse, MapEvent } from "../types";
-import { Map as LMap } from "leaflet";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { LeafletMouseEvent, Map as LMap } from "leaflet";
+import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+import { CanvasCursorPosition, CanvasEvent, CanvasEventResponse, CanvasImage, EventType } from "../canvas";
+import { MapArc, MapGif, MapImage, MapLine, MapPolygon, MapPosition, MapRect, MapShow, MapTextBase } from ".";
 /**地图事件控制类
  * @constructor
  * @param map 地图实例
@@ -21,7 +22,7 @@ export declare class MapCanvasEvent {
     protected map: AMAP.Map | LMap | MaplibreMap;
     /**监听事件 */
     protected _listenCbs: {
-        [key in MapEventType]?: ((e: MapEventResponse<any>) => void)[];
+        [key in EventType]?: ((e: MapEventResponse<any>) => void)[];
     };
     /**key 防止setEvent清除其他事件 */
     _allMapEvents: Map<string, MapEvent[]>;
@@ -45,12 +46,12 @@ export declare class MapCanvasEvent {
      * @param type 事件类型
      * @param cb 事件回调函数
      */
-    on<T extends MapEvent<any>>(type: MapEventType, cb: (e: MapEventResponse<T>) => void): void;
+    on<T extends MapEvent<any>>(type: EventType, cb: (e: MapEventResponse<T>) => void): void;
     /**统一关闭指定事件的监听
      * @param type 事件类型
      * @param cb 事件回调函数
      */
-    off<T extends MapEvent<any>>(type: MapEventType, cb?: (e: MapEventResponse<T>) => void): void;
+    off<T extends MapEvent<any>>(type: EventType, cb?: (e: MapEventResponse<T>) => void): void;
     /**清空之前设置的统一监听事件 */
     clear(): void;
     /** 设置指定key的事件
@@ -100,4 +101,94 @@ export declare class MapCanvasEvent {
      * @param type 事件类型
     */
     private doCbByEventType;
+}
+/**rbush空间索引查询类 */
+export interface MapRbush<T = any> {
+    /**最小X坐标 */
+    minX: number;
+    /**最小Y坐标 */
+    minY: number;
+    /**最大X坐标 */
+    maxX: number;
+    /**最大Y坐标 */
+    maxY: number;
+    /**经纬度 [lng, lat] */
+    lnglat: [number, number];
+    /**关联的数据 */
+    data: T;
+}
+/**地图上的事件类型，继承自CanvasEvent并添加地图位置和显示配置 */
+export type MapEvent<T extends MapEvent = any, I = any> = CanvasEvent<T, I> & MapPosition & MapShow;
+/**带事件的地图图片类 @template I 标识图片携带的info的类型 */
+export type MapImageEvent<I = any> = MapImage<I> & MapEvent<MapEvent, I>;
+/**地图上带事件的图片渲染类型 */
+export type MapImageRender = MapImageEvent & CanvasImage;
+/**带事件的地图文本类 @template I 标识文本携带的info的类型 */
+export type MapTextEvent<I = any> = MapTextBase<I> & MapEvent<MapEvent, I> & MapPosition;
+/**带事件的地图圆点类 @template I 标识圆点携带的info的类型 */
+export type MapArcEvent<I = any> = MapArc & MapEvent<MapEvent, I>;
+/**带事件的地图矩形类 @template I 标识矩形携带的info的类型 */
+export type MapRectEvent<I = any> = MapRect & MapEvent<MapEvent, I>;
+/**带事件的地图多边形类 @template I 标识多边形携带的info的类型 */
+export type MapPolygonEvent<I = any> = MapPolygon & MapEvent<MapEvent, I>;
+/**带事件的地图线条类 @template I 标识线条携带的info的类型 */
+export type MapLineEvent<I = any> = MapLine & MapEvent<MapEvent, I>;
+/**带事件的地图Gif类 @template I 标识Gif携带的info的类型 */
+export type MapGifEvent<I = any> = MapGif<I> & MapEvent<MapEvent, I>;
+/**地图鼠标事件 */
+export interface MapMouseEvent {
+    /**事件类型 */
+    type: EventType;
+    /**事件位置信息 */
+    latlng: {
+        lat: number;
+        lng: number;
+    };
+    /**事件容器位置 */
+    containerPoint: {
+        x: number;
+        y: number;
+    };
+    /**原始DOM事件 */
+    orginDOMEvent: MouseEvent;
+    /**原始地图事件 */
+    orginMapEvent: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent;
+}
+/**地图事件触发时的响应对象 @template T 挂载此次事件的对象(MapImage|MapArc|Event) @template I 对象携带的相关数据 */
+export type MapEventResponse<T extends MapEvent = MapEvent, I = any> = CanvasEventResponse<T, I> & {
+    /**事件位置信息，包含经纬度 */
+    position: MapCursorPosition;
+};
+/**地图事件触发时的范围，包含当前事件、进入事件和离开事件 */
+export interface MapEventRange {
+    /**当前事件 */
+    curEvents: MapEventResponse[];
+    /**进入事件 */
+    enterEvents: MapEventResponse[];
+    /**离开事件 */
+    leaveEvents: MapEventResponse[];
+}
+/**地图事件触发时鼠标位置发出的信息，继承自CanvasCursorPosition并添加经纬度 */
+export interface MapCursorPosition extends CanvasCursorPosition {
+    /**地图事件所定义的经纬度 [lng, lat] */
+    lnglat: [number, number];
+}
+/**高德地图地图插件原生事件触发后发出的对象 */
+export interface AMapMapsEvent {
+    /**事件位置信息 */
+    lnglat: {
+        Q: number;
+        R: number;
+        lng: number;
+        lat: number;
+    };
+    /**原始DOM事件 */
+    originEvent: MouseEvent;
+    /**事件容器位置 */
+    pixel: {
+        x: number;
+        y: number;
+    };
+    /**事件类型 */
+    type: EventType;
 }

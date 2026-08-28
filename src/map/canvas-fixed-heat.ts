@@ -1,6 +1,6 @@
-import { OptMapPluginFixedHeat } from "../types";
-import { u_deepMergeOpt, u_mapGetPointByLnglat, u_mapGetProjectedPointByLnglat } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getPointByLnglat, um_getProjectedPointByLnglat } from "../utils";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import type { MOptCanvas } from "./canvas-layer";
 /** 固定图片热力图-不随缩放而变化
  * @constructor
  * @param map 地图实例
@@ -8,12 +8,12 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * @param heatOpt 热力图配置
  */
 export class MapCanvasFixedHeat {
-  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, public heatOpt?: OptMapPluginFixedHeat) {
-    this.heatOpt = u_deepMergeOpt(this.defaultOption, heatOpt);
+  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, public heatOpt?: MOptPluginFixedHeat) {
+    this.heatOpt = um_deepMergeOpt(this.defaultOption, heatOpt);
   }
 
   /** 热力图默认配置 */
-  private readonly defaultOption: OptMapPluginFixedHeat = {
+  private readonly defaultOption: MOptPluginFixedHeat = {
     refZoom: 13,
     minZoom: 13,
     maxZoom: 16,
@@ -103,7 +103,7 @@ export class MapCanvasFixedHeat {
     /**2.投影到 refZoom */
     const refZoom = this.heatOpt.refZoom;
     const projPoints = data.map(d => {
-      const [x, y] = u_mapGetProjectedPointByLnglat(this.map, d[0], d[1], refZoom);
+      const [x, y] = um_getProjectedPointByLnglat(this.map, d[0], d[1], refZoom);
       return [x, y, d[2]] as [number, number, number];
     });
 
@@ -260,8 +260,8 @@ export class MapCanvasFixedHeat {
     const { minZoom, maxZoom, opacity } = heatOpt;
     if (zoom < minZoom || zoom > maxZoom) return;
 
-    const sw = u_mapGetPointByLnglat(this.map, [bounds.minLng, bounds.minLat]);
-    const ne = u_mapGetPointByLnglat(this.map, [bounds.maxLng, bounds.maxLat]);
+    const sw = um_getPointByLnglat(this.map, [bounds.minLng, bounds.minLat]);
+    const ne = um_getPointByLnglat(this.map, [bounds.maxLng, bounds.maxLat]);
     const left = Math.min(sw[0], ne[0]);
     const right = Math.max(sw[0], ne[0]);
     const top = Math.min(sw[1], ne[1]);
@@ -284,4 +284,24 @@ export class MapCanvasFixedHeat {
     this.maxIntensity = 1;
     this.renderScale = 1;
   }
+}
+
+// =============== 类型约束 ===============
+
+/**固定热力图插件配置 */
+export interface MOptPluginFixedHeat extends MOptCanvas {
+    /**参考层级 */
+    refZoom?: number;
+    /**最小层级 */
+    minZoom?: number;
+    /**最大层级 */
+    maxZoom?: number;
+    /**半径 */
+    radius?: number;
+    /**模糊程度 */
+    blur?: number;
+    /**透明度 */
+    opacity?: number;
+    /**渐变颜色 */
+    gradient?: Record<number, string>;
 }

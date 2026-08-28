@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 import 'proj4leaflet';
-import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
+import { um_togps84bd09, um_togps84gcj02 } from "../utils";
 'use strict';
 (function (window, document) {
     L.GridLayer.include({
@@ -8,10 +8,10 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
             let center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
-                    center = u_mapTogps84gcj02(_center.lng, _center.lat);
+                    center = um_togps84gcj02(_center.lng, _center.lat);
                 }
                 else if (this.options.corrdType == 'bd09') {
-                    center = u_mapTogps84bd09(_center.lng, _center.lat);
+                    center = um_togps84bd09(_center.lng, _center.lat);
                 }
             }
             const scale = this._map.getZoomScale(zoom, level.zoom), translate = level.origin.multiplyBy(scale)
@@ -27,10 +27,10 @@ import { u_mapTogps84bd09, u_mapTogps84gcj02 } from "../utils/slu-map";
             let center = _center;
             if (center != undefined && this.options) {
                 if (this.options.corrdType == 'gcj02') {
-                    center = u_mapTogps84gcj02(_center.lng, _center.lat);
+                    center = um_togps84gcj02(_center.lng, _center.lat);
                 }
                 else if (this.options.corrdType == 'bd09') {
-                    center = u_mapTogps84bd09(_center.lng, _center.lat);
+                    center = um_togps84bd09(_center.lng, _center.lat);
                 }
             }
             const map = this._map, mapZoom = map._animatingZoom ? Math.max(map._animateToZoom, map.getZoom()) : map.getZoom(), scale = map.getZoomScale(mapZoom, this._tileZoom), pixelCenter = map.project(center, this._tileZoom).floor(), halfSize = map.getSize().divideBy(scale * 2);

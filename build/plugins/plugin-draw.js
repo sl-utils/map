@@ -1,4 +1,4 @@
-import { MapCanvasDraw, MapCanvasLayer } from "../map";
+import { MapCanvasLayer, MapCanvasDraw } from "../map";
 export class MapPluginDraw extends MapCanvasLayer {
     constructor(sluMap, options) {
         super(sluMap.map, options);

@@ -1,15 +1,98 @@
 import { MapCanvasLayer, SLUMap } from "../map";
-import { OptMapPluginPlot, DataMapPlot, MapPlotType, OptMapPluginPlotBase } from "../types";
-/**自定义标绘类
+import type { MapArc, MapText, MOptCanvas } from "../map";
+import type { CanvasImage } from "../canvas";
+/**
+ * 自定义标绘插件
+ *
+ * 用于在地图上绘制和编辑各种标绘图形，支持点、线、多边形、圆形、矩形等类型。
+ * 支持鼠标交互绘制、拖拽编辑、新增/删除/移动点位等操作。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap 地图实例
+ * @param sluMap SLUMap 地图实例
  * @param options 标绘配置
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginPlot } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建标绘插件
+ * const plot = new MapPluginPlot(map, {
+ *   plotOpt: {
+ *     pane: 'canvas',
+ *     className: 'plot',
+ *     colorFill: 'rgba(44, 155, 138, 0.3)',
+ *     colorLine: '#2C9B8A',
+ *     widthLine: 2
+ *   },
+ *   editOpt: {
+ *     lnglat: [0, 0],
+ *     colorFill: '#fff',
+ *     colorLine: '#2C9B8A',
+ *     size: 4
+ *   },
+ *   textOpt: {
+ *     colorFill: '#2C9B8A',
+ *     widthLine: 2,
+ *     colorLine: '#FFFFFF',
+ *     ifShadow: true
+ *   }
+ * });
+ *
+ * // 设置标绘列表
+ * plot.setPlotList([
+ *   {
+ *     type: 'polygon',
+ *     lngLats: [[114.12, 22.68], [114.15, 22.70], [114.18, 22.72]],
+ *     name: '区域A',
+ *     colorFill: 'rgba(255, 0, 0, 0.3)',
+ *     colorLine: '#FF0000'
+ *   },
+ *   {
+ *     type: 'circle',
+ *     lngLats: [[114.20, 22.75], [114.22, 22.77]],
+ *     name: '圆形区域',
+ *     colorFill: 'rgba(0, 255, 0, 0.3)',
+ *     colorLine: '#00FF00'
+ *   }
+ * ]);
+ *
+ * // 开始绘制新标绘
+ * const newPlot = plot.open('polygon');
+ *
+ * // 监听点位变化
+ * plot.addCbPointChange((plotAni) => {
+ *   console.log('标绘数据变化:', plotAni);
+ * });
+ *
+ * // 监听标绘列表变化
+ * plot.addCbPlotListChange((plotList) => {
+ *   console.log('标绘列表:', plotList);
+ * });
+ *
+ * // 保存标绘
+ * plot.savePlot();
+ *
+ * // 编辑已有标绘
+ * plot.setEditPlot(newPlot);
+ *
+ * // 删除标绘
+ * plot.delPlot(newPlot);
+ *
+ * // 关闭绘制模式
+ * plot.close();
+ *
+ * // 移除图层
+ * plot.onRemove();
+ * ```
  */
 export declare class MapPluginPlot extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: OptMapPluginPlot);
+    constructor(sluMap: SLUMap, options?: MOptPluginPlot);
     /**标绘形状配置 */
-    options: OptMapPluginPlotBase;
+    options: MOptPluginPlotBase;
     /**动态绘制图层 */
     private ctrMapAniDraw;
     /**静态标绘图层 */
@@ -23,7 +106,7 @@ export declare class MapPluginPlot extends MapCanvasLayer {
     /**所有的标绘集合 */
     private plotList;
     /**正在动态绘制的标(仅仅改变图形不会动态改变原始数据) */
-    plotAni?: DataMapPlot;
+    plotAni?: MDataPlot;
     /**记录当前鼠标经纬度 [lng, lat] */
     private curPoint?;
     /** 单击事件 */
@@ -32,7 +115,7 @@ export declare class MapPluginPlot extends MapCanvasLayer {
      * @param type 标绘类型
      * @returns 新增的标绘实例
      */
-    open(type: MapPlotType): DataMapPlot;
+    open(type: MapPlotType): MDataPlot;
     /**关闭绘制
      * @returns MapPluginPlot实例
     */
@@ -45,17 +128,17 @@ export declare class MapPluginPlot extends MapCanvasLayer {
      * @param plot 标绘实例
      * @returns MapPluginPlot实例
      */
-    delPlot(plot?: DataMapPlot): MapPluginPlot;
+    delPlot(plot?: MDataPlot): MapPluginPlot;
     /**设置所有区域数据
      * @param plotList 标绘集合
      * @returns MapPluginPlot实例
      */
-    setPlotList(plotList: DataMapPlot[]): MapPluginPlot;
+    setPlotList(plotList: MDataPlot[]): MapPluginPlot;
     /**设置编辑区域数据
      * @param plot 标绘实例
      * @returns MapPluginPlot实例
      */
-    setEditPlot(plot: DataMapPlot): MapPluginPlot;
+    setEditPlot(plot: MDataPlot): MapPluginPlot;
     /**重绘
      * @returns MapPluginPlot实例
      */
@@ -167,22 +250,64 @@ export declare class MapPluginPlot extends MapCanvasLayer {
      * @param cb 回调函数
      * @returns MapPluginPlot实例
      */
-    addCbPointChange(cb: (plotAni: DataMapPlot) => void): MapPluginPlot;
+    addCbPointChange(cb: (plotAni: MDataPlot) => void): MapPluginPlot;
     /**添加新增点位时的监听函数
      * @param cb 回调函数
      * @returns MapPluginPlot实例
      */
-    addCbPointAdd(cb: (plotAni: DataMapPlot) => void): MapPluginPlot;
+    addCbPointAdd(cb: (plotAni: MDataPlot) => void): MapPluginPlot;
     /**添加新增点位时的监听函数
      * @param cb 回调函数
      * @returns MapPluginPlot实例
      */
-    addCbPointMove(cb: (plotAni: DataMapPlot) => void): MapPluginPlot;
+    addCbPointMove(cb: (plotAni: MDataPlot) => void): MapPluginPlot;
     /**标绘列表变化时的回调（新增/删除等） */
     private cbPlotListChange?;
     /**设置标绘列表变化时的监听函数
      * @param cb 回调函数，参数为最新的标绘列表
      * @returns MapPluginPlot实例
      */
-    addCbPlotListChange(cb: (plotList: DataMapPlot[]) => void): MapPluginPlot;
+    addCbPlotListChange(cb: (plotList: MDataPlot[]) => void): MapPluginPlot;
+}
+/**地图标绘类型 */
+export type MapPlotType = 'point' | 'line' | 'polygon' | 'circle' | 'rect';
+/**地图标绘详情类型 */
+export type MapPlotDetailType = ({
+    type: 'point';
+    lngLats: [[number, number]] | [];
+} & CanvasImage) | {
+    type: 'circle';
+    lngLats: [[number, number], [number, number]] | [[number, number]] | [];
+    rail?: number;
+} | {
+    type: 'rect';
+    lngLats: [[number, number], [number, number]] | [];
+} | {
+    type: 'line' | 'polygon';
+    lngLats: [number, number][];
+};
+/**地图标绘数据 */
+export type MDataPlot = MOptCanvas & {
+    /**标绘名称 */
+    name?: string;
+    /**是否隐藏 */
+    ifHide?: boolean;
+    /**是否可编辑 */
+    ifEdit?: boolean;
+} & MapPlotDetailType;
+/**地图标绘插件基础配置 */
+export interface MOptPluginPlotBase extends MOptCanvas {
+}
+/**地图标绘插件编辑配置 */
+export type MOptPluginPlotEdit = Partial<MapArc>;
+/**地图标绘插件文本配置 */
+export type MOptPluginPlotText = Partial<MapText>;
+/**地图标绘插件配置 */
+export interface MOptPluginPlot {
+    /**标绘配置 */
+    plotOpt?: MOptPluginPlotBase;
+    /**编辑配置 */
+    editOpt?: MOptPluginPlotEdit;
+    /**文本配置 */
+    textOpt?: MOptPluginPlotText;
 }

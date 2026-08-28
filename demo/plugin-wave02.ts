@@ -1,5 +1,5 @@
 import { MapPluginGrid, MapPluginGridRender, PluginCoastlineMask, SLUMap } from "../src/index.ts";
-import { DataMapGrid } from "../src/types/index";
+import { MDataGrid } from "../src";
 
 async function main() {
   const map = new SLUMap("map");
@@ -17,7 +17,7 @@ async function main() {
   const low = await (await fetch("./assets/json/coast_low.json")).json();
   const mid = await (await fetch("./assets/json/coast_mid.json")).json();
   const high = await (await fetch("./assets/json/coast_high.json")).json();
-  let waveData: DataMapGrid[] = [], wavePlugin2: MapPluginGridRender | null;;
+  let waveData: MDataGrid[] = [], wavePlugin2: MapPluginGridRender | null;;
   button.addEventListener("click", async () => {
     if (wavePlugin2) {
       wavePlugin2.onRemove();

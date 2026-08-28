@@ -1,23 +1,65 @@
 import { MapCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
-import { u_deepMergeOpt, u_mapGetLngLatByPoint } from "../../utils/slu-map";
+import { um_deepMergeOpt, um_getLngLatByPoint } from "../../utils";
 import { SLUWorker } from "../../utils/slu-worker";
-import { OptMapGrid, WorkerInfo, DataMapGrid, GridBounds } from "../../types";
+import type { MOptCanvas } from "../../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
 
-/**网格插件基础类
+/**
+ * 网格插件基础类
+ *
+ * 用于处理和渲染网格数据，支持双线性插值、马赛克填色、渐变色等。
+ * 是 MapPluginGrid、MapPluginWind 等插件的基类。
+ *
  * @extends MapCanvasLayer
  * @constructor
  * @param map 地图实例
- * @param options 配置
+ * @param options 网格配置
+ *
+ * @example
+ * ```typescript
+ * // 通常不直接使用此类，而是使用其子类
+ * import { SLUMap, MapPluginGrid } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建网格插件（继承自 MapPluginGridBase）
+ * const grid = new MapPluginGrid(map, {
+ *   mosaicColor: [
+ *     '#0000CD', '#0066ff', '#00B7ff', '#00E0FF',
+ *     '#00FFFF', '#00FFCC', '#00FF99', '#00FF00',
+ *     '#99FF00', '#CCFF00', '#FFFF00', '#FFCC00',
+ *     '#FF9900', '#FF6600', '#FF0000', '#B03060'
+ *   ],
+ *   mosaicValue: [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+ * });
+ *
+ * // 设置网格数据
+ * grid.setData([
+ *   {
+ *     header: {
+ *       lo1: 100, la1: 20, lo2: 130, la2: 40,
+ *       nx: 61, ny: 41, dx: 0.5, dy: 0.5
+ *     },
+ *     data: [/* 网格数据 *\/]
+ *   }
+ * ]);
+ *
+ * // 获取指定经纬度的数据
+ * const info = grid.getInfoByLngLat(114.12, 22.68);
+ * if (info) {
+ *   console.log(`值: ${info[2]}`);
+ * }
+ * ```
  */
 export class MapPluginGridBase extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map | MaplibreMap, options: Partial<OptMapGrid>) {
+    constructor(map: L.Map | AMAP.Map | MaplibreMap, options: Partial<MOptGrid>) {
         super(map, options);
-        this.options = u_deepMergeOpt(this.options, options);
+        this.options = um_deepMergeOpt(this.options, options);
     }
     /**基础配置 */
-    public readonly options: OptMapGrid = {
+    public readonly options: MOptGrid = {
         pane: "wavePane",
         zIndex: 200,
         mosaicColor: ["#0000CD", "#0066ff", "#00B7ff", "#00E0FF", "#00FFFF", "#00FFCC", "#00FF99", "#00FF00", "#99FF00", "#CCFF00", "#FFFF00", "#FFCC00", "#FF9900", "#FF6600", "#FF0000", "#B03060", "#D02090", "#FF00FF"],
@@ -60,7 +102,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
     /**设置网格数据
      * @param datas 网格数据
      */
-    public _setDatas(datas: DataMapGrid[]): void {
+    public _setDatas(datas: MDataGrid[]): void {
         if (!datas || datas.length === 0) {
             this.gridXY = [];
             return
@@ -77,10 +119,10 @@ export class MapPluginGridBase extends MapCanvasLayer {
      * @param bounds 可视区域的像素范围
      */
     protected interpolateFieldByWorker(bounds: GridBounds): void {
-        let [lng, lat] = u_mapGetLngLatByPoint(this.map, [0, 0]);
-        let [lng1, lat1] = u_mapGetLngLatByPoint(this.map, [1, bounds.height]);
+        let [lng, lat] = um_getLngLatByPoint(this.map, [0, 0]);
+        let [lng1, lat1] = um_getLngLatByPoint(this.map, [1, bounds.height]);
         let lats: number[] = [];
-        for (let i = 0, len = bounds.height; i <= len; i++) lats[i] = u_mapGetLngLatByPoint(this.map, [0, i])[1];
+        for (let i = 0, len = bounds.height; i <= len; i++) lats[i] = um_getLngLatByPoint(this.map, [0, i])[1];
         this.worker.post({
             id: this.workerId++,
             width: bounds.width,
@@ -103,7 +145,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
             const column: [number, number, number][] = [];
             for (let x = bounds.x, len2 = bounds.width; x <= len2; x += 2) {
                 //得到可视区X , Y 点对应地图上的经纬度
-                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+                let [lng, lat] = um_getLngLatByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
@@ -127,7 +169,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
             let column: [number, number, number][] = [];
             for (let x = bounds.x, len2 = bounds.width; x <= len2; x += pixelInterval) {
                 //得到可视区X , Y 点对应地图上的经纬度
-                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+                let [lng, lat] = um_getLngLatByPoint(this.map, [x, y]);
                 /**是否是有效数字 */
                 if (isFinite(lng)) {
                     //获得指定经纬度的信息 [ u数据 , v数据 , 平均值 ]
@@ -144,7 +186,7 @@ export class MapPluginGridBase extends MapCanvasLayer {
      * @param grids 一维数据
      * @returns 三维网格数据
      */
-    private builder(grids: DataMapGrid[]): number[][][] {
+    private builder(grids: MDataGrid[]): number[][][] {
         let { nx = 0, ny = 0, dx = 0 } = grids[0]?.header || Object.assign({});
         let scale = 1;
         /**数据行数 * 间隔 要比360 */
@@ -343,4 +385,110 @@ export class MapPluginGridBase extends MapCanvasLayer {
             }
         }
     }
+}
+
+/**网格数据头部 */
+export interface MDataGridHeader {
+    /**网格列数 */
+    nx: number,
+    /**网格行数 */
+    ny: number,
+    /**起始纬度 */
+    la1: number,
+    /**起始经度 */
+    lo1: number,
+    /**经度间隔 */
+    dx: number,
+    /**纬度间隔 */
+    dy: number,
+    /**结束纬度 */
+    la2: number,
+    /**结束经度 */
+    lo2: number,
+}
+
+/**网格数据 */
+export interface MDataGrid {
+    /**网格列数 */
+    nx?: number,
+    /**网格行数 */
+    ny?: number,
+    /**经度间隔 */
+    dx?: number,
+    /**纬度间隔 */
+    dy?: number,
+    /**起始经度 */
+    sx?: number,
+    /**起始纬度 */
+    sy?: number,
+    /**无效值 */
+    nodata?: number | undefined,
+    /**缩放比例 */
+    scale?: number,
+    /**数据个数 */
+    num?: number,
+    /**网格头部信息 */
+    header: MDataGridHeader,
+    /**数据数组 */
+    data: number[],
+}
+
+/**网格边界 */
+export interface GridBounds {
+    /**起始X坐标 */
+    x: number;
+    /**起始Y坐标 */
+    y: number;
+    /**宽度 */
+    width: number;
+    /**高度 */
+    height: number;
+}
+
+/**Worker处理信息 */
+export interface WorkerInfo {
+    /**任务ID */
+    id?: number;
+    /**画布宽度 */
+    width: number;
+    /**画布高度 */
+    height: number;
+    /**纬度 */
+    lat: number;
+    /**经度 */
+    lng: number;
+    /**纬度数组 */
+    lats: number[];
+    /**经度增量 */
+    lngd: number;
+    /**起始纬度 */
+    lat0: number;
+    /**起始经度 */
+    lng0: number;
+    /**纬度增量 */
+    latΔ: number;
+    /**经度增量 */
+    lngΔ: number;
+    /**无效值 */
+    invalid: number | undefined | null;
+    /**网格数据 */
+    grid: any;
+    /**马赛克颜色 */
+    mosaicColor?: string[];
+    /**马赛克值 */
+    mosaicValue?: number[];
+}
+
+/**网格插件配置 */
+export interface MOptGrid extends MOptCanvas {
+    /**马赛克颜色 */
+    mosaicColor?: string[];
+    /**马赛克值 */
+    mosaicValue?: number[];
+    /**渐变颜色 */
+    gradient?: { [key: number]: string };
+    /**渐变最大值 */
+    gradientMax?: number;
+    /**渐变半径 */
+    gradientRadius?: number;
 }

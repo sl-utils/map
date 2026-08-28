@@ -1,14 +1,59 @@
-import { OptMapCanvas, OptMapPluginRadar } from "../types";
 import { MapCanvasLayer, SLUMap } from "../map";
+import type { MOptCanvas, MOptPluginRadar } from "../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
-/**雷达绘制插件
+/**
+ * 雷达绘制插件
+ *
+ * 用于在地图上绘制雷达扫描动画效果，支持自定义扫描范围、颜色、网格密度等。
+ * 常用于气象雷达、监控范围展示等场景。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap 地图实例
+ * @param sluMap SLUMap 地图实例
  * @param options 雷达绘制配置
- * */
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginRadar } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建雷达插件
+ * const radar = new MapPluginRadar(map);
+ *
+ * // 添加雷达数据
+ * radar.setAllRadars([
+ *   {
+ *     animeId: 'radar1',
+ *     lnglat: [114.12, 22.68],
+ *     radius: 5000,  // 5km
+ *     colorRadar: 'rgba(255, 0, 0, 0.3)',
+ *     colorGrid: 'rgba(255, 255, 255, 0.2)',
+ *     colorDash: ['rgba(255, 255, 255, 0.3)'],
+ *     gridDensity: 5,
+ *     dashDensity: 12,
+ *     time: 3000,  // 3秒一圈
+ *     ifClockwise: true
+ *   }
+ * ]);
+ *
+ * // 添加单个雷达
+ * radar.addRadar({
+ *   animeId: 'radar2',
+ *   lnglat: [114.20, 22.75],
+ *   radius: 3000,
+ *   colorRadar: 'rgba(0, 255, 0, 0.3)',
+ *   sectorAngle: 60,
+ *   colorSector: 'rgba(0, 255, 0, 0.1)'
+ * });
+ *
+ * // 移除图层
+ * radar.onRemove();
+ * ```
+ */
 export declare class MapPluginRadar extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | OptMapCanvas);
+    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MOptCanvas);
     /**动画所有状态 */
     private canvasRadar;
     /**
@@ -22,12 +67,12 @@ export declare class MapPluginRadar extends MapCanvasLayer {
      * @param radars 雷达绘制数据
      * @returns MapPluginRadar实例
      */
-    setAllRadars(radars: OptMapPluginRadar[]): MapPluginRadar;
+    setAllRadars(radars: MOptPluginRadar[]): MapPluginRadar;
     /**添加雷达绘制类
      * @param radar 雷达绘制数据
      * @returns MapPluginRadar实例
      */
-    addRadar(radar: OptMapPluginRadar): MapPluginRadar;
+    addRadar(radar: MOptPluginRadar): MapPluginRadar;
     /**渲染静态标绘图层 */
     protected renderFixedData(): void;
     /**渲染动画

@@ -1,4 +1,6 @@
-import { CanvasGif } from "../types";
+
+import type { CanvasPosition } from "./slu-canvas";
+import { Image } from "./slu-canvas-img";
 
 /**canvas绘制gif工具类 */
 export class SLUCanvasGif {
@@ -527,8 +529,17 @@ class Stream {
     };
 };
 
+// ==================== 类型约束 ====================
 
-
+/**gif动画的基本配置 */
+export type CanvasGif<I = any> = Image<I> & CanvasPosition & {
+    /**gif大小 */
+    size: [number, number];
+    /**id必传且唯一，用于后续关闭之前绘制的动画 */
+    id: string;
+    /**gif播放延迟时间 */
+    delay?: number;
+}
 /**Gif信息（属性顺序就是数据流顺序）*/
 interface GifInfo {
     /**（3字节）gif文件标识*/

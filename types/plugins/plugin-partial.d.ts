@@ -1,14 +1,66 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import { OptMapCanvas, DataMapParticle, CanvasPosition } from "../types";
+import { MapCanvasLayer, type MOptCanvas, type SLUMap } from "../map";
+import { CanvasLine } from "../canvas";
+import { CanvasPosition } from "../canvas";
 import { Map as MaplibreMap } from 'maplibre-gl';
-/**用于绘制地图上的粒子效果
+/**
+ * 粒子效果插件
+ *
+ * 用于在地图上绘制流动的粒子效果，支持贝塞尔曲线路径、自定义粒子颜色和速度。
+ * 常用于表示洋流、气流、航线等流动数据。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap 地图实例
- * @param options 地图初始化参数
+ * @param sluMap SLUMap 地图实例
+ * @param options 粒子配置
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginPartial } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建粒子插件
+ * const partial = new MapPluginPartial(map, {
+ *   pane: 'canvas',
+ *   zIndex: 150
+ * });
+ *
+ * // 设置粒子数据
+ * partial.setAllParticles([
+ *   {
+ *     lnglats: [
+ *       [114.12, 22.68],
+ *       [114.15, 22.70],
+ *       [114.18, 22.72],
+ *       [114.20, 22.75]
+ *     ],
+ *     colorParticle: '#00FFFF',
+ *     speed: 0.002,        // 移动速度
+ *     length: 0.05,        // 粒子长度占比
+ *     dense: 1,            // 密度
+ *     showParticle: true
+ *   },
+ *   {
+ *     lnglats: [
+ *       [114.25, 22.80],
+ *       [114.30, 22.85],
+ *       [114.35, 22.90]
+ *     ],
+ *     colorParticle: '#FF6600',
+ *     speed: 0.003,
+ *     length: 0.08,
+ *     degree: 0.3,         // 贝塞尔曲线曲度
+ *     showParticle: true
+ *   }
+ * ]);
+ *
+ * // 移除图层
+ * partial.onRemove();
+ * ```
  */
 export declare class MapPluginPartial extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: OptMapCanvas);
+    constructor(sluMap: SLUMap, options?: MOptCanvas);
     /**
      * 图层是否在移动 高德默认每次渲染更新像素坐标
      * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
@@ -21,7 +73,7 @@ export declare class MapPluginPartial extends MapCanvasLayer {
     /**设置所有粒子数据
      * @param particles 粒子数据
      */
-    setAllParticles(particles: (DataMapParticle & CanvasPosition)[]): void;
+    setAllParticles(particles: (MDataParticle & CanvasPosition)[]): void;
     /**渲染动态数据
      * @param time 时间戳
      */
@@ -54,4 +106,27 @@ export declare class MapPluginPartial extends MapCanvasLayer {
     private drawStart;
     /**拖拽开始，结束绘制 */
     private drawEnd;
+}
+/**粒子数据 */
+export interface MDataParticle extends CanvasLine {
+    /**经纬度集合 */
+    lnglats?: [number, number][];
+    /**曲线控制点 */
+    curve?: [number, number][];
+    /**移动速度 */
+    speed?: number;
+    /**粒子长度 */
+    length?: number;
+    /**密度 */
+    dense?: number;
+    /**当前点集合 */
+    curPoints?: [number, number][];
+    /**粒子年龄 */
+    age?: number;
+    /**索引 */
+    index?: number;
+    /**粒子颜色 */
+    colorParticle?: string;
+    /**是否显示粒子 */
+    showParticle?: boolean;
 }

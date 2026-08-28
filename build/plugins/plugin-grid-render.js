@@ -1,6 +1,6 @@
 import { MapCanvasLayer } from "../map";
 import { SLUWorker } from "../utils/slu-worker";
-import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetMapSize } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getLngLatByPoint, um_getMapSize } from "../utils";
 export class MapPluginGridRender extends MapCanvasLayer {
     constructor(sluMap, options, mask) {
         super(sluMap.map, options);
@@ -13,7 +13,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
                 "#FFCC00", "#FF6600", "#FF0000", "#B03060",],
             mosaicValue: [0.5, 1, 2, 3, 4, 5, 7, 9, 12, 15]
         };
-        this.options = u_deepMergeOpt(this.options, options);
+        this.options = um_deepMergeOpt(this.options, options);
         this.mask = mask;
         this.offCanvas = document.createElement("canvas");
         this.offCtx = this.offCanvas.getContext("2d", { alpha: true, desynchronized: true });
@@ -51,7 +51,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
         this.render();
     }
     render() {
-        const { w, h } = u_mapGetMapSize(this.map);
+        const { w, h } = um_getMapSize(this.map);
         const samplingRate = this.getSamplingRate();
         const geoStep = this.getGeoStep();
         const geoCols = Math.ceil(w / geoStep) + 1;
@@ -62,7 +62,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
             const py = Math.min(h, gy * geoStep);
             for (let gx = 0; gx < geoCols; gx++) {
                 const px = Math.min(w, gx * geoStep);
-                const lnglat = u_mapGetLngLatByPoint(this.map, [px, py]);
+                const lnglat = um_getLngLatByPoint(this.map, [px, py]);
                 lngLatBuffer[ptr++] = lnglat[0];
                 lngLatBuffer[ptr++] = lnglat[1];
             }
@@ -95,7 +95,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
         if ((this.workerId - 1) !== res.workerId) {
             return;
         }
-        const { w, h } = u_mapGetMapSize(this.map);
+        const { w, h } = um_getMapSize(this.map);
         this.offCanvas.width = w;
         this.offCanvas.height = h;
         this.offCtx.clearRect(0, 0, w, h);

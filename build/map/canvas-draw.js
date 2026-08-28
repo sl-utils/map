@@ -1,6 +1,6 @@
-import { u_arrItemDel, u_mapGetMapSize, u_mapGetPointByLnglat, u_mapGetPointsByLnglats, u_mapGetSizeByMap } from '../utils/slu-map';
+import { um_arrItemDel, um_getMapSize, um_getPointByLnglat, um_getPointsByLnglats, um_getSizeByMap } from '../utils';
 import { SLUCanvas, SLUCanvasGif, SLUCanvasImg, SLUCanvasText } from '../canvas';
-import { u_drawConvertgps84Togcj02 } from '../utils';
+import { um_drawConvertgps84Togcj02 } from '../utils';
 export class MapCanvasDraw {
     constructor(map, canvas) {
         this._allArcs = [];
@@ -19,7 +19,7 @@ export class MapCanvasDraw {
     }
     reSetCanvas() {
         let { canvas, map, ctx } = this;
-        const { w, h } = u_mapGetMapSize(map);
+        const { w, h } = um_getMapSize(map);
         canvas.style.width = w + 'px';
         canvas.style.height = h + 'px';
         canvas.width = w;
@@ -74,104 +74,104 @@ export class MapCanvasDraw {
         });
     }
     setAllArcs(arcs) {
-        u_drawConvertgps84Togcj02(this.map, arcs);
+        um_drawConvertgps84Togcj02(this.map, arcs);
         this._allArcs = arcs;
         return this;
     }
     setAllLines(lines) {
-        u_drawConvertgps84Togcj02(this.map, lines);
+        um_drawConvertgps84Togcj02(this.map, lines);
         this._allLines = lines;
         return this;
     }
     setAllBezierLines(lines) {
-        u_drawConvertgps84Togcj02(this.map, lines);
+        um_drawConvertgps84Togcj02(this.map, lines);
         this._allBLins = lines;
         return this;
     }
     setAllRects(rects) {
-        u_drawConvertgps84Togcj02(this.map, rects);
+        um_drawConvertgps84Togcj02(this.map, rects);
         this._allRects = rects;
         return this;
     }
     setAllTexts(texts) {
-        u_drawConvertgps84Togcj02(this.map, texts);
+        um_drawConvertgps84Togcj02(this.map, texts);
         this._allTexts = texts;
         return this;
     }
     setAllImgs(imgs) {
-        u_drawConvertgps84Togcj02(this.map, imgs);
+        um_drawConvertgps84Togcj02(this.map, imgs);
         this._allImgs = imgs;
         return this;
     }
     setAllGifs(gifs) {
-        u_drawConvertgps84Togcj02(this.map, gifs);
+        um_drawConvertgps84Togcj02(this.map, gifs);
         this._allGifs = gifs;
         return this;
     }
     addArc(arc) {
         if (!arc.lnglats && !arc.lnglat)
             return this;
-        u_drawConvertgps84Togcj02(this.map, arc);
+        um_drawConvertgps84Togcj02(this.map, arc);
         this._allArcs.push(arc);
         return this;
     }
     addLine(line) {
         if (!line.lnglats)
             return this;
-        u_drawConvertgps84Togcj02(this.map, line);
+        um_drawConvertgps84Togcj02(this.map, line);
         this._allLines.push(line);
         return this;
     }
     addBezierLine(line) {
         if (!line.lnglats)
             return this;
-        u_drawConvertgps84Togcj02(this.map, line);
+        um_drawConvertgps84Togcj02(this.map, line);
         this._allBLins.push(line);
         return this;
     }
     addRect(rect) {
         if (!rect.lnglats)
             return this;
-        u_drawConvertgps84Togcj02(this.map, rect);
+        um_drawConvertgps84Togcj02(this.map, rect);
         this._allRects.push(rect);
         return this;
     }
     addText(text) {
         if (!text.lnglats && !text.lnglat)
             return this;
-        u_drawConvertgps84Togcj02(this.map, text);
+        um_drawConvertgps84Togcj02(this.map, text);
         this._allTexts.push(text);
         return this;
     }
     addImg(img) {
         if (!img.lnglats && !img.lnglat)
             return this;
-        u_drawConvertgps84Togcj02(this.map, img);
+        um_drawConvertgps84Togcj02(this.map, img);
         this._allImgs.push(img);
         return this;
     }
     delArc(arc) {
-        u_arrItemDel(this._allArcs, arc);
+        um_arrItemDel(this._allArcs, arc);
         return this;
     }
     delLine(line) {
-        u_arrItemDel(this._allLines, line);
+        um_arrItemDel(this._allLines, line);
         return this;
     }
     delBezierLine(line) {
-        u_arrItemDel(this._allBLins, line);
+        um_arrItemDel(this._allBLins, line);
         return this;
     }
     delRect(rect) {
-        u_arrItemDel(this._allRects, rect);
+        um_arrItemDel(this._allRects, rect);
         return this;
     }
     delText(text) {
-        u_arrItemDel(this._allTexts, text);
+        um_arrItemDel(this._allTexts, text);
         return this;
     }
     delImg(img) {
-        u_arrItemDel(this._allImgs, img);
+        um_arrItemDel(this._allImgs, img);
         return this;
     }
     delAll(type = 'all') {
@@ -210,15 +210,15 @@ export class MapCanvasDraw {
         return that;
     }
     transformXY(info) {
-        info.points = u_mapGetPointsByLnglats(this.map, info.lnglats);
-        info.point = u_mapGetPointByLnglat(this.map, info.lnglat);
+        info.points = um_getPointsByLnglats(this.map, info.lnglats);
+        info.point = um_getPointByLnglat(this.map, info.lnglat);
     }
     transformImageSize(img) {
-        let [x, y] = u_mapGetSizeByMap(this.map, img);
+        let [x, y] = um_getSizeByMap(this.map, img);
         img.size = [x, y];
     }
     transformArcSize(arc) {
-        let [x, y] = u_mapGetSizeByMap(this.map, arc);
+        let [x, y] = um_getSizeByMap(this.map, arc);
         arc.size = x;
     }
 }

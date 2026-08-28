@@ -1,5 +1,5 @@
-import { OptMapPluginFixedHeat } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import type { MOptCanvas } from "./canvas-layer";
 /** 固定图片热力图-不随缩放而变化
  * @constructor
  * @param map 地图实例
@@ -9,8 +9,8 @@ import { Map as MaplibreMap } from 'maplibre-gl';
 export declare class MapCanvasFixedHeat {
     private map;
     private ctx;
-    heatOpt?: OptMapPluginFixedHeat;
-    constructor(map: AMAP.Map | L.Map | MaplibreMap, ctx: CanvasRenderingContext2D, heatOpt?: OptMapPluginFixedHeat);
+    heatOpt?: MOptPluginFixedHeat;
+    constructor(map: AMAP.Map | L.Map | MaplibreMap, ctx: CanvasRenderingContext2D, heatOpt?: MOptPluginFixedHeat);
     /** 热力图默认配置 */
     private readonly defaultOption;
     /** 原始数据 [经度, 纬度, 强度] */
@@ -50,4 +50,21 @@ export declare class MapCanvasFixedHeat {
     draw(): void;
     /** 清除热力图数据 */
     clear(): void;
+}
+/**固定热力图插件配置 */
+export interface MOptPluginFixedHeat extends MOptCanvas {
+    /**参考层级 */
+    refZoom?: number;
+    /**最小层级 */
+    minZoom?: number;
+    /**最大层级 */
+    maxZoom?: number;
+    /**半径 */
+    radius?: number;
+    /**模糊程度 */
+    blur?: number;
+    /**透明度 */
+    opacity?: number;
+    /**渐变颜色 */
+    gradient?: Record<number, string>;
 }

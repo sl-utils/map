@@ -1,31 +1,63 @@
 import { MapCanvasLayer, SLUMap } from "../map";
-import { DataMapGrid, OptMapGrid } from "../types";
+import { MDataGrid, MOptGrid } from "./grid/plugin-grid-base";
 import { Map as MaplibreMap } from "maplibre-gl";
 import { PluginCoastlineMask } from "./plugin-coastline-mask";
 /**
- * 色斑图插件（CPU栅格填色）
+ * 色斑图插件（CPU 栅格填色）
+ *
+ * 用于渲染海浪、风场、流场等栅格数据，支持 Worker 异步计算颜色和海岸线 Mask 裁剪。
+ * 适用于海洋气象数据的可视化展示。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap - SLUMap实例
- * @param options - 配置项
- * @param mask - 海岸线Mask /可选
+ * @param sluMap SLUMap 地图实例
+ * @param options 配置项
+ * @param mask 海岸线 Mask（可选，用于裁剪陆地区域）
  *
- * 功能：
- * 1. 渲染海浪/风场/流场等栅格数据
- * 2. Worker异步计算颜色
- * 3. Canvas绘制
- * 4. 海岸线Mask裁剪
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginGridRender, PluginCoastlineMask } from '@sl-utils/map';
  *
- * 适用于：
- * - 海浪
- * - 海流
- * - 风场
- * - 温度场
- * - 盐度场
- * - 任意规则经纬度栅格
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 加载海岸线数据
+ * const low = await (await fetch('./assets/json/coast_low.json')).json();
+ * const mid = await (await fetch('./assets/json/coast_mid.json')).json();
+ * const high = await (await fetch('./assets/json/coast_high.json')).json();
+ *
+ * // 创建海岸线 Mask
+ * const mask = new PluginCoastlineMask(
+ *   [
+ *     { minZoom: 0, maxZoom: 4, data: low },
+ *     { minZoom: 5, maxZoom: 7, data: mid },
+ *     { minZoom: 8, maxZoom: 20, data: high }
+ *   ],
+ *   map.map
+ * );
+ *
+ * // 创建色斑图插件
+ * const gridRender = new MapPluginGridRender(map, {
+ *   zIndex: 120,
+ *   mosaicColor: [
+ *     '#337FFC', '#32AAFC', '#31D6FC', '#72E9C7',
+ *     '#E0F16B', '#E4E35F', '#FFCC00', '#FF6600',
+ *     '#FF0000', '#B03060'
+ *   ],
+ *   mosaicValue: [0.5, 1, 2, 3, 4, 5, 7, 9, 12, 15],
+ *   pane: 'wavePane'
+ * }, mask);
+ *
+ * // 加载并设置栅格数据
+ * const waveData = await (await fetch('./json/wave-global.json')).json();
+ * gridRender.setData(waveData);
+ *
+ * // 移除图层
+ * gridRender.onRemove();
+ * ```
  */
 export declare class MapPluginGridRender extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options: Partial<OptMapGrid>, mask?: PluginCoastlineMask);
+    constructor(sluMap: SLUMap, options: Partial<MOptGrid>, mask?: PluginCoastlineMask);
     /**Worker线程:栅格插值-颜色计算-ImageBitmap生成 */
     private worker;
     /**worker任务ID-用于丢弃旧帧 */
@@ -53,11 +85,11 @@ export declare class MapPluginGridRender extends MapCanvasLayer {
     /**纬度步长 */
     private latΔ;
     /**默认配置 */
-    readonly options: OptMapGrid;
+    readonly options: MOptGrid;
     /**设置栅格数据
      * @param datas 栅格数据源
      */
-    setData(datas: DataMapGrid[]): void;
+    setData(datas: MDataGrid[]): void;
     /**渲染 */
     private render;
     /** worker回调
@@ -81,4 +113,25 @@ export declare class MapPluginGridRender extends MapCanvasLayer {
      * @param key 事件类型
      */
     protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void;
+}
+export interface GridRenderWorkerInfo {
+    id: number;
+    width: number;
+    height: number;
+    invalid?: null;
+    samplingRate?: number;
+    geoStep: number;
+    geoCols: number;
+    geoRows: number;
+    lngLatBuffer: Float32Array;
+    grid: Float32Array;
+    mask: Uint8Array;
+    nx: number;
+    ny: number;
+    lng0: number;
+    lat0: number;
+    lngΔ: number;
+    latΔ: number;
+    mosaicValue: number[];
+    mosaicColor: string[];
 }

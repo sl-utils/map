@@ -1,4 +1,4 @@
-import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetPointByLnglat } from "../../utils/slu-map";
+import { um_deepMergeOpt, um_getLngLatByPoint, um_getPointByLnglat } from "../../utils";
 export class PluginVelocity {
     constructor(options) {
         this.options = {
@@ -21,7 +21,7 @@ export class PluginVelocity {
         this.setOptions(options);
     }
     setOptions(options) {
-        options = u_deepMergeOpt(this.options, options);
+        options = um_deepMergeOpt(this.options, options);
         this.map = options.map;
         this.MIN_VELOCITY_INTENSITY = options.minVelocity;
         this.MAX_VELOCITY_INTENSITY = options.maxVelocity;
@@ -120,7 +120,7 @@ export class PluginVelocity {
                 const column = [];
                 const id = requestIdleCallback(() => {
                     for (let y = bounds.y, len = bounds.yMax; y <= len; y += STEP) {
-                        const [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+                        const [lng, lat] = um_getLngLatByPoint(this.map, [x, y]);
                         if (!isFinite(lng) || !isFinite(lat)) {
                             continue;
                         }
@@ -200,7 +200,7 @@ export class PluginVelocity {
         ];
     }
     project(lat, lng) {
-        let [x, y] = u_mapGetPointByLnglat(this.map, [lng, lat]);
+        let [x, y] = um_getPointByLnglat(this.map, [lng, lat]);
         return [x, y];
     }
     animate(bounds, field) {

@@ -1,4 +1,4 @@
-import { u_TextSplitMultilineText } from '../utils/txt';
+import { um_textSplitMultilineText } from '../utils/txt';
 import { SLUCanvas } from './slu-canvas';
 export class SLUCanvasText {
     static openDrawText() {
@@ -34,7 +34,7 @@ export class SLUCanvasText {
             return strs;
         let texts = [];
         strs.forEach((text) => {
-            texts.push(...u_TextSplitMultilineText(ctx, text, font, max, true, (str) => {
+            texts.push(...um_textSplitMultilineText(ctx, text, font, max, true, (str) => {
                 return [str.lastIndexOf(',') + 1];
             }));
         });

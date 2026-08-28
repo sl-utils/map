@@ -1,5 +1,5 @@
 import { Browser, DomUtil, Layer, Util, bind, extend } from "leaflet";
-import { u_deepMergeOpt, u_mapGetMapSize, u_tsLayerisAmap, u_tsLayerisLeaflet, u_tsLayerisMapLibre, u_tsMapisAmap, u_tsMapisLeaflet, u_tsMapisMapLibre } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getMapSize, um_tsLayerisAmap, um_tsLayerisLeaflet, um_tsLayerisMapLibre, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
 export class MapCanvasLayer {
     constructor(map, opt) {
         this.canvas = document.createElement('canvas');
@@ -19,15 +19,15 @@ export class MapCanvasLayer {
         };
         this.map = map;
         if (opt)
-            this.options = u_deepMergeOpt(this.options, opt);
+            this.options = um_deepMergeOpt(this.options, opt);
         this.initCanvas();
-        if (u_tsMapisLeaflet(map)) {
+        if (um_tsMapisLeaflet(map)) {
             this._initLeaflet();
         }
-        else if (u_tsMapisAmap(map)) {
+        else if (um_tsMapisAmap(map)) {
             this._initAMap();
         }
-        else if (u_tsMapisMapLibre(map)) {
+        else if (um_tsMapisMapLibre(map)) {
             this._initMapLibreAsync();
         }
     }
@@ -42,11 +42,11 @@ export class MapCanvasLayer {
     }
     resetCanvas() {
         const { canvas, map } = this;
-        if (u_tsMapisLeaflet(map)) {
+        if (um_tsMapisLeaflet(map)) {
             const topLeft = map.containerPointToLayerPoint([0, 0]);
             DomUtil.setPosition(canvas, topLeft);
         }
-        const { w, h } = u_mapGetMapSize(map);
+        const { w, h } = um_getMapSize(map);
         canvas.style.width = w + 'px';
         canvas.style.height = h + 'px';
         this.width = canvas.width = w;
@@ -85,7 +85,7 @@ export class MapCanvasLayer {
         this.addMapEvents(map, key);
     }
     _initAMap() {
-        const opt = u_deepMergeOpt({
+        const opt = um_deepMergeOpt({
             zooms: [3, 18],
             alwaysRender: false,
             zIndex: 200,
@@ -96,14 +96,14 @@ export class MapCanvasLayer {
     }
     _onAmapAdd() {
         const { map, layer } = this;
-        if (u_tsMapisAmap(map) && u_tsLayerisAmap(layer)) {
+        if (um_tsMapisAmap(map) && um_tsLayerisAmap(layer)) {
             layer.setMap(map);
             layer.render = this._redraw;
         }
     }
     _onAmapRemove() {
         const { map, layer } = this;
-        if (u_tsMapisAmap(map) && u_tsLayerisAmap(layer)) {
+        if (um_tsMapisAmap(map) && um_tsLayerisAmap(layer)) {
             map.remove(layer);
         }
     }
@@ -114,7 +114,7 @@ export class MapCanvasLayer {
     }
     initLeafletCanvas() {
         const { canvas, map, options } = this;
-        if (!u_tsMapisLeaflet(map))
+        if (!um_tsMapisLeaflet(map))
             return;
         let pane = options.pane || 'overlayPane', paneEle = map.getPane(pane) || map.createPane(pane);
         paneEle.appendChild(canvas);
@@ -129,7 +129,7 @@ export class MapCanvasLayer {
     }
     _onLeafletRemove() {
         let { map, layer, options } = this;
-        if (u_tsMapisLeaflet(map) && u_tsLayerisLeaflet(layer)) {
+        if (um_tsMapisLeaflet(map) && um_tsLayerisLeaflet(layer)) {
             let pane = options.pane;
             pane && map.getPane(pane)?.removeChild(this.canvas);
             layer.remove();
@@ -137,7 +137,7 @@ export class MapCanvasLayer {
     }
     addLeafletEvent(flag = true) {
         const map = this.map;
-        if (u_tsMapisLeaflet(map)) {
+        if (um_tsMapisLeaflet(map)) {
             requestAnimationFrame(() => this._reset());
             const key = flag ? 'on' : 'off';
             map[key]('viewreset', this._reset, this);
@@ -159,12 +159,12 @@ export class MapCanvasLayer {
         DomUtil.setTransform(this.canvas, offset, scale);
     }
     _onCanvasLoad() {
-        if (u_tsLayerisLeaflet(this.layer))
+        if (um_tsLayerisLeaflet(this.layer))
             this.layer.fire('load');
     }
     _initMapLibreAsync() {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const isReady = map.loaded?.() || map.isStyleLoaded?.() || !!map.getStyle?.();
             if (isReady) {
                 this._initMapLibre();
@@ -180,7 +180,7 @@ export class MapCanvasLayer {
     }
     _initMapLibre() {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const layerId = `slu-canvas-${Math.random().toString(36).slice(2)}`;
             const customLayer = {
                 id: layerId,
@@ -198,7 +198,7 @@ export class MapCanvasLayer {
     }
     _onMapLibreAdd() {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             const container = map.getCanvasContainer();
             this.canvas.style.position = 'absolute';
             this.canvas.style.top = '0';
@@ -208,7 +208,7 @@ export class MapCanvasLayer {
         }
     }
     _onMapLibreRemove() {
-        if (u_tsMapisMapLibre(this.map) && u_tsLayerisMapLibre(this.layer)) {
+        if (um_tsMapisMapLibre(this.map) && um_tsLayerisMapLibre(this.layer)) {
             if (this.canvas.parentNode) {
                 this.canvas.parentNode.removeChild(this.canvas);
             }
@@ -219,7 +219,7 @@ export class MapCanvasLayer {
     }
     addMaplibreEvent(flag = true) {
         const map = this.map;
-        if (u_tsMapisMapLibre(map)) {
+        if (um_tsMapisMapLibre(map)) {
             requestAnimationFrame(() => this._reset());
             const key = flag ? 'on' : 'off';
             map[key]('resize', () => this._reset());

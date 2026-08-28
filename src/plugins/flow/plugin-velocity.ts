@@ -1,18 +1,52 @@
 import * as L from "leaflet";
-import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetPointByLnglat } from "../../utils/slu-map";
-import { OptMapPluginVelocity, DataMapVeloctiyWind, WindBounds, WindMapBounds, WindParticle, WindVector, VelocityHeader } from "../../types";
+import { um_deepMergeOpt, um_getLngLatByPoint, um_getPointByLnglat } from "../../utils";
+import type { VelocityHeader, MDataVeloctiyWind } from "./plugin-flow";
 import { Map as MaplibreMap } from 'maplibre-gl';
-/**运动粒子类
+
+/**
+ * 运动粒子类
+ *
+ * 用于实现流体动画效果，通过粒子系统模拟风场、洋流等流体运动。
+ * 支持自定义粒子颜色、速度、寿命等参数。
+ *
  * @constructor
- * @param options 配置项
+ * @param options 粒子配置
+ *
+ * @example
+ * ```typescript
+ * // 通常不直接使用此类，而是通过 MapPluginFlow 插件
+ * import { SLUMap, MapPluginFlow } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建流体动画插件（内部使用 PluginVelocity）
+ * const flow = new MapPluginFlow(map, {
+ *   maxVelocity: 15,
+ *   particleAge: 90,
+ *   velocityScale: 0.005,
+ *   colorScale: [
+ *     'rgb(36,104,180)',
+ *     'rgb(60,157,194)',
+ *     'rgb(128,205,193)',
+ *     'rgb(255,238,159)',
+ *     'rgb(255,182,100)',
+ *     'rgb(245,64,32)',
+ *     'rgb(180,0,35)'
+ *   ]
+ * });
+ *
+ * // 设置风场数据
+ * flow.setData(windData);
+ * ```
  */
 export class PluginVelocity {
-  constructor(options: Partial<OptMapPluginVelocity>) {
+  constructor(options: Partial<MOptPluginVelocity>) {
     this.canvas = options.canvas!;
     this.setOptions(options);
   }
   /**基础配置项 */
-  private options: OptMapPluginVelocity = {
+  private options: MOptPluginVelocity = {
     minVelocity: 0,
     maxVelocity: 1,
     velocityScale: 1,
@@ -52,7 +86,7 @@ export class PluginVelocity {
   /**无风状态下的单例 singleton for no wind in the form: [u, v, magnitude]*/
   private NULL_WIND_VECTOR: WindVector = [NaN, NaN, null];
   /**传过来的原始数据 */
-  private gridData!: DataMapVeloctiyWind[];
+  private gridData!: MDataVeloctiyWind[];
   /** [U数据,V数据][ x序号 ][ y轴序号 ]   */
   private grid: [number, number][][] = [];
   /**风场数据 */
@@ -73,7 +107,7 @@ export class PluginVelocity {
    * @param options 配置项
    */
   public setOptions(options: any): void {
-    options = u_deepMergeOpt(this.options, options);
+    options = um_deepMergeOpt(this.options, options);
     this.map = options.map;
     this.MIN_VELOCITY_INTENSITY = options.minVelocity;
     this.MAX_VELOCITY_INTENSITY = options.maxVelocity;
@@ -92,7 +126,7 @@ export class PluginVelocity {
   /**设置数据
    * @param data 数据
    */
-  public setData(data: DataMapVeloctiyWind[]): void {
+  public setData(data: MDataVeloctiyWind[]): void {
     this.gridData = data;
   }
   /**停止运行 */
@@ -131,7 +165,7 @@ export class PluginVelocity {
   /**构建网格数据
    * @param data 数据
    */
-  private buildGrid(data: DataMapVeloctiyWind[]): void {
+  private buildGrid(data: MDataVeloctiyWind[]): void {
     /**数据太少不支持 */
     if (data.length < 2) console.log("Windy Error: data must have at least two components (u,v)");
     let builder = this.createBuilder(data);
@@ -163,11 +197,11 @@ export class PluginVelocity {
   /**创建构造器
    * @param data 数据
    */
-  private createBuilder(data: DataMapVeloctiyWind[]): { header: VelocityHeader; data: (i: number) => [number, number]; } {
+  private createBuilder(data: MDataVeloctiyWind[]): { header: VelocityHeader; data: (i: number) => [number, number]; } {
     /**获得并设置起始数据 */
-    let uComp: DataMapVeloctiyWind = data[0],
-      vComp: DataMapVeloctiyWind = data[1],
-      zComp: DataMapVeloctiyWind = data[2];
+    let uComp: MDataVeloctiyWind = data[0],
+      vComp: MDataVeloctiyWind = data[1],
+      zComp: MDataVeloctiyWind = data[2];
     let uData = uComp.data,
       vData = vComp.data;
     return {
@@ -200,7 +234,7 @@ export class PluginVelocity {
         const id = requestIdleCallback(() => {
           for (let y = bounds.y, len = bounds.yMax; y <= len; y += STEP) {
             //得到X , Y 点对应地图上的经纬度
-            const [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+            const [lng, lat] = um_getLngLatByPoint(this.map, [x, y]);
             if (!isFinite(lng) || !isFinite(lat)) { continue; }
             //获得指定经纬度的信息 [ 开始值 , 结束值 , 平均值 ]
             let wind = this.interpolate(lng, lat);
@@ -333,7 +367,7 @@ export class PluginVelocity {
    * @returns [像素点X, 像素点Y]
    */
   private project(lat: number, lng: number): [number, number] {
-    let [x, y] = u_mapGetPointByLnglat(this.map, [lng, lat]);
+    let [x, y] = um_getPointByLnglat(this.map, [lng, lat]);
     return [x, y];
   }
   /**动画
@@ -519,4 +553,77 @@ class PluginVelocityField {
     const column = this.columns[Math.round(x)];
     return (column && column[Math.round(y)]) ?? this.NULL_WIND_VECTOR;
   }
+}
+
+/**风场边界 */
+export interface WindBounds {
+    /**起始X坐标 */
+    x: number;
+    /**起始Y坐标 */
+    y: number;
+    /**最大X坐标 */
+    xMax: number;
+    /**最大Y坐标 */
+    yMax: number;
+    /**宽度 */
+    width: number;
+    /**高度 */
+    height: number;
+}
+
+/**风场地图边界 */
+export interface WindMapBounds {
+    /**南边界 */
+    south: number;
+    /**北边界 */
+    north: number;
+    /**东边界 */
+    east: number;
+    /**西边界 */
+    west: number;
+    /**宽度 */
+    width: number;
+    /**高度 */
+    height: number;
+}
+
+/**风场粒子 */
+export interface WindParticle {
+    /**粒子年龄 */
+    age: number;
+    /**X坐标 */
+    x: number;
+    /**Y坐标 */
+    y: number;
+    /**目标X坐标 */
+    xt?: number;
+    /**目标Y坐标 */
+    yt?: number;
+}
+
+/**风向量 */
+export type WindVector = [number, number, number | null];
+
+/**速度插件配置 */
+export interface MOptPluginVelocity {
+    /**最小速度 */
+    minVelocity: number;
+    /**最大速度 */
+    maxVelocity: number;
+    /**速度缩放 */
+    velocityScale: number;
+    /**粒子寿命 */
+    particleAge: number;
+    /**线宽 */
+    lineWidth: number;
+    /**粒子数量倍数 */
+    particleMultiplier: number;
+    /**帧率 */
+    frameRate: number;
+    /**默认颜色刻度 */
+    defualtColorScale: string[];
+    /**数据 */
+    data: any[];
+    /**画布 */
+    canvas?: HTMLCanvasElement;
 }

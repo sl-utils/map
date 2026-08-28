@@ -1,5 +1,5 @@
 import { MapPluginGridBase } from "./plugin-grid-base";
-import { u_mapGetMapSize } from "../../utils/slu-map";
+import { um_getMapSize } from "../../utils";
 export class MapPluginGrid extends MapPluginGridBase {
     constructor(sluMap, options) {
         super(sluMap.map, options);
@@ -13,7 +13,7 @@ export class MapPluginGrid extends MapPluginGridBase {
         return this.interpolate(lng, lat);
     }
     renderStart() {
-        const { w, h } = u_mapGetMapSize(this.map);
+        const { w, h } = um_getMapSize(this.map);
         this.interpolateFieldByWorker({ x: 0, y: 0, width: w, height: h });
     }
     renderFixedData() {

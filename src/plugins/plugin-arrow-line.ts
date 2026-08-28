@@ -1,17 +1,59 @@
-
-import { OptMapPluginArrowLine, MapLine } from "../types";
 import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
 import { Map as MaplibreMap } from 'maplibre-gl';
-import { u_drawConvertgps84Togcj02 } from "../utils";
+import { um_drawConvertgps84Togcj02 } from "../utils";
+import type { MapLine, MOptPluginArrowLine } from "../map";
+
 /**
- * 地图canvas动态箭头线插件
+ * 地图 Canvas 动态箭头线插件
+ *
+ * 用于在地图上绘制带有动态箭头的线段，支持贝塞尔曲线、自定义箭头样式和动画效果。
+ * 常用于表示流向、风向、航线等方向性数据。
+ *
  * @extends MapCanvasLayer
  * @constructor
- * @param {SLUMap} sluMap
- * @param {OptMapPluginArrowLine} arrowLineOption
+ * @param sluMap SLUMap 地图实例
+ * @param options 箭头线配置项
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap, MapPluginArrowLine } from '@sl-utils/map';
+ *
+ * const map = new SLUMap('map');
+ * await map.init({ type: 'L' });
+ *
+ * // 创建箭头线插件
+ * const arrowLine = new MapPluginArrowLine(map, {
+ *   fillColor: '#FF6600',
+ *   strokeColor: '#FF0000',
+ *   lineWidth: 2,
+ *   speed: 1,
+ *   partialWidth: 8,
+ *   partialHeight: 12,
+ *   partialSpace: 20
+ * });
+ *
+ * // 设置箭头线数据
+ * arrowLine.setAllLines([
+ *   {
+ *     lnglats: [[114.12, 22.68], [114.15, 22.70], [114.18, 22.72]],
+ *     colorLine: '#FF0000',
+ *     widthLine: 2
+ *   },
+ *   {
+ *     lnglats: [[114.20, 22.75], [114.25, 22.80]],
+ *     colorLine: '#00FF00',
+ *     widthLine: 3,
+ *     isBezier: true,
+ *     degree: 0.5
+ *   }
+ * ]);
+ *
+ * // 移除图层
+ * arrowLine.onRemove();
+ * ```
  */
 export class MapPluginArrowLine extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options?: OptMapPluginArrowLine) {
+  constructor(sluMap: SLUMap, options?: MOptPluginArrowLine) {
     super(sluMap.map, options);
     this.arrowLine = new MapCanvasArrowLine(sluMap.map, this.ctx, options);
   }
@@ -21,7 +63,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
    * @param lines 箭头线数据
    */
   public setAllLines(lines: MapLine[]): void {
-    u_drawConvertgps84Togcj02(this.map, lines);
+    um_drawConvertgps84Togcj02(this.map, lines);
     this.arrowLine.setAllLines(lines);
   }
   /**

@@ -1,8 +1,9 @@
-import { u_deepMergeOpt, u_mapGetPointsByLnglats } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getPointsByLnglats } from "../utils";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
-import { OptMapPluginArrowLine, MapLine } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import type { MapLine } from ".";
+import type { MOptCanvas } from "./canvas-layer";
 const ARROW_URL = "/assets/images/direction-arrow.png";
 /**地图canvas箭头线类
  * @constructor
@@ -11,13 +12,13 @@ const ARROW_URL = "/assets/images/direction-arrow.png";
  * @param opts 动画线配置项
  */
 export class MapCanvasArrowLine {
-  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, opt?: OptMapPluginArrowLine) {
-    this.opt = opt ? u_deepMergeOpt(this.options, opt) : this.options;
+  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, opt?: MOptPluginArrowLine) {
+    this.opt = opt ? um_deepMergeOpt(this.options, opt) : this.options;
     this.initResource();
   }
-  private opt!: OptMapPluginArrowLine;
+  private opt!: MOptPluginArrowLine;
   /**默认配置项 */
-  private readonly options: OptMapPluginArrowLine = {
+  private readonly options: MOptPluginArrowLine = {
     lineWidth: 16,
     // 默认每帧移动.5px
     speed: 0.5,
@@ -69,7 +70,7 @@ export class MapCanvasArrowLine {
       if (lnglat.length) {
         lnglats.push(lnglat);
       }
-      return u_mapGetPointsByLnglats(this.map, lnglats);
+      return um_getPointsByLnglats(this.map, lnglats);
     });
     this.draw();
   }
@@ -401,4 +402,34 @@ export class MapCanvasArrowLine {
     pattern.setTransform(matrix);
     return pattern;
   }
+}
+
+// =============== 类型约束 ===============
+
+/**箭头线数据 */
+export interface MDataArrowLine {
+  /**线宽 */
+  lineWidth?: number;
+  /**移动速度 */
+  speed?: number;
+  /**箭头宽度 */
+  partialWidth?: number;
+  /**箭头高度 */
+  partialHeight?: number;
+  /**箭头间隔 */
+  partialSpace?: number;
+  /**是否贝塞尔曲线 */
+  isBezier?: boolean;
+  /**曲度 */
+  degree?: number;
+}
+
+/**箭头线插件配置 */
+export interface MOptPluginArrowLine extends MOptCanvas, MDataArrowLine {
+  /**填充颜色 */
+  fillColor?: string;
+  /**描边颜色 */
+  strokeColor?: string;
+  /**箭头图片路径 */
+  imgUrl?: string
 }

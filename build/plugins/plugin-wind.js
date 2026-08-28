@@ -1,5 +1,5 @@
 import { MapCanvasDraw } from "../map";
-import { u_mapGetLngLatByPoint, u_mapGetMapSize, u_mapGetPointByLnglat } from "../utils/slu-map";
+import { um_getLngLatByPoint, um_getMapSize, um_getPointByLnglat } from "../utils";
 import { MapPluginGridBase } from "./grid/plugin-grid-base";
 export class MapPluginWind extends MapPluginGridBase {
     constructor(sluMap, options) {
@@ -40,11 +40,11 @@ export class MapPluginWind extends MapPluginGridBase {
     }
     getViewBoundsGridWind(bounds, pixelInterval = 2) {
         const columns = [];
-        let [x0, y0] = u_mapGetPointByLnglat(this.map, [0, 0]);
+        let [x0, y0] = um_getPointByLnglat(this.map, [0, 0]);
         let j = y0 % pixelInterval, k = x0 % pixelInterval;
         for (let y = j, len = bounds.height; y < len; y += pixelInterval) {
             for (let x = k, len2 = bounds.width; x < len2; x += pixelInterval) {
-                let [lng, lat] = u_mapGetLngLatByPoint(this.map, [x, y]);
+                let [lng, lat] = um_getLngLatByPoint(this.map, [x, y]);
                 if (isFinite(lng)) {
                     const wind = this.interpolate(lng, lat);
                     if (wind)
@@ -56,7 +56,7 @@ export class MapPluginWind extends MapPluginGridBase {
     }
     renderAnimation() { }
     renderFixedData() {
-        const size = u_mapGetMapSize(this.map);
+        const size = um_getMapSize(this.map);
         let columns = this.getViewBoundsGridWind({ x: 10, y: 10, width: size.w, height: size.h }, 60);
         let options = this.options, i = 1, imgs = [];
         for (let index = 0, len = columns.length; index < len;) {

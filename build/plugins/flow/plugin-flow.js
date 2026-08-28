@@ -1,4 +1,4 @@
-import { u_deepMergeOpt, u_mapGetBounds, u_mapGetLngLatByPoint, u_mapGetMapMouseEvent, u_mapGetMapSize } from "../../utils/slu-map";
+import { um_deepMergeOpt, um_getBounds, um_getLngLatByPoint, um_getMapMouseEvent, um_getMapSize } from "../../utils";
 import { MapCanvasLayer } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
 export class MapPluginFlow extends MapCanvasLayer {
@@ -15,7 +15,7 @@ export class MapPluginFlow extends MapCanvasLayer {
         };
         this.windy = null;
         if (options)
-            this.options = u_deepMergeOpt(this.options, options);
+            this.options = um_deepMergeOpt(this.options, options);
     }
     setData(datas) {
         this.options.data = datas;
@@ -63,8 +63,8 @@ export class MapPluginFlow extends MapCanvasLayer {
         this.canvas.classList.add("velocity-overlay");
     }
     startWindy() {
-        const size = u_mapGetMapSize(this.map);
-        const { lngLeft, latTop, lngRight, latBottom } = u_mapGetBounds(this.map);
+        const size = um_getMapSize(this.map);
+        const { lngLeft, latTop, lngRight, latBottom } = um_getBounds(this.map);
         const sw = [lngLeft, latBottom], ne = [lngRight, latTop];
         this.windy?.start(size.w, size.h, [sw, ne]);
     }
@@ -76,8 +76,8 @@ export class MapPluginFlow extends MapCanvasLayer {
         if (!this.windy)
             return;
         const self = this;
-        const { containerPoint } = u_mapGetMapMouseEvent(e, this.map);
-        const [lng, lat] = u_mapGetLngLatByPoint(this.map, [containerPoint.x, containerPoint.y]);
+        const { containerPoint } = um_getMapMouseEvent(e, this.map);
+        const [lng, lat] = um_getLngLatByPoint(this.map, [containerPoint.x, containerPoint.y]);
         const gridValue = this.windy.interpolate(lng, lat);
         let degrees = 0, speed = 0;
         if (gridValue && !isNaN(gridValue[0]) && !isNaN(gridValue[1]) && gridValue[2]) {

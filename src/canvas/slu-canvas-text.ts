@@ -1,7 +1,9 @@
 
-import { CanvasTextRect, CanvasTxt } from "../types";
-import { u_TextSplitMultilineText } from '../utils/txt';
+import type { OptCanvas, CanvasPosition, Rect } from "./";
+import { CanvasLine } from "./slu-canvas";
+import { um_textSplitMultilineText } from '../utils/txt';
 import { SLUCanvas } from './slu-canvas';
+
 /**画布绘制文本工具类-绘制不重叠文本标签 */
 export class SLUCanvasText {
   /**画布上下文 */
@@ -64,7 +66,7 @@ export class SLUCanvasText {
     if (max <= 0) return strs;
     let texts: string[] = [];
     strs.forEach((text) => {
-      texts.push(...u_TextSplitMultilineText(ctx, text, font, max, true, (str) => {
+      texts.push(...um_textSplitMultilineText(ctx, text, font, max, true, (str) => {
         return [str.lastIndexOf(',') + 1]
       }))
     })
@@ -250,3 +252,69 @@ export class SLUCanvasText {
     return result;
   }
 }
+
+// ==================== 类型约束 ====================
+
+
+/**文本绘制配置 */
+interface Text<I = any> extends OptCanvas {
+  /**文本内容 */
+  text?: string;
+  /**是否描边(描边颜色colorLine，描边大小widthLine) */
+  ifShadow?: boolean;
+  /**水平偏移量，右偏>0，左偏<0 */
+  px?: number;
+  /**垂直偏移量，下偏>0，上偏<0 */
+  py?: number;
+  /**文本行间距，无则默认取actualBoundingBoxDescent属性获取文字基线向下边界高度 */
+  lineHeight?: number;
+  /**文本最大宽度 */
+  maxWidth?: number;
+  /**背景板配置 */
+  panel?: CanvasTextPanel;
+  /**文本重叠处理方式(不设置等同于type:show) */
+  overlap?: TextOverlap;
+  /**自定义信息，通过该信息可决定其他情况 */
+  info?: I;
+}
+
+/**文字背景板的配置 */
+export interface CanvasTextPanel extends OptCanvas {
+  /**面板的圆角半径 @default 3 */
+  radius?: number;
+  /**padding left，设置背景板生效 */
+  pl?: number;
+  /**padding right，设置背景板生效 */
+  pr?: number;
+  /**padding top，设置背景板生效 */
+  pt?: number;
+  /**padding bottom，设置背景板生效 */
+  pb?: number;
+}
+
+/**文字重叠处理的配置 */
+export interface TextOverlap {
+  /**文本重叠处理方式: hide隐藏|py偏移|show强制显示 */
+  type?: 'hide' | 'py' | 'show';
+  /**最大查找距离，超过距离不显示 */
+  maxDistance?: number;
+  /**矩形之间最小间距，可以为负表示重叠一部分 */
+  minSpacing?: number;
+  /**点和矩形最小距离 */
+  minDistance?: number;
+  /**遍历间距 */
+  querySpace?: number;
+  /**指示线配置(配置后才渲染) */
+  line?: CanvasLine;
+}
+
+/**canvas渲染的文本类 @template I 标识文本携带的info的类型 */
+export type CanvasTxt<I = any> = Text<I> & CanvasPosition;
+
+/**canvas渲染的文本背景矩形框 @template I 标识文本携带的info的类型 */
+export type CanvasTextRect<I = any> = Text<I> & Rect<I> & {
+  /**文本背景矩形框的x坐标 */
+  x: number;
+  /**文本背景矩形框的y坐标 */
+  y: number;
+};

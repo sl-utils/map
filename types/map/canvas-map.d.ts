@@ -1,10 +1,88 @@
 import { Map as LMap, LatLng } from "leaflet";
 import { MapNameType } from '../leaflet';
-import { MapBounds, MapControlInfo, OptMap } from "../types";
-import { Map as MaplibreMap, LngLat as MaplibreLngLat } from 'maplibre-gl';
-/**地图
+import { type StyleSpecification, Map as MaplibreMap, type LngLat as MaplibreLngLat } from 'maplibre-gl';
+/**
+ * SLUMap 地图核心类
+ *
+ * 封装了 Leaflet、高德、MapLibre 三种地图引擎，提供统一的 API 接口。
+ * 支持地图初始化、视图控制、坐标转换、比例尺计算等功能。
+ *
  * @constructor
- * @param ele 地图容器元素
+ * @param ele 地图容器元素 ID
+ *
+ * @example
+ * ```typescript
+ * import { SLUMap } from '@sl-utils/map';
+ *
+ * // 创建地图实例
+ * const map = new SLUMap('map');
+ *
+ * // 初始化 Leaflet 地图（默认）
+ * await map.init({
+ *   type: 'L',
+ *   center: [114.12, 22.68],
+ *   zoom: 11,
+ *   minZoom: 2,
+ *   maxZoom: 20
+ * });
+ *
+ * // 或初始化高德地图
+ * await map.init({
+ *   type: 'A',
+ *   center: [114.12, 22.68],
+ *   zoom: 11
+ * });
+ *
+ * // 或初始化 MapLibre 地图
+ * await map.init({
+ *   type: 'M',
+ *   center: [114.12, 22.68],
+ *   zoom: 11,
+ *   style: 'https://tiles.openfreemap.org/styles/bright'
+ * });
+ *
+ * // 设置地图中心
+ * map.setCenter([114.15, 22.70], 12);
+ *
+ * // 设置合适的视图范围
+ * map.setFitView([
+ *   [114.12, 22.68],
+ *   [114.15, 22.70],
+ *   [114.18, 22.72]
+ * ]);
+ *
+ * // 获取地图边界
+ * const bounds = map.getBound();
+ * console.log(`经度范围: ${bounds.lngLeft} - ${bounds.lngRight}`);
+ * console.log(`纬度范围: ${bounds.latBottom} - ${bounds.latTop}`);
+ *
+ * // 获取地图中心
+ * const center = map.getCenter();
+ * console.log(`中心: ${center.lng}, ${center.lat}`);
+ *
+ * // 获取缩放级别
+ * const zoom = map.getZoom();
+ *
+ * // 显示网络图层（仅 Leaflet）
+ * map.showMap([
+ *   MapNameType.tianDiTuNormalMap,
+ *   MapNameType.tianDiTuNormalAnnotion
+ * ]);
+ *
+ * // 打开地图控件
+ * const controlInfo = map.openControl(true);
+ * map.onControlUpdate((info) => {
+ *   console.log(`鼠标位置: ${info.lng}, ${info.lat}`);
+ *   console.log(`缩放级别: ${info.zoom}`);
+ *   console.log(`比例尺: ${info.scale}`);
+ * });
+ *
+ * // 切换中英文（仅 MapLibre）
+ * map.changeLanguage(true);
+ *
+ * // 关闭地图控件
+ * map.closeControl();
+ * ```
  */
 export declare class SLUMap {
     constructor(ele: string);
@@ -27,7 +105,7 @@ export declare class SLUMap {
     /**初始实例化地图
      * @param options @default {} 地图初始化参数
      */
-    init(options?: Partial<OptMap>): Promise<void>;
+    init(options?: Partial<MOpt>): Promise<void>;
     /**设置合适的视图范围
      * @param lnglats [经度,纬度][]
      * @returns SLUMap实例
@@ -123,4 +201,62 @@ export declare class SLUMap {
      * @returns 取整后的比例尺（米）
      */
     private getScaleNum;
+}
+/**地图配置项 */
+export interface MOpt {
+    /**地图的类型 @param L leaflet插件 @param A 高德地图 @param B 百度地图 @param M maplibre地图 @default L */
+    type: 'L' | 'A' | 'B' | 'M';
+    /**地图中心点 [lng, lat] @default [114.12027, 22.68471] */
+    center: [number, number];
+    /**地图初始层级 @default 11 */
+    zoom: number;
+    /**最小层级 @default 2 */
+    minZoom: number;
+    /**最大层级 @default 20 */
+    maxZoom: number;
+    /**是否启用拖拽功能 @default true */
+    dragging: boolean;
+    /**是否显示层级控制器 @default false */
+    zoomControl: boolean;
+    /**是否显示属性控制器 @default false */
+    attributionControl: boolean;
+    /**是否启用双击放大层级 @default false */
+    doubleClickZoom: boolean;
+    /**是否点击关闭弹窗 @default false */
+    closePopupOnClick: boolean;
+    /**是否显示标签(省会、地名等)，仅适用于高德地图 @default true */
+    showLabel: boolean;
+    /**maplibre地图样式，支持url或json自定义样式 */
+    style?: string | StyleSpecification;
+}
+/**地图边界信息 */
+export interface MapBounds {
+    /**最小经度 */
+    lngLeft: number;
+    /**最大纬度 */
+    latTop: number;
+    /**最大经度 */
+    lngRight: number;
+    /**最小纬度 */
+    latBottom: number;
+}
+/**地图控件信息 */
+export interface MapControlInfo {
+    /**纬度 */
+    lat?: string;
+    /**经度 */
+    lng?: string;
+    /**层级 */
+    zoom?: number;
+    /**比例尺 */
+    scale?: string;
+    /**比例尺对应像素宽度 */
+    width?: string;
+}
+/**地图上的经纬度对象 */
+export interface MapLatLng {
+    /**纬度 */
+    lat: number;
+    /**经度 */
+    lng: number;
 }

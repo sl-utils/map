@@ -1,5 +1,5 @@
 import { MapCanvasArrowLine, MapCanvasLayer } from "../map";
-import { u_drawConvertgps84Togcj02 } from "../utils";
+import { um_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginArrowLine extends MapCanvasLayer {
     constructor(sluMap, options) {
         super(sluMap.map, options);
@@ -7,7 +7,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
         this.arrowLine = new MapCanvasArrowLine(sluMap.map, this.ctx, options);
     }
     setAllLines(lines) {
-        u_drawConvertgps84Togcj02(this.map, lines);
+        um_drawConvertgps84Togcj02(this.map, lines);
         this.arrowLine.setAllLines(lines);
     }
     renderFixedData() {

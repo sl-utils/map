@@ -246,6 +246,6 @@ function clearMultilineCache() {
  * 内部缓存其值增加计算速度
  */
 export {
-  splitMultilineText as u_TextSplitMultilineText,
-  clearMultilineCache as u_TextClearMultilineCache,
+  splitMultilineText as um_textSplitMultilineText,
+  clearMultilineCache as um_textClearMultilineCache,
 };

@@ -1,6 +1,6 @@
 import { MapPluginDraw } from "./plugin-draw";
 import { MapCanvasEvent } from "../map";
-import { u_deepMergeOpt, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils";
+import { um_deepMergeOpt, um_togps84gcj02, um_tsMapisAmap } from "../utils";
 export class MapPluginTrack {
     constructor(sluMap, options) {
         this.options = {
@@ -30,10 +30,10 @@ export class MapPluginTrack {
         const map = sluMap.map;
         this.map = map;
         if (options)
-            this.options = u_deepMergeOpt(this.options, options);
+            this.options = um_deepMergeOpt(this.options, options);
         let zIndex = this.options.zIndex + 1;
         this.layerDraw = new MapPluginDraw(sluMap, this.options);
-        const aniOpt = u_deepMergeOpt(this.options, { zIndex, className: "track ani" });
+        const aniOpt = um_deepMergeOpt(this.options, { zIndex, className: "track ani" });
         this.layerAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.allEvents = new MapCanvasEvent(map);
     }
@@ -42,10 +42,10 @@ export class MapPluginTrack {
         this.layerAniDraw.onRemove();
     }
     setTracks(tracks) {
-        if (u_tsMapisAmap(this.map)) {
+        if (um_tsMapisAmap(this.map)) {
             tracks.forEach(track => {
                 track.data.forEach(e => {
-                    const { lat, lng } = u_mapTogps84gcj02(e.lng, e.lat);
+                    const { lat, lng } = um_togps84gcj02(e.lng, e.lat);
                     e.lat = lat;
                     e.lng = lng;
                 });

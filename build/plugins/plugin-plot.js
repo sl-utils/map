@@ -1,6 +1,6 @@
 import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
 import { MapPluginDraw } from "./plugin-draw";
-import { u_deepMergeOpt, u_mapGetLngLatByPoint, u_mapGetLngDiffByDistance, u_mapGetMapMouseEvent, u_mapGetPointByLnglat, u_mapSetMapStatus, u_mapTogcj02gps84, u_mapTogps84gcj02, u_tsMapisAmap } from "../utils/slu-map";
+import { um_deepMergeOpt, um_getLngLatByPoint, um_getLngDiffByDistance, um_getMapMouseEvent, um_getPointByLnglat, um_setMapStatus, um_togcj02gps84, um_togps84gcj02, um_tsMapisAmap } from "../utils";
 export class MapPluginPlot extends MapCanvasLayer {
     constructor(sluMap, options) {
         const map = sluMap.map, { plotOpt, editOpt, textOpt } = options || {};
@@ -29,10 +29,10 @@ export class MapPluginPlot extends MapCanvasLayer {
                 const plot = this.plotAni;
                 if (!plot)
                     return;
-                let { latlng } = u_mapGetMapMouseEvent(e, this.map);
+                let { latlng } = um_getMapMouseEvent(e, this.map);
                 let lat84 = latlng.lat, lng84 = latlng.lng;
-                if (u_tsMapisAmap(this.map)) {
-                    const { lat, lng } = u_mapTogcj02gps84(latlng.lng, latlng.lat);
+                if (um_tsMapisAmap(this.map)) {
+                    const { lat, lng } = um_togcj02gps84(latlng.lng, latlng.lat);
                     lat84 = lat, lng84 = lng;
                 }
                 const point = [lng84, lat84];
@@ -52,10 +52,10 @@ export class MapPluginPlot extends MapCanvasLayer {
             }, 50);
         };
         this.eventMousemove = (e) => {
-            let { latlng } = u_mapGetMapMouseEvent(e, this.map);
+            let { latlng } = um_getMapMouseEvent(e, this.map);
             let lat84 = latlng.lat, lng84 = latlng.lng;
-            if (u_tsMapisAmap(this.map)) {
-                const { lat, lng } = u_mapTogcj02gps84(latlng.lng, latlng.lat);
+            if (um_tsMapisAmap(this.map)) {
+                const { lat, lng } = um_togcj02gps84(latlng.lng, latlng.lat);
                 lat84 = lat, lng84 = lng;
             }
             this.curPoint = [lng84, lat84];
@@ -79,14 +79,14 @@ export class MapPluginPlot extends MapCanvasLayer {
         };
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
         if (plotOpt)
-            this.options = u_deepMergeOpt(this.options, plotOpt);
-        const aniOpt = u_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
+            this.options = um_deepMergeOpt(this.options, plotOpt);
+        const aniOpt = um_deepMergeOpt(this.options, { className: this.options.className + ' ani' });
         this.ctrMapAniDraw = new MapPluginDraw(sluMap, aniOpt);
         this.ctrEvent = new MapCanvasEvent(map);
         if (editOpt)
-            this.editArc = u_deepMergeOpt(this.editArc, editOpt);
+            this.editArc = um_deepMergeOpt(this.editArc, editOpt);
         if (textOpt)
-            this.plotText = u_deepMergeOpt(this.plotText, textOpt);
+            this.plotText = um_deepMergeOpt(this.plotText, textOpt);
     }
     open(type) {
         let i = this.plotList.length - 1 > 0 ? this.plotList.length - 1 : 0;
@@ -218,7 +218,7 @@ export class MapPluginPlot extends MapCanvasLayer {
                 let [slnglat, elnglat] = info.lngLats, rail = info.rail || 0;
                 if (!elnglat) {
                     let [lng, lat] = slnglat;
-                    let lngDis = u_mapGetLngDiffByDistance(this.map, rail, [slnglat]);
+                    let lngDis = um_getLngDiffByDistance(this.map, rail, [slnglat]);
                     info.lngLats[1] = [lng + lngDis, lat];
                 }
                 let size = this.calcRadius(info.lngLats);
@@ -317,8 +317,8 @@ export class MapPluginPlot extends MapCanvasLayer {
     calcRadius(lnglats) {
         if (lnglats.length < 2)
             return 0;
-        let [px1, py1] = u_mapGetPointByLnglat(this.map, lnglats[0]);
-        let [px2, py2] = u_mapGetPointByLnglat(this.map, lnglats[1]);
+        let [px1, py1] = um_getPointByLnglat(this.map, lnglats[0]);
+        let [px2, py2] = um_getPointByLnglat(this.map, lnglats[1]);
         let x = Math.abs(px1 - px2);
         let y = Math.abs(py1 - py2);
         return Math.sqrt(x * x + y * y);
@@ -355,10 +355,10 @@ export class MapPluginPlot extends MapCanvasLayer {
             this.addEvent(s, i, plotInfo, eves, false);
             if (!this.curPoint) {
                 let next = i + 1 == len ? 0 : i + 1, e = lngLats[next];
-                let [px1, py1] = u_mapGetPointByLnglat(this.map, s);
-                let [px2, py2] = u_mapGetPointByLnglat(this.map, e);
+                let [px1, py1] = um_getPointByLnglat(this.map, s);
+                let [px2, py2] = um_getPointByLnglat(this.map, e);
                 let x = (px1 + px2) / 2, y = (py1 + py2) / 2;
-                let point = u_mapGetLngLatByPoint(this.map, [x, y]);
+                let point = um_getLngLatByPoint(this.map, [x, y]);
                 this.addEvent(point, i, plotInfo, eves, true);
             }
         }
@@ -398,15 +398,15 @@ export class MapPluginPlot extends MapCanvasLayer {
         ;
         this.ctrMapAniDraw.addArc(circle);
         let hitLnglat = lngLat;
-        if (u_tsMapisAmap(this.map)) {
-            const { lat, lng } = u_mapTogps84gcj02(lngLat[0], lngLat[1]);
+        if (um_tsMapisAmap(this.map)) {
+            const { lat, lng } = um_togps84gcj02(lngLat[0], lngLat[1]);
             hitLnglat = [lng, lat];
         }
         eves.push({
             lnglat: hitLnglat,
             type: 'mousedown',
             cb: () => {
-                u_mapSetMapStatus(map, 'dragEnable', false);
+                um_setMapStatus(map, 'dragEnable', false);
                 if (ifVirtual) {
                     for (let j = lngLats.length, end = i + 1; j > end; j--) {
                         lngLats[j] = lngLats[j - 1];
@@ -416,10 +416,10 @@ export class MapPluginPlot extends MapCanvasLayer {
                 }
                 this._redraw();
                 let moveCb = (e) => {
-                    let { latlng: eLatlng } = u_mapGetMapMouseEvent(e, this.map);
+                    let { latlng: eLatlng } = um_getMapMouseEvent(e, this.map);
                     let lat84 = eLatlng.lat, lng84 = eLatlng.lng;
-                    if (u_tsMapisAmap(this.map)) {
-                        const { lat, lng } = u_mapTogcj02gps84(eLatlng.lng, eLatlng.lat);
+                    if (um_tsMapisAmap(this.map)) {
+                        const { lat, lng } = um_togcj02gps84(eLatlng.lng, eLatlng.lat);
                         lat84 = lat, lng84 = lng;
                     }
                     if (type === 'polygon' || type === 'circle' || type === 'point' || type === 'line') {
@@ -438,7 +438,7 @@ export class MapPluginPlot extends MapCanvasLayer {
                 let upCb = () => {
                     this.map.off('mousemove', moveCb);
                     this.map.off('mouseup', upCb);
-                    u_mapSetMapStatus(map, 'dragEnable', true);
+                    um_setMapStatus(map, 'dragEnable', true);
                     this.cbPointChange && this.cbPointChange(this.plotAni);
                     this._redraw();
                 };

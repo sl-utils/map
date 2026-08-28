@@ -1,5 +1,6 @@
-import { OptMapPluginArrowLine, MapLine } from "../types";
 import { Map as MaplibreMap } from 'maplibre-gl';
+import type { MapLine } from ".";
+import type { MOptCanvas } from "./canvas-layer";
 /**地图canvas箭头线类
  * @constructor
  * @param map 地图实例
@@ -9,7 +10,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
 export declare class MapCanvasArrowLine {
     private map;
     private ctx;
-    constructor(map: AMAP.Map | L.Map | MaplibreMap, ctx: CanvasRenderingContext2D, opt?: OptMapPluginArrowLine);
+    constructor(map: AMAP.Map | L.Map | MaplibreMap, ctx: CanvasRenderingContext2D, opt?: MOptPluginArrowLine);
     private opt;
     /**默认配置项 */
     private readonly options;
@@ -77,4 +78,30 @@ export declare class MapCanvasArrowLine {
      * @returns 箭头线图案
      */
     private createPattern;
+}
+/**箭头线数据 */
+export interface MDataArrowLine {
+    /**线宽 */
+    lineWidth?: number;
+    /**移动速度 */
+    speed?: number;
+    /**箭头宽度 */
+    partialWidth?: number;
+    /**箭头高度 */
+    partialHeight?: number;
+    /**箭头间隔 */
+    partialSpace?: number;
+    /**是否贝塞尔曲线 */
+    isBezier?: boolean;
+    /**曲度 */
+    degree?: number;
+}
+/**箭头线插件配置 */
+export interface MOptPluginArrowLine extends MOptCanvas, MDataArrowLine {
+    /**填充颜色 */
+    fillColor?: string;
+    /**描边颜色 */
+    strokeColor?: string;
+    /**箭头图片路径 */
+    imgUrl?: string;
 }

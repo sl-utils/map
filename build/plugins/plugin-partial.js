@@ -1,7 +1,7 @@
-import { u_mapGetPointsByLnglats } from "../utils/slu-map";
+import { um_getPointsByLnglats } from "../utils";
 import { MapCanvasLayer } from "../map";
 import { SLUCanvas } from "../canvas";
-import { u_drawConvertgps84Togcj02 } from "../utils";
+import { um_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginPartial extends MapCanvasLayer {
     constructor(sluMap, options) {
         super(sluMap.map, options);
@@ -9,7 +9,7 @@ export class MapPluginPartial extends MapCanvasLayer {
         this._allParticle = [];
     }
     setAllParticles(particles) {
-        u_drawConvertgps84Togcj02(this.map, particles);
+        um_drawConvertgps84Togcj02(this.map, particles);
         this._allParticle = particles;
         this._redraw();
     }
@@ -18,7 +18,7 @@ export class MapPluginPartial extends MapCanvasLayer {
         this._allParticle.forEach((particle) => {
             particle.curPoints = [];
             particle.curve = [];
-            let points = (particle.points = u_mapGetPointsByLnglats(this.map, particle.lnglats) || []);
+            let points = (particle.points = um_getPointsByLnglats(this.map, particle.lnglats) || []);
             for (let i = 0, len = points.length - 1; i < len; i++) {
                 const e0 = points[i], e1 = points[i + 1];
                 let curve = SLUCanvas.getBezierCtrlPoint(e0, e1, particle.degree);

@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, CanvasPosition, MapPosition } from '../types';
+import type { CanvasGif, CanvasImage, CanvasPosition, CanvasTextPanel, OptCanvas, TextOverlap } from '../canvas';
 import { Map as MaplibreMap } from 'maplibre-gl';
 /** 地图canvas基础图形绘制类
  * @constructor
@@ -157,3 +157,82 @@ export declare class MapCanvasDraw {
      */
     private transformArcSize;
 }
+/**地图上的单点位信息 */
+export interface MapPoint {
+    /**单经纬度 [lng, lat] */
+    lnglat: [number, number];
+    /**经纬度集合 */
+    lnglats?: [number, number][];
+}
+/**地图上的多点位信息 */
+export interface MapPoints {
+    /**经纬度集合 */
+    lnglats: [number, number][];
+    /**单经纬度 */
+    lnglat?: [number, number];
+}
+/**地图上的大小配置(可选固定大小) */
+interface Size_ {
+    /**图片大小 */
+    size: [number, number] | number;
+    /**固定的图片大小 */
+    sizeFix?: [number, number] | number;
+}
+/**地图上的固定大小配置(以米为单位) */
+export interface SizeFix_ {
+    /**图片大小 */
+    size?: [number, number] | number;
+    /**固定的图片大小，以米为单位 */
+    sizeFix: [number, number] | number;
+}
+/**地图元素显示的相关配置 */
+export interface MapShow {
+    /**显示的最大地图级别(包含此级别) */
+    maxZoom?: number;
+    /**显示的最小地图级别(包含此级别) */
+    minZoom?: number;
+    /**绘制层级，类似z-index */
+    index?: number;
+}
+/**地图上的图片(无事件) @template I 标识图片携带的info的类型 */
+type CanavsImageNoPosition<I> = Omit<CanvasImage<I>, keyof CanvasPosition>;
+/**地图上的位置数据，支持单点或多点 */
+export type MapPosition = MapPoint | MapPoints;
+/**地图上的大小配置，支持普通大小或固定大小 */
+export type MapSize = Size_ | SizeFix_;
+/**地图上的图片(无事件) @template I 标识图片携带的info的类型 */
+export type MapImage<I = any> = CanavsImageNoPosition<I> & MapShow & MapPosition & MapSize;
+/**地图上的Gif(无事件) @template I 标识Gif携带的info的类型 */
+export type MapGif<I = any> = CanvasGif<I> & MapShow & MapPosition & MapSize;
+/**地图文本基础配置 @template I 标识文本携带的info的类型 */
+export interface MapTextBase<I = any> extends OptCanvas {
+    /**文本内容 */
+    text?: string;
+    /**是否描边 */
+    ifShadow?: boolean;
+    /**水平偏移量 */
+    px?: number;
+    /**垂直偏移量 */
+    py?: number;
+    /**文本行间距 */
+    lineHeight?: number;
+    /**文本最大宽度 */
+    maxWidth?: number;
+    /**背景板配置 */
+    panel?: CanvasTextPanel;
+    /**文本重叠处理配置 */
+    overlap?: TextOverlap;
+    /**自定义信息 */
+    info?: I;
+}
+/**不带事件的地图文本类 @template I 标识文本携带的info的类型 */
+export type MapText<I = any> = MapTextBase<I> & MapShow & MapPosition;
+/**不带事件的地图圆点类 */
+export type MapArc = OptCanvas & MapShow & MapPosition & MapSize;
+/**不带事件的地图矩形类 */
+export type MapRect = OptCanvas & MapShow & MapPoints;
+/**不带事件的地图多边形类 */
+export type MapPolygon = OptCanvas & MapShow & MapPoints;
+/**不带事件的地图线条类 */
+export type MapLine = OptCanvas & MapShow & MapPoints;
+export {};
