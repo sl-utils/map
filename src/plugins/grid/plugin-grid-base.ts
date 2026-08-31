@@ -1,9 +1,7 @@
-import { MapCanvasLayer } from "../../map";
+import { MapCanvasLayer, type MOptCanvasLayer } from "../../map";
 import { SLUCanvas } from "../../canvas";
-import { um_deepMergeOpt, um_getLngLatByPoint } from "../../utils";
+import { MapType, um_deepMergeOpt, um_getLngLatByPoint } from "../../utils";
 import { SLUWorker } from "../../utils/slu-worker";
-import type { MOptCanvas } from "../../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
 
 /**
  * 网格插件基础类
@@ -19,9 +17,9 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * @example
  * ```typescript
  * // 通常不直接使用此类，而是使用其子类
- * import { SLUMap, MapPluginGrid } from '@sl-utils/map';
+ * import { SLMap, MapPluginGrid } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建网格插件（继承自 MapPluginGridBase）
@@ -54,7 +52,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * ```
  */
 export class MapPluginGridBase extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map | MaplibreMap, options: Partial<MOptGrid>) {
+    constructor(map: MapType, options: Partial<MOptGrid>) {
         super(map, options);
         this.options = um_deepMergeOpt(this.options, options);
     }
@@ -480,7 +478,7 @@ export interface WorkerInfo {
 }
 
 /**网格插件配置 */
-export interface MOptGrid extends MOptCanvas {
+export type MOptGrid = MOptCanvasLayer & {
     /**马赛克颜色 */
     mosaicColor?: string[];
     /**马赛克值 */

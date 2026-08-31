@@ -1,5 +1,5 @@
-import { Browser, DomUtil, Layer, Util, bind, extend } from "leaflet";
-import { um_deepMergeOpt, um_getMapSize, um_tsLayerisAmap, um_tsLayerisLeaflet, um_tsLayerisMapLibre, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
+import { Browser, DomUtil } from "leaflet";
+import { um_createMapLayer, um_deepMergeOpt, um_getMapSize, um_tsLayerisAmap, um_tsLayerisLeaflet, um_tsLayerisMapLibre, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
 export class MapCanvasLayer {
     constructor(map, opt) {
         this.canvas = document.createElement('canvas');
@@ -69,7 +69,6 @@ export class MapCanvasLayer {
         canvas.className = `sl-layer ${options.className || 'sl-canvas-map'}`;
         canvas.style['zIndex'] = `${options.zIndex || 100}`;
         canvas.style['transformOrigin'] = '50% 50%';
-        this.initLeafletCanvas();
     }
     onAdd() {
         this._onAmapAdd();
@@ -85,13 +84,15 @@ export class MapCanvasLayer {
         this.addMapEvents(map, key);
     }
     _initAMap() {
+        if (!um_tsMapisAmap(this.map))
+            return;
         const opt = um_deepMergeOpt({
             zooms: [3, 18],
             alwaysRender: false,
             zIndex: 200,
             render: () => this._redraw()
         }, this.options);
-        this.layer = new AMap.CustomLayer(this.canvas, opt);
+        this.layer = um_createMapLayer(this.map, this);
         this.onAdd();
     }
     _onAmapAdd() {
@@ -108,24 +109,11 @@ export class MapCanvasLayer {
         }
     }
     _initLeaflet() {
-        const layer = this.layer = new Layer(this.options);
-        this.layer.onAdd = () => { this.onAdd(); return layer; };
-        this.onAdd();
-    }
-    initLeafletCanvas() {
-        const { canvas, map, options } = this;
-        if (!um_tsMapisLeaflet(map))
+        if (!um_tsMapisLeaflet(this.map))
             return;
-        let pane = options.pane || 'overlayPane', paneEle = map.getPane(pane) || map.createPane(pane);
-        paneEle.appendChild(canvas);
-        paneEle.style.pointerEvents = 'none';
-        let animated = map.options.zoomAnimation && Browser.any3d;
-        DomUtil.addClass(canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
-        extend(canvas, {
-            onselectstart: Util.falseFn,
-            onmousemove: Util.falseFn,
-            onload: bind(this._onCanvasLoad, this),
-        });
+        const layer = this.layer = um_createMapLayer(this.map, this);
+        layer.onAdd = () => { this.onAdd(); return layer; };
+        this.onAdd();
     }
     _onLeafletRemove() {
         let { map, layer, options } = this;
@@ -180,21 +168,12 @@ export class MapCanvasLayer {
     }
     _initMapLibre() {
         const map = this.map;
-        if (um_tsMapisMapLibre(map)) {
-            const layerId = `slu-canvas-${Math.random().toString(36).slice(2)}`;
-            const customLayer = {
-                id: layerId,
-                type: 'custom',
-                renderingMode: '2d',
-                onAdd: () => this._onMapLibreAdd(),
-                onRemove: () => this._onMapLibreRemove(),
-                render: () => { }
-            };
-            if (!map.getLayer(layerId)) {
-                map.addLayer(customLayer);
-            }
-            this.layer = customLayer;
-        }
+        if (!um_tsMapisMapLibre(map))
+            return;
+        const layer = this.layer = um_createMapLayer(map, this);
+        layer.onAdd = () => this._onMapLibreAdd();
+        layer.onRemove = () => this._onMapLibreRemove();
+        layer.render = () => { };
     }
     _onMapLibreAdd() {
         const map = this.map;

@@ -1,6 +1,6 @@
-import type { MapImage, MOptCanvas } from "../map";
+import type { MapImage, MOptCanvasLayer } from "../map";
 import { Image } from "../canvas";
-import { MapCanvasDraw, SLUMap } from "../map";
+import { MapCanvasDraw, SLMap } from "../map";
 import { um_getLngLatByPoint, um_getMapSize, um_getPointByLnglat } from "../utils";
 import { MapPluginGridBase, MDataGrid, GridBounds } from "./grid/plugin-grid-base";
 
@@ -12,14 +12,14 @@ import { MapPluginGridBase, MDataGrid, GridBounds } from "./grid/plugin-grid-bas
  *
  * @extends MapPluginGridBase
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 风场配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginWind } from '@sl-utils/map';
+ * import { SLMap, MapPluginWind } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建风场插件
@@ -65,7 +65,7 @@ import { MapPluginGridBase, MDataGrid, GridBounds } from "./grid/plugin-grid-bas
  * ```
  */
 export class MapPluginWind extends MapPluginGridBase {
-    constructor(sluMap: SLUMap, options: MOptPluginWind) {
+    constructor(sluMap: SLMap, options: MOptPluginWind) {
         super(sluMap.map, options);
         this.draw = new MapCanvasDraw(this.map, this.canvas);
         this.options = { ...this.options, ...options };
@@ -177,7 +177,7 @@ export interface MDataWind {
 }
 
 /**风速风向插件配置 */
-export interface MOptPluginWind extends MOptCanvas {
+export type MOptPluginWind = MOptCanvasLayer & {
     /**风场数据路径 */
     url?: string;
     /**渲染大小 */

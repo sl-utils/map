@@ -1,7 +1,7 @@
-import { MapPluginPartial, SLUMap } from "../src/index.ts";
+import { MapPluginPartial, SLMap } from "../src/index.ts";
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "L" });
   map.setFitView([
     [117.58103, 39.735008],

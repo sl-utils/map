@@ -1,3 +1,4 @@
+import { um_togps84gcj02, um_tsMapisAmap } from "./";
 const a = 6378245.0;
 const pi = 3.1415926535897932384626;
 const ee = 0.00669342162296594323;
@@ -94,5 +95,25 @@ function transformLng(x, y) {
     ret += (150.0 * Math.sin(x / 12.0 * pi) + 300.0 * Math.sin(x / 30.0 * pi)) * 2.0 / 3.0;
     return ret;
 }
-export { tobd09gps84 as um_tobd09gps84, togcj02gps84 as um_togcj02gps84, togps84bd09 as um_togps84bd09, togps84gcj02 as um_togps84gcj02, togcj02bd09 as um_togcj02bd09, tobd09cj02 as um_tobd09cj02, };
+function convertgps84Togcj02(map, plot) {
+    if (!um_tsMapisAmap(map))
+        return;
+    if (!Array.isArray(plot))
+        plot = [plot];
+    if (!plot.length)
+        return;
+    for (const p of plot) {
+        if ('lnglat' in p && p.lnglat?.length) {
+            const { lat, lng } = um_togps84gcj02(p.lnglat[0], p.lnglat[1]);
+            p.lnglat = [lng, lat];
+        }
+        if ('lnglats' in p && p.lnglats?.length) {
+            p.lnglats = p.lnglats.map((lnglat) => {
+                const { lat, lng } = um_togps84gcj02(lnglat[0], lnglat[1]);
+                return [lng, lat];
+            });
+        }
+    }
+}
+export { tobd09gps84 as um_tobd09gps84, togcj02gps84 as um_togcj02gps84, togps84bd09 as um_togps84bd09, togps84gcj02 as um_togps84gcj02, togcj02bd09 as um_togcj02bd09, tobd09cj02 as um_tobd09cj02, convertgps84Togcj02 as um_drawConvertgps84Togcj02, };
 //# sourceMappingURL=slu-coord.js.map

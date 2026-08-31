@@ -1,9 +1,7 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import * as L from "leaflet";
+import { um_arrItemDel, um_getMapSize, um_getPointByLnglat, um_drawConvertgps84Togcj02, um_deepMergeOpt } from "../utils";
+import type { MOptCanvasLayer } from "../map/canvas-layer";
 import { SLUCanvas } from "../canvas";
-import { um_arrItemDel, um_getMapSize, um_getPointByLnglat } from "../utils";
-import type { MOptCanvas } from "../map/canvas-layer";
-import { um_drawConvertgps84Togcj02 } from "../utils";
+import { MapCanvasLayer, SLMap } from "../map";
 
 /**
  * 热力图图层插件
@@ -13,14 +11,14 @@ import { um_drawConvertgps84Togcj02 } from "../utils";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 热力图配置项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginHeat } from '@sl-utils/map';
+ * import { SLMap, MapPluginHeat } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建热力图插件
@@ -54,7 +52,7 @@ import { um_drawConvertgps84Togcj02 } from "../utils";
  * ```
  */
 export class MapPluginHeat extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginHeat) {
+    constructor(sluMap: SLMap, options?: MOptPluginHeat) {
         super(sluMap.map, options);
         this.setOptions(options);
     }
@@ -124,7 +122,7 @@ export class MapPluginHeat extends MapCanvasLayer {
      * @param options 热力图配置
      */
     private setOptions(options?: MOptPluginHeat): void {
-        L.setOptions(this, options);
+        um_deepMergeOpt(this.options, options);
         this._updateOptions();
         return this._redraw();
     }
@@ -142,10 +140,7 @@ export class MapPluginHeat extends MapCanvasLayer {
         let map: any = this.map;
         if (!map) { return []; }
         let r = this._r,
-            size = um_getMapSize(map),
-            sizePoint = L.point([size.w, size.h]),
-            /**可视范围+影响范围大小 扩大边界 */
-            bounds = new L.Bounds(L.point([-r, -r]), sizePoint.add([r, r])),
+            { w, h } = um_getMapSize(map),
             num = this.computeZoomGradient(),
             v = 1 / num,
             cellSize = r / 2,
@@ -158,12 +153,12 @@ export class MapPluginHeat extends MapCanvasLayer {
         for (i = 0, len = this._allHeats.length; i < len; i++) {
             let heat: MDataHeat = this._allHeats[i]
             /**得到像素点位 */
-            let p = um_getPointByLnglat(this.map, heat.lnglat);
-            /**判断点位是否在范围内 */
-            if (bounds.contains(p)) {
+            let [px, py] = um_getPointByLnglat(this.map, heat.lnglat);
+            /**判断点位是否在可视范围内 */
+            if (px >= -r && px < w && py >= -r && py < h) {
                 /** X，Y拖动后同一经纬度对应的Point会变化，为确保热力图和之前的一模一样，故需要减去偏移量*/
-                x = Math.floor((p[0] - offsetX) / cellSize) + 2;
-                y = Math.floor((p[1] - offsetY) / cellSize) + 2;
+                x = Math.floor((px - offsetX) / cellSize) + 2;
+                y = Math.floor((py - offsetY) / cellSize) + 2;
                 /**阴影等级（热力等级）*/
                 const alt = heat.weight !== undefined ? heat.weight : 1;
                 k = alt * v;
@@ -171,13 +166,13 @@ export class MapPluginHeat extends MapCanvasLayer {
                 cell = grid[y][x];
                 if (!cell) {
                     /**初始 */
-                    grid[y][x] = [p[0], p[1], k];
+                    grid[y][x] = [px, py, k];
                 } else {
                     /**当grid[y][x]已经存在，表示这两个经纬度归在同一个半径cellSize
                      经过几次叠加后，热力等级不一样 
                      */
-                    cell[0] = (cell[0] * cell[2] + p[0] * k) / (cell[2] + k); // 加权求网格中心（如果某网格边缘高权重靠右 则网格中心合并的也会偏移靠右）
-                    cell[1] = (cell[1] * cell[2] + p[1] * k) / (cell[2] + k);
+                    cell[0] = (cell[0] * cell[2] + px * k) / (cell[2] + k); // 加权求网格中心（如果某网格边缘高权重靠右 则网格中心合并的也会偏移靠右）
+                    cell[1] = (cell[1] * cell[2] + py * k) / (cell[2] + k);
                     cell[2] += k;
                 }
             }
@@ -301,7 +296,7 @@ export interface MDataHeat {
 }
 
 /**热力图插件配置 */
-export interface MOptPluginHeat extends MOptCanvas {
+export type MOptPluginHeat = MOptCanvasLayer & {
     /**热力图半径 @default 20 */
     radius?: number,
     /**模糊程度 @default 15 */

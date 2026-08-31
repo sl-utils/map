@@ -1,7 +1,6 @@
-import { MapCanvasLayer, MapCanvasRadar, SLUMap } from "../map";
-import type { MOptCanvas, MOptPluginRadar } from "../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
-import { um_drawConvertgps84Togcj02 } from "../utils";
+import { MapCanvasLayer, MapCanvasRadar, SLMap } from "../map";
+import type { MOptCanvasLayer, MOptPluginRadar } from "../map";
+import { MapType, um_drawConvertgps84Togcj02 } from "../utils";
 
 /**
  * 雷达绘制插件
@@ -11,14 +10,14 @@ import { um_drawConvertgps84Togcj02 } from "../utils";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 雷达绘制配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginRadar } from '@sl-utils/map';
+ * import { SLMap, MapPluginRadar } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建雷达插件
@@ -55,7 +54,7 @@ import { um_drawConvertgps84Togcj02 } from "../utils";
  * ```
  */
 export class MapPluginRadar extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MOptCanvas) {
+    constructor(sluMap: SLMap, options?: AMAP.CustomLayerOption | MOptCanvasLayer) {
         super(sluMap.map, options);
         this.canvasRadar = new MapCanvasRadar(sluMap.map, this.ctx);
     }
@@ -63,7 +62,7 @@ export class MapPluginRadar extends MapCanvasLayer {
     private canvasRadar: MapCanvasRadar;
     /**
      * 图层是否在移动 高德默认每次渲染更新像素坐标
-     * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
+     * L图层移动不更新像素坐标 高德 图层移动更新像素坐标
      * 高德地图移动画布和地图同步偏移，leaflet画布固定 地图偏移 的区别
      * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
      * */
@@ -107,7 +106,7 @@ export class MapPluginRadar extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: 'on' | 'off'): void {
+    protected addMapEvents(map: MapType, key: 'on' | 'off'): void {
         const end = () => this.drawEnd();
         const start = () => this.drawStart();
         map[key]("dragstart", end);

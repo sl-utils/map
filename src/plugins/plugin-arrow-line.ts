@@ -1,6 +1,5 @@
-import { MapCanvasArrowLine, MapCanvasLayer, SLUMap } from "../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
-import { um_drawConvertgps84Togcj02 } from "../utils";
+import { MapCanvasArrowLine, MapCanvasLayer, SLMap } from "../map";
+import { MapType, um_drawConvertgps84Togcj02 } from "../utils";
 import type { MapLine, MOptPluginArrowLine } from "../map";
 
 /**
@@ -11,14 +10,14 @@ import type { MapLine, MOptPluginArrowLine } from "../map";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 箭头线配置项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginArrowLine } from '@sl-utils/map';
+ * import { SLMap, MapPluginArrowLine } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建箭头线插件
@@ -53,7 +52,7 @@ import type { MapLine, MOptPluginArrowLine } from "../map";
  * ```
  */
 export class MapPluginArrowLine extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options?: MOptPluginArrowLine) {
+  constructor(sluMap: SLMap, options?: MOptPluginArrowLine) {
     super(sluMap.map, options);
     this.arrowLine = new MapCanvasArrowLine(sluMap.map, this.ctx, options);
   }
@@ -68,7 +67,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
   }
   /**
    * 图层是否在移动 高德默认每次渲染更新像素坐标
-   * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
+   * L 图层移动不更新像素坐标 高德 图层移动更新像素坐标
    * 高德地图移动画布和地图同步偏移，leaflet画布固定 地图偏移 的区别
    * 所以防止leaflet移动过程二次偏移 以及高德移动过程坐标未更新导致画布和容器相对位置发生偏移
    * */
@@ -97,7 +96,7 @@ export class MapPluginArrowLine extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-  protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void {
+  protected addMapEvents(map: MapType, key: "on" | "off"): void {
     const end = () => this.drawEnd();
     const start = () => this.drawStart();
     map[key]("dragstart", end);

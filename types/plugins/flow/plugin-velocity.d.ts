@@ -11,9 +11,9 @@ import type { MDataVeloctiyWind } from "./plugin-flow";
  * @example
  * ```typescript
  * // 通常不直接使用此类，而是通过 MapPluginFlow 插件
- * import { SLUMap, MapPluginFlow } from '@sl-utils/map';
+ * import { SLMap, MapPluginFlow } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建流体动画插件（内部使用 PluginVelocity）

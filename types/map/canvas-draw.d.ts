@@ -1,6 +1,5 @@
-import * as L from 'leaflet';
+import { MapType } from '../utils';
 import type { CanvasGif, CanvasImage, CanvasPosition, CanvasTextPanel, OptCanvas, TextOverlap } from '../canvas';
-import { Map as MaplibreMap } from 'maplibre-gl';
 /** 地图canvas基础图形绘制类
  * @constructor
  * @param map 地图实例
@@ -11,13 +10,13 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  *  设置图片/圆点的大小
  */
 export declare class MapCanvasDraw {
-    constructor(map: AMAP.Map | L.Map | MaplibreMap, canvas: HTMLCanvasElement);
+    constructor(map: MapType, canvas: HTMLCanvasElement);
     /**画布 */
     private canvas;
     /**画布上下文 */
     protected ctx: CanvasRenderingContext2D;
     /**地图实例 */
-    protected map: AMAP.Map | L.Map | MaplibreMap;
+    protected map: MapType;
     /**Gif实例 */
     private gif;
     /**所有的小圆数据 */

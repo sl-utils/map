@@ -1,11 +1,9 @@
 
-import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
+import { um_deepMergeOpt, um_getLngLatByPoint, um_getLngDiffByDistance, um_getMapMouseEvent, um_getPointByLnglat, um_setMapStatus, um_togcj02gps84, um_togps84gcj02, um_tsMapisAmap, MapEventType } from "../utils";
 import { MapPluginDraw } from "./plugin-draw";
-import { um_deepMergeOpt, um_getLngLatByPoint, um_getLngDiffByDistance, um_getMapMouseEvent, um_getPointByLnglat, um_setMapStatus, um_togcj02gps84, um_togps84gcj02, um_tsMapisAmap } from "../utils";
-import type { MapArc, MapRect, MapText, MapEvent, MapLine, AMapMapsEvent, MOptCanvas } from "../map";
+import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLMap } from "../map";
+import type { MapArc, MapRect, MapText, MapEvent, MapLine, MOptCanvasLayer } from "../map";
 import type { CanvasImage } from "../canvas";
-import { LeafletMouseEvent } from "leaflet";
-import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 
 /**
  * 自定义标绘插件
@@ -15,14 +13,14 @@ import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 标绘配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginPlot } from '@sl-utils/map';
+ * import { SLMap, MapPluginPlot } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建标绘插件
@@ -96,7 +94,7 @@ import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
  * ```
  */
 export class MapPluginPlot extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginPlot) {
+    constructor(sluMap: SLMap, options?: MOptPluginPlot) {
         const map = sluMap.map, { plotOpt, editOpt, textOpt } = options || {};
         super(map, plotOpt);
         this.ctrMapDraw = new MapCanvasDraw(map, this.canvas);
@@ -558,7 +556,7 @@ export class MapPluginPlot extends MapCanvasLayer {
                     this.cbPointChange && this.cbPointChange(this.plotAni!);
                 }
                 this._redraw();
-                let moveCb = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent) => {
+                let moveCb = (e: MapEventType) => {
                     let { latlng: eLatlng } = um_getMapMouseEvent(e, this.map);
                     let lat84 = eLatlng.lat, lng84 = eLatlng.lng;
                     if (um_tsMapisAmap(this.map)) {
@@ -608,7 +606,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**鼠标点击事件
      * @param e 鼠标事件对象
      */
-    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
+    private eventClick = (e: MapEventType): void => {
         this.eventClickTimer = setTimeout(() => {
             const plot = this.plotAni;
             if (!plot) return;
@@ -638,7 +636,7 @@ export class MapPluginPlot extends MapCanvasLayer {
     /**鼠标移动事件
      * @param e 鼠标事件对象
      */
-    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
+    private eventMousemove = (e: MapEventType): void => {
         let { latlng } = um_getMapMouseEvent(e, this.map);
         let lat84 = latlng.lat, lng84 = latlng.lng;
         if (um_tsMapisAmap(this.map)) {
@@ -730,7 +728,7 @@ export type MapPlotDetailType =
     | { type: 'line' | 'polygon'; lngLats: [number, number][]; };
 
 /**地图标绘数据 */
-export type MDataPlot = MOptCanvas & {
+export type MDataPlot = MOptCanvasLayer & {
     /**标绘名称 */
     name?: string;
     /**是否隐藏 */
@@ -740,7 +738,7 @@ export type MDataPlot = MOptCanvas & {
 } & MapPlotDetailType;
 
 /**地图标绘插件基础配置 */
-export interface MOptPluginPlotBase extends MOptCanvas { }
+export type MOptPluginPlotBase = MOptCanvasLayer & { };
 
 /**地图标绘插件编辑配置 */
 export type MOptPluginPlotEdit = Partial<MapArc>;

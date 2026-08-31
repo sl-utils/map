@@ -1,6 +1,6 @@
-import { MapCanvasLayer, SLUMap } from "../map";
+import { MapCanvasLayer, SLMap } from "../map";
+import { MapType } from "../utils";
 import { MDataGrid, MOptGrid } from "./grid/plugin-grid-base";
-import { Map as MaplibreMap } from "maplibre-gl";
 import { PluginCoastlineMask } from "./plugin-coastline-mask";
 /**
  * 色斑图插件（CPU 栅格填色）
@@ -10,15 +10,15 @@ import { PluginCoastlineMask } from "./plugin-coastline-mask";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 配置项
  * @param mask 海岸线 Mask（可选，用于裁剪陆地区域）
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginGridRender, PluginCoastlineMask } from '@sl-utils/map';
+ * import { SLMap, MapPluginGridRender, PluginCoastlineMask } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 加载海岸线数据
@@ -57,7 +57,7 @@ import { PluginCoastlineMask } from "./plugin-coastline-mask";
  * ```
  */
 export declare class MapPluginGridRender extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options: Partial<MOptGrid>, mask?: PluginCoastlineMask);
+    constructor(sluMap: SLMap, options: Partial<MOptGrid>, mask?: PluginCoastlineMask);
     /**Worker线程:栅格插值-颜色计算-ImageBitmap生成 */
     private worker;
     /**worker任务ID-用于丢弃旧帧 */
@@ -112,7 +112,7 @@ export declare class MapPluginGridRender extends MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
      */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void;
+    protected addMapEvents(map: MapType, key: "on" | "off"): void;
 }
 export interface GridRenderWorkerInfo {
     id: number;

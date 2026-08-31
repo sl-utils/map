@@ -1,4 +1,4 @@
-import type { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, SLUMap, MOptCanvas } from "../map";
+import type { MapArc, MapLine, MapRect, MapText, MapImage, MapGif, SLMap, MOptCanvasLayer } from "../map";
 import { MapCanvasLayer, MapCanvasDraw } from "../map";
 /**
  * 地图绘制插件
@@ -8,14 +8,14 @@ import { MapCanvasLayer, MapCanvasDraw } from "../map";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 地图绘制选项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginDraw } from '@sl-utils/map';
+ * import { SLMap, MapPluginDraw } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建绘制插件
@@ -92,7 +92,7 @@ import { MapCanvasLayer, MapCanvasDraw } from "../map";
  * ```
  */
 export declare class MapPluginDraw extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MOptCanvas);
+    constructor(sluMap: SLMap, options?: AMAP.CustomLayerOption | MOptCanvasLayer);
     /**地图绘制控制类 */
     protected _draw: MapCanvasDraw;
     /**地图事件引起的重绘绘制 */

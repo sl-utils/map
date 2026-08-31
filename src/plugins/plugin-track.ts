@@ -1,12 +1,10 @@
-import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
-import { MapCanvasEvent, SLUMap } from "../map";
+import { MapCanvasEvent, SLMap } from "../map";
 import type { MapArc, MapLine, MapPoint, MapText, MapImage } from "../map/canvas-draw";
 import type { MapEvent, MapEventResponse } from "../map/canvas-event";
-import type { MOptCanvas } from "../map/canvas-layer";
+import type { MOptCanvasLayer } from "../map/canvas-layer";
 import type { CanvasLine } from "../canvas";
-import { Map as MaplibreMap } from 'maplibre-gl';
-import { um_deepMergeOpt, um_togps84gcj02, um_tsMapisAmap } from "../utils";
+import { MapType, um_deepMergeOpt, um_togps84gcj02, um_tsMapisAmap } from "../utils";
 
 /**
  * 轨迹绘制类
@@ -15,14 +13,14 @@ import { um_deepMergeOpt, um_togps84gcj02, um_tsMapisAmap } from "../utils";
  * 常用于船舶、车辆、飞机等移动目标的历史轨迹展示。
  *
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 轨迹配置项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginTrack } from '@sl-utils/map';
+ * import { SLMap, MapPluginTrack } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建轨迹插件
@@ -86,7 +84,7 @@ import { um_deepMergeOpt, um_togps84gcj02, um_tsMapisAmap } from "../utils";
  * ```
  */
 export class MapPluginTrack {
-  constructor(sluMap: SLUMap, options?: Partial<MOptPluginTrack>) {
+  constructor(sluMap: SLMap, options?: Partial<MOptPluginTrack>) {
     const map = sluMap.map;
     this.map = map;
     if (options) this.options = um_deepMergeOpt(this.options, options);
@@ -97,7 +95,7 @@ export class MapPluginTrack {
     this.allEvents = new MapCanvasEvent(map);
   }
   /**地图实例 */
-  private map: L.Map | AMAP.Map | MaplibreMap;
+  private map: MapType;
   /**默认配置 */
   private options: MOptPluginTrack = {
     pane: "canvas",
@@ -511,7 +509,7 @@ export type MapTrackPointInfoByTime = {
 };
 
 /**轨迹插件配置 */
-export interface MOptPluginTrack extends MOptCanvas {
+export type MOptPluginTrack = MOptCanvasLayer & {
     /**是否绘制圆弧 */
     ifArc?: boolean;
     /**圆弧间隔 */

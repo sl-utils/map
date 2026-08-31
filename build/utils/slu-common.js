@@ -1,4 +1,4 @@
-import { tsIfPlainObject } from "./slu-type-guard";
+import { um_tsIfPlainObject } from "./slu-type-guard";
 function delItem(arr, item, key) {
     if (Array.isArray(arr) && arr.length > 0) {
         let index;
@@ -20,7 +20,7 @@ function deepMergeOpt(target, source) {
             continue;
         }
         const targetValue = result[key];
-        if (tsIfPlainObject(targetValue) && tsIfPlainObject(sourceValue)) {
+        if (um_tsIfPlainObject(targetValue) && um_tsIfPlainObject(sourceValue)) {
             result[key] = deepMergeOpt(targetValue, sourceValue);
         }
         else {

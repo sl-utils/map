@@ -1,7 +1,5 @@
 import bboxClip from '@turf/bbox-clip';
-import { um_getPointByLnglat } from '../utils';
-import { Map as LMap } from 'leaflet';
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapType, um_getPointByLnglat } from '../utils';
 
 const clipGeometryTypes: GeoJSON.GeoJsonTypes[] = ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
 
@@ -17,9 +15,9 @@ const clipGeometryTypes: GeoJSON.GeoJsonTypes[] = ['LineString', 'MultiLineStrin
  *
  * @example
  * ```typescript
- * import { SLUMap, PluginCoastlineMask, MapPluginGridRender } from '@sl-utils/map';
+ * import { SLMap, PluginCoastlineMask, MapPluginGridRender } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 加载不同精度的海岸线数据
@@ -55,12 +53,12 @@ const clipGeometryTypes: GeoJSON.GeoJsonTypes[] = ['LineString', 'MultiLineStrin
  * ```
  */
 export class PluginCoastlineMask {
-    constructor(sources: DataCoastline[], map: AMAP.Map | LMap | MaplibreMap) {
+    constructor(sources: DataCoastline[], map: MapType) {
         this.sources = sources;
         this.map = map;
     }
     /**地图实例 */
-    private map: AMAP.Map | LMap | MaplibreMap;
+    private map: MapType;
     /**海岸线数据源 */
     private sources: DataCoastline[] = [];
     /**canvas缓存 */

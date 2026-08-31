@@ -2,8 +2,8 @@ import rbush, { BBox } from "rbush";
 import { MapPluginDraw } from "./plugin-draw";
 import { SLUCanvasImg, SLUCanvasText } from "../canvas";
 import { um_getPointByLnglat } from "../utils";
-import { SLUMap } from "../map";
-import { MOptCanvas } from "../map/canvas-layer";
+import { SLMap } from "../map";
+import { MOptCanvasLayer } from "../map/canvas-layer";
 import { MapRbush, MapImageEvent, MapImageRender } from "../map/canvas-event";
 import { MapImage } from "../map/canvas-draw";
 import RBush from "rbush";
@@ -17,14 +17,14 @@ import { um_drawConvertgps84Togcj02 } from "../utils";
  *
  * @extends MapPluginDraw
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 大数据绘制选项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginBigData } from '@sl-utils/map';
+ * import { SLMap, MapPluginBigData } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建大数据插件
@@ -56,7 +56,7 @@ import { um_drawConvertgps84Togcj02 } from "../utils";
  * ```
  */
 export class MapPluginBigData extends MapPluginDraw {
-  constructor(sluMap: SLUMap, options: MOptBigData) {
+  constructor(sluMap: SLMap, options: MOptBigData) {
     super(sluMap, options);
     this.bigDataOption = options;
     // this.map.on('moveend', this.resetRbush);
@@ -192,7 +192,7 @@ export class MapPluginBigData extends MapPluginDraw {
 }
 
 /**大数据插件配置 */
-export interface MOptBigData extends MOptCanvas {
+export type MOptBigData = MOptCanvasLayer & {
     /**不同层级的配置 */
     zoomOption: {
         [key: number]: {

@@ -1,4 +1,4 @@
-import { MapPluginBigData, SLUMap } from "../src/index.ts";
+import { MapPluginBigData, SLMap } from "../src/index.ts";
 
 function getShipImgPosByTypeCode(shipCode: string) {
   let posX = 0;
@@ -60,7 +60,7 @@ function transformShipImage(item: any) {
 }
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "L" });
   map.setFitView([[118.05103, 38.925008], [117.555, 38.94],]);
 

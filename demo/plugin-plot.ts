@@ -1,4 +1,4 @@
-import { MapPluginPlot, SLUMap } from "../src/index.ts";
+import { MapPluginPlot, SLMap } from "../src/index.ts";
 function createButton(text: string) {
   const button = document.createElement("button");
   button.className = "button";
@@ -7,7 +7,7 @@ function createButton(text: string) {
 }
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "A" });
   // const mapstyle = "./assets/json/mapstyle-protomaps.json";
   // await map.init({ type: "M", style: mapstyle });

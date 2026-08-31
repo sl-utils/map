@@ -1,4 +1,4 @@
-import { MapPluginTrack, SLUMap } from "../src/index.ts";
+import { MapPluginTrack, SLMap } from "../src/index.ts";
 
 function formatToMapItemTrack(originDataItem: any, itemMapping: Record<string, string>) {
   const trackItem: Record<string, unknown> = {};
@@ -28,7 +28,7 @@ function formatToMapTrackGroup(
 }
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "L" });
 
   const plugin = new MapPluginTrack(map);

@@ -1,6 +1,6 @@
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapType } from "../utils";
 import type { MapLine } from ".";
-import type { MOptCanvas } from "./canvas-layer";
+import type { MOptCanvasLayer } from "./canvas-layer";
 /**地图canvas箭头线类
  * @constructor
  * @param map 地图实例
@@ -10,7 +10,7 @@ import type { MOptCanvas } from "./canvas-layer";
 export declare class MapCanvasArrowLine {
     private map;
     private ctx;
-    constructor(map: AMAP.Map | L.Map | MaplibreMap, ctx: CanvasRenderingContext2D, opt?: MOptPluginArrowLine);
+    constructor(map: MapType, ctx: CanvasRenderingContext2D, opt?: MOptPluginArrowLine);
     private opt;
     /**默认配置项 */
     private readonly options;
@@ -97,11 +97,11 @@ export interface MDataArrowLine {
     degree?: number;
 }
 /**箭头线插件配置 */
-export interface MOptPluginArrowLine extends MOptCanvas, MDataArrowLine {
+export type MOptPluginArrowLine = MOptCanvasLayer & MDataArrowLine & {
     /**填充颜色 */
     fillColor?: string;
     /**描边颜色 */
     strokeColor?: string;
     /**箭头图片路径 */
     imgUrl?: string;
-}
+};

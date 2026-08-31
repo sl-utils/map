@@ -1,10 +1,6 @@
-import * as L from "leaflet";
-import { um_deepMergeOpt, um_getBounds, um_getLngLatByPoint, um_getMapMouseEvent, um_getMapSize } from "../../utils";
-import { MapCanvasLayer, SLUMap } from "../../map";
+import { MapEventType, MapType, um_deepMergeOpt, um_getBounds, um_getLngLatByPoint, um_getMapMouseEvent, um_getMapSize } from "../../utils";
+import { MapCanvasLayer, SLMap , type MOptCanvasLayer } from "../../map";
 import { PluginVelocity } from "./plugin-velocity";
-import { LeafletMouseEvent } from "leaflet";
-import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
-import type { MOptCanvas, AMapMapsEvent } from "../../map";
 
 /**
  * 流体动画插件（风速风向洋流动图）
@@ -14,14 +10,14 @@ import type { MOptCanvas, AMapMapsEvent } from "../../map";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 流体动画配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginFlow } from '@sl-utils/map';
+ * import { SLMap, MapPluginFlow } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建流体动画插件
@@ -84,7 +80,7 @@ import type { MOptCanvas, AMapMapsEvent } from "../../map";
  * ```
  */
 export class MapPluginFlow extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginFlow) {
+    constructor(sluMap: SLMap, options?: MOptPluginFlow) {
         super(sluMap.map, options);
         if (options) this.options = um_deepMergeOpt(this.options, options);
     }
@@ -156,9 +152,9 @@ export class MapPluginFlow extends MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
     */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void {
+    protected addMapEvents(map: MapType, key: "on" | "off"): void {
         const stop = () => this.stopWindy();
-        const click = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent) => this.onMouseClick(e);
+        const click = (e: MapEventType) => this.onMouseClick(e);
         map[key]("zoomstart", stop);
         map[key]("dragstart", stop);
         map[key]("click", click);
@@ -183,7 +179,7 @@ export class MapPluginFlow extends MapCanvasLayer {
     /**鼠标点击事件监听
      * @param e 鼠标事件
      */
-    private onMouseClick(e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void {
+    private onMouseClick(e: MapEventType): void {
         if (!this.windy) return;
         const self = this;
         const { containerPoint } = um_getMapMouseEvent(e, this.map);
@@ -284,7 +280,7 @@ export interface MDataVeloctiyWind {
 }
 
 /**流向插件配置 */
-export interface MOptPluginFlow extends MOptCanvas {
+export type MOptPluginFlow = MOptCanvasLayer & {
     /**是否显示数值 */
     displayValues: boolean;
     /**速度缩放 */

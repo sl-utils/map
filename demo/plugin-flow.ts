@@ -1,7 +1,7 @@
-import { MapPluginFlow, SLUMap } from "../src/index.ts";
+import { MapPluginFlow, SLMap } from "../src/index.ts";
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "M" });
 
   const toolbar = document.createElement("div");

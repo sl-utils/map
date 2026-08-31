@@ -1,4 +1,4 @@
-import { MapPluginRadar, SLUMap } from "../src/index.ts";
+import { MapPluginRadar, SLMap } from "../src/index.ts";
 
 function transformRadarInfo(radar: any) {
   return {
@@ -19,7 +19,7 @@ function transformRadarInfo(radar: any) {
 }
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "L" });
 
   const plugin = new MapPluginRadar(map);

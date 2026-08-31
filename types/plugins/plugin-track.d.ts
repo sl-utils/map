@@ -1,7 +1,7 @@
-import { SLUMap } from "../map";
+import { SLMap } from "../map";
 import type { MapText, MapImage } from "../map/canvas-draw";
 import type { MapEventResponse } from "../map/canvas-event";
-import type { MOptCanvas } from "../map/canvas-layer";
+import type { MOptCanvasLayer } from "../map/canvas-layer";
 import type { CanvasLine } from "../canvas";
 /**
  * 轨迹绘制类
@@ -10,14 +10,14 @@ import type { CanvasLine } from "../canvas";
  * 常用于船舶、车辆、飞机等移动目标的历史轨迹展示。
  *
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 轨迹配置项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginTrack } from '@sl-utils/map';
+ * import { SLMap, MapPluginTrack } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建轨迹插件
@@ -81,7 +81,7 @@ import type { CanvasLine } from "../canvas";
  * ```
  */
 export declare class MapPluginTrack {
-    constructor(sluMap: SLUMap, options?: Partial<MOptPluginTrack>);
+    constructor(sluMap: SLMap, options?: Partial<MOptPluginTrack>);
     /**地图实例 */
     private map;
     /**默认配置 */
@@ -258,7 +258,7 @@ export type MapTrackPointInfoByTime = {
     speed?: number;
 };
 /**轨迹插件配置 */
-export interface MOptPluginTrack extends MOptCanvas {
+export type MOptPluginTrack = MOptCanvasLayer & {
     /**是否绘制圆弧 */
     ifArc?: boolean;
     /**圆弧间隔 */
@@ -289,4 +289,4 @@ export interface MOptPluginTrack extends MOptCanvas {
     colorArcStart?: string;
     /**结束圆弧颜色 */
     colorArcEnd?: string;
-}
+};

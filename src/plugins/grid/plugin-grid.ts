@@ -1,6 +1,6 @@
 import { MapPluginGridBase } from "./plugin-grid-base";
 import { um_getMapSize } from "../../utils";
-import { SLUMap } from "../../map";
+import { SLMap } from "../../map";
 import { MDataGrid, MOptGrid } from "./plugin-grid-base";
 /**
  * 网格插件
@@ -10,14 +10,14 @@ import { MDataGrid, MOptGrid } from "./plugin-grid-base";
  *
  * @extends MapPluginGridBase
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 网格配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginGrid } from '@sl-utils/map';
+ * import { SLMap, MapPluginGrid } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建网格插件
@@ -48,7 +48,7 @@ import { MDataGrid, MOptGrid } from "./plugin-grid-base";
  * ```
  */
 export class MapPluginGrid extends MapPluginGridBase {
-  constructor(sluMap: SLUMap, options: Partial<MOptGrid>) {
+  constructor(sluMap: SLMap, options: Partial<MOptGrid>) {
     super(sluMap.map, options);
   }
   /**可视区内的网格数据XY */

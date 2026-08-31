@@ -1,12 +1,6 @@
-import { Layer } from "leaflet";
-import type { LeafletMouseEvent } from "leaflet";
-import type { MapMouseEvent as MaplibreMouseEvent, CustomLayerInterface } from 'maplibre-gl';
-import { Map as MaplibreMap } from 'maplibre-gl';
-import * as L from "leaflet";
 import type { EventType } from "../canvas";
-import type { AMapMapsEvent } from "../map";
+import { _MapA, _MapAEvent, _MapL, _MapLEvent, _MapMEvent, _MapM, MapEventType, MapLayerType, MapType, _MapMLayer, _MapLLayer, _MapALayer } from "./slu-map-util";
 declare var AMap: any;
-
 /**判断参数是否是纯对象
  * @param value 参数
  */
@@ -24,31 +18,31 @@ function tsIfOneArrTwoLen(value: number | [number, number]): value is [number, n
     return !!(value && Array.isArray(value) && value.length == 2);
 }
 /**判断地图是否是Leaflet */
-function tsMapisLeaflet(map: AMAP.Map | L.Map | MaplibreMap): map is L.Map {
+function tsMapisLeaflet(map: MapType): map is _MapL {
     try {
-        return map instanceof L.Map
+        return map instanceof _MapL
     } catch (e) {
         return false
     }
 }
 /**判断地图是否是高德 */
-function tsMapisAmap(map: AMAP.Map | L.Map | MaplibreMap): map is AMAP.Map {
+function tsMapisAmap(map: MapType): map is _MapA {
     try {
-        return map instanceof AMap.Map
+        return typeof AMap !== "undefined" && map instanceof AMap.Map;
     } catch (e) {
         return false
     }
 }
 /**判断地图是否是MapLibre */
-function tsMapisMapLibre(map: AMAP.Map | L.Map | MaplibreMap): map is MaplibreMap {
+function tsMapisMapLibre(map: MapType): map is _MapM {
     try {
-        return map instanceof MaplibreMap;
+        return map instanceof _MapM;
     } catch (e) {
         return false
     }
 }
 /**判断地图是否是百度 */
-function tsMapisBaidu(map: AMAP.Map | L.Map | MaplibreMap): map is L.Map {
+function tsMapisBaidu(map: MapType): map is _MapL {
     try {
         return false
     } catch (e) {
@@ -58,37 +52,37 @@ function tsMapisBaidu(map: AMAP.Map | L.Map | MaplibreMap): map is L.Map {
 /**判断地图事件是否是Leaflet
  * @param e 地图事件
  */
-function tsEventisLeaflet(e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): e is LeafletMouseEvent {
+function tsEventisLeaflet(e: MapEventType): e is _MapLEvent {
     return e && 'latlng' in e && 'containerPoint' in e;
 }
 /**判断地图事件是否是高德
  * @param e 地图事件
  */
-function tsEventisAmap(e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): e is AMapMapsEvent {
+function tsEventisAmap(e: MapEventType): e is _MapAEvent {
     return e && 'lnglat' in e && 'pixel' in e;
 }
 /**判断地图事件是否是MapLibre
  * @param e 地图事件
  */
-function tsEventisMapLibre(e: AMapMapsEvent | LeafletMouseEvent | MaplibreMouseEvent): e is MaplibreMouseEvent {
+function tsEventisMapLibre(e: MapEventType): e is _MapMEvent {
     return e && 'lngLat' in e && 'point' in e;
 }
 /**判断地图图层是否是Leaflet
  * @param e 地图图层
  */
-function tsLayerisLeaflet(e: Layer | AMAP.CustomLayer | CustomLayerInterface): e is Layer {
-    return e instanceof Layer
+function tsLayerisLeaflet(e: MapLayerType): e is _MapLLayer {
+    return e instanceof _MapLLayer
 }
 /**判断地图图层是否是高德
  * @param e 地图图层
  */
-function tsLayerisAmap(e: Layer | AMAP.CustomLayer | CustomLayerInterface): e is AMAP.CustomLayer {
-    return e instanceof AMap.CustomLayer
+function tsLayerisAmap(e: MapLayerType): e is _MapALayer {
+    return typeof AMap !== "undefined" && e instanceof AMap.CustomLayer;
 }
 /**判断地图图层是否是maplibre
  * @param e 地图图层
  */
-function tsLayerisMapLibre(e: Layer | AMAP.CustomLayer | CustomLayerInterface): e is CustomLayerInterface {
+function tsLayerisMapLibre(e: MapLayerType): e is _MapMLayer {
     return e && typeof e === 'object' && 'id' in e && 'render' in e && 'type' in e;
 }
 /**判断对象的key是否是对象的属性名
@@ -108,22 +102,9 @@ function tsisMapEventType(type: string): asserts type is EventType {
 }
 
 export {
-    tsIfPlainObject,
-    tsIfTwoArr,
-    tsIfOneArrTwoLen,
-    tsMapisLeaflet,
-    tsMapisAmap,
-    tsMapisBaidu,
-    tsMapisMapLibre,
-    tsEventisLeaflet,
-    tsEventisAmap,
-    tsEventisMapLibre,
-    tsLayerisLeaflet,
-    tsLayerisAmap,
-    tsLayerisMapLibre,
-    tsisKeyOf,
-    tsisMapEventType,
     // 保持 um_ 前缀的兼容导出
+    tsIfPlainObject as um_tsIfPlainObject,
+    tsIfTwoArr as um_tsIfTwoArr,
     tsMapisLeaflet as um_tsMapisLeaflet,
     tsMapisAmap as um_tsMapisAmap,
     tsMapisBaidu as um_tsMapisBaidu,

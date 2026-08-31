@@ -1,7 +1,6 @@
-import { MapCanvasLayer, type MOptCanvas, type SLUMap } from "../map";
-import { CanvasLine } from "../canvas";
-import { CanvasPosition } from "../canvas";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { type MapType } from "../utils";
+import { MapCanvasLayer, type MOptCanvasLayer, type SLMap } from "../map";
+import { CanvasPosition, CanvasLine } from "../canvas";
 /**
  * 粒子效果插件
  *
@@ -10,14 +9,14 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 粒子配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginPartial } from '@sl-utils/map';
+ * import { SLMap, MapPluginPartial } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建粒子插件
@@ -60,7 +59,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * ```
  */
 export declare class MapPluginPartial extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptCanvas);
+    constructor(sluMap: SLMap, options?: MOptCanvasLayer);
     /**
      * 图层是否在移动 高德默认每次渲染更新像素坐标
      * leaflet 图层移动不更新像素坐标 高德 图层移动更新像素坐标
@@ -101,7 +100,7 @@ export declare class MapPluginPartial extends MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
      */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void;
+    protected addMapEvents(map: MapType, key: "on" | "off"): void;
     /**拖拽结束，开始绘制 */
     private drawStart;
     /**拖拽开始，结束绘制 */

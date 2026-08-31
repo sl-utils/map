@@ -1,8 +1,8 @@
-import { MapPluginGrid, MapPluginGridRender, PluginCoastlineMask, SLUMap } from "../src/index.ts";
+import { MapPluginGrid, MapPluginGridRender, PluginCoastlineMask, SLMap } from "../src/index.ts";
 import { MDataGrid } from "../src";
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "L" });
 
   const toolbar = document.createElement("div");

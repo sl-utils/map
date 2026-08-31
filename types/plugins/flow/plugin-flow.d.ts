@@ -1,7 +1,5 @@
-import * as L from "leaflet";
-import { MapCanvasLayer, SLUMap } from "../../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
-import type { MOptCanvas } from "../../map";
+import { MapType } from "../../utils";
+import { MapCanvasLayer, SLMap, type MOptCanvasLayer } from "../../map";
 /**
  * 流体动画插件（风速风向洋流动图）
  *
@@ -10,14 +8,14 @@ import type { MOptCanvas } from "../../map";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 流体动画配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginFlow } from '@sl-utils/map';
+ * import { SLMap, MapPluginFlow } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建流体动画插件
@@ -80,7 +78,7 @@ import type { MOptCanvas } from "../../map";
  * ```
  */
 export declare class MapPluginFlow extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginFlow);
+    constructor(sluMap: SLMap, options?: MOptPluginFlow);
     /**基础配置项 */
     options: MOptPluginFlow;
     /**运动粒子类对象 */
@@ -110,7 +108,7 @@ export declare class MapPluginFlow extends MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
     */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void;
+    protected addMapEvents(map: MapType, key: "on" | "off"): void;
     /**初始化windy对象 */
     private initWindy;
     /**开始动画 */
@@ -181,7 +179,7 @@ export interface MDataVeloctiyWind {
     data: number[];
 }
 /**流向插件配置 */
-export interface MOptPluginFlow extends MOptCanvas {
+export type MOptPluginFlow = MOptCanvasLayer & {
     /**是否显示数值 */
     displayValues: boolean;
     /**速度缩放 */
@@ -200,4 +198,4 @@ export interface MOptPluginFlow extends MOptCanvas {
     colorScale?: any;
     /**流向数据 */
     data?: MDataVeloctiyWind[];
-}
+};

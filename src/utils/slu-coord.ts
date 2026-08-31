@@ -1,5 +1,8 @@
 import type { MapLatLng } from "../map";
-
+import { CanvasPosition } from "../canvas";
+import { MDataParticle } from "../plugins";
+import type { MapArc, MapImage, MapLine, MapRect, MapText } from "../map";
+import { MapType, um_togps84gcj02, um_tsMapisAmap } from "./";
 const a = 6378245.0;
 const pi = 3.1415926535897932384626;
 const ee = 0.00669342162296594323;
@@ -142,7 +145,27 @@ function transformLng(x: number, y: number): number {
     ret += (150.0 * Math.sin(x / 12.0 * pi) + 300.0 * Math.sin(x / 30.0 * pi)) * 2.0 / 3.0;
     return ret;
 }
-
+/**标绘绘制84坐标系转换为火星坐标系(高德)
+ * @param map 地图实例
+ * @param plot 标绘数据(修改latlnglatlngs原始坐标)
+ */
+function convertgps84Togcj02(map: MapType, plot: MapArc | MapLine | MapRect | MapText | MapImage | MapArc[] | MapLine[] | MapRect[] | MapText[] | MapImage[] | (MDataParticle & CanvasPosition)[]): void {
+    if (!um_tsMapisAmap(map)) return;
+    if (!Array.isArray(plot)) plot = [plot];
+    if (!plot.length) return;
+    for (const p of plot) {
+        if ('lnglat' in p && p.lnglat?.length) {
+            const { lat, lng } = um_togps84gcj02(p.lnglat[0], p.lnglat[1]);
+            p.lnglat = [lng, lat];
+        }
+        if ('lnglats' in p && p.lnglats?.length) {
+            p.lnglats = p.lnglats.map((lnglat) => {
+                const { lat, lng } = um_togps84gcj02(lnglat[0], lnglat[1]);
+                return [lng, lat];
+            });
+        }
+    }
+}
 export {
     tobd09gps84 as um_tobd09gps84,
     togcj02gps84 as um_togcj02gps84,
@@ -150,4 +173,5 @@ export {
     togps84gcj02 as um_togps84gcj02,
     togcj02bd09 as um_togcj02bd09,
     tobd09cj02 as um_tobd09cj02,
+    convertgps84Togcj02 as um_drawConvertgps84Togcj02,
 };

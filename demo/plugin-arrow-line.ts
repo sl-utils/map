@@ -1,7 +1,7 @@
-import { MapPluginArrowLine, SLUMap } from "../src/index.ts";
+import { MapPluginArrowLine, SLMap } from "../src/index.ts";
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "L" });
 
   const plugin = new MapPluginArrowLine(map, {

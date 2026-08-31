@@ -1,12 +1,9 @@
-import * as L from "leaflet";
 import { MapPluginDraw } from "./plugin-draw";
-import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLUMap } from "../map";
-import { um_deepMergeOpt, um_getAngle, um_getDistance, um_getLngLatByPoint, um_getMapMouseEvent, um_getPointByLnglat } from "../utils";
+import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer, SLMap } from "../map";
+import { MapEventType, um_deepMergeOpt, um_getAngle, um_getDistance, um_getLngLatByPoint, um_getMapMouseEvent, um_getPointByLnglat } from "../utils";
 import { SLUCanvas } from "../canvas";
-import type { MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent ,MOptCanvas} from "../map";
+import type { MapEvent, MapLine, MapArc, MapText, MapImageEvent, MapImage, AMapMapsEvent ,MOptCanvasLayer} from "../map";
 import type { CanvasTextPanel } from "../canvas";
-import { LeafletMouseEvent } from "leaflet";
-import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
 
 /**
  * 测距插件
@@ -16,14 +13,14 @@ import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 测距配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginRange } from '@sl-utils/map';
+ * import { SLMap, MapPluginRange } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建测距插件
@@ -58,7 +55,7 @@ import { MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
  * ```
  */
 export class MapPluginRange extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginRange) {
+    constructor(sluMap: SLMap, options?: MOptPluginRange) {
         const map = sluMap.map;
         super(map, options);
         if (options) this.options = um_deepMergeOpt(this.options, options);
@@ -283,7 +280,7 @@ export class MapPluginRange extends MapCanvasLayer {
     /** 单击事件
      * @param e 事件对象
      */
-    private eventClick = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
+    private eventClick = (e: MapEventType): void => {
         this.flagTimeout = setTimeout(() => {
             const { latlng: { lat, lng } } = um_getMapMouseEvent(e, this.map);
             const lnglats = this.lnglatLists[this.lnglatLists.length - 1] || [];
@@ -295,7 +292,7 @@ export class MapPluginRange extends MapCanvasLayer {
     /** 鼠标移动事件
      * @param e 事件对象
      */
-    private eventMousemove = (e: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent): void => {
+    private eventMousemove = (e: MapEventType): void => {
         if (this.ifDrag) return;
         const { latlng: { lat, lng } } = um_getMapMouseEvent(e, this.map);
         this.lnglat = [lng, lat];
@@ -315,7 +312,7 @@ export class MapPluginRange extends MapCanvasLayer {
 }
 
 /**范围标注插件配置 */
-export interface MOptPluginRange extends MOptCanvas {
+export type MOptPluginRange = MOptCanvasLayer & {
     /**线条颜色 */
     colorLine?: string;
     /**圆弧颜色 */

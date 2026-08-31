@@ -1,6 +1,4 @@
-import { Layer } from "leaflet";
-import { Map as MaplibreMap } from 'maplibre-gl';
-import * as L from "leaflet";
+import { _MapL, _MapM, _MapLLayer } from "./slu-map-util";
 function tsIfPlainObject(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -12,7 +10,7 @@ function tsIfOneArrTwoLen(value) {
 }
 function tsMapisLeaflet(map) {
     try {
-        return map instanceof L.Map;
+        return map instanceof _MapL;
     }
     catch (e) {
         return false;
@@ -20,7 +18,7 @@ function tsMapisLeaflet(map) {
 }
 function tsMapisAmap(map) {
     try {
-        return map instanceof AMap.Map;
+        return typeof AMap !== "undefined" && map instanceof AMap.Map;
     }
     catch (e) {
         return false;
@@ -28,7 +26,7 @@ function tsMapisAmap(map) {
 }
 function tsMapisMapLibre(map) {
     try {
-        return map instanceof MaplibreMap;
+        return map instanceof _MapM;
     }
     catch (e) {
         return false;
@@ -52,10 +50,10 @@ function tsEventisMapLibre(e) {
     return e && 'lngLat' in e && 'point' in e;
 }
 function tsLayerisLeaflet(e) {
-    return e instanceof Layer;
+    return e instanceof _MapLLayer;
 }
 function tsLayerisAmap(e) {
-    return e instanceof AMap.CustomLayer;
+    return typeof AMap !== "undefined" && e instanceof AMap.CustomLayer;
 }
 function tsLayerisMapLibre(e) {
     return e && typeof e === 'object' && 'id' in e && 'render' in e && 'type' in e;
@@ -68,5 +66,5 @@ function tsisMapEventType(type) {
         throw new Error(`Invalid MapEventType: ${type}`);
     }
 }
-export { tsIfPlainObject, tsIfTwoArr, tsIfOneArrTwoLen, tsMapisLeaflet, tsMapisAmap, tsMapisBaidu, tsMapisMapLibre, tsEventisLeaflet, tsEventisAmap, tsEventisMapLibre, tsLayerisLeaflet, tsLayerisAmap, tsLayerisMapLibre, tsisKeyOf, tsisMapEventType, tsMapisLeaflet as um_tsMapisLeaflet, tsMapisAmap as um_tsMapisAmap, tsMapisBaidu as um_tsMapisBaidu, tsMapisMapLibre as um_tsMapisMapLibre, tsEventisLeaflet as um_tsEventisLeaflet, tsEventisAmap as um_tsEventisAmap, tsEventisMapLibre as um_tsEventisMapLibre, tsLayerisLeaflet as um_tsLayerisLeaflet, tsLayerisAmap as um_tsLayerisAmap, tsLayerisMapLibre as um_tsLayerisMapLibre, tsIfOneArrTwoLen as um_tsIfOneArrTwoLen, tsisKeyOf as um_tsIsKeyOf, tsisMapEventType as um_tsIsMapEventType, };
+export { tsIfPlainObject as um_tsIfPlainObject, tsIfTwoArr as um_tsIfTwoArr, tsMapisLeaflet as um_tsMapisLeaflet, tsMapisAmap as um_tsMapisAmap, tsMapisBaidu as um_tsMapisBaidu, tsMapisMapLibre as um_tsMapisMapLibre, tsEventisLeaflet as um_tsEventisLeaflet, tsEventisAmap as um_tsEventisAmap, tsEventisMapLibre as um_tsEventisMapLibre, tsLayerisLeaflet as um_tsLayerisLeaflet, tsLayerisAmap as um_tsLayerisAmap, tsLayerisMapLibre as um_tsLayerisMapLibre, tsIfOneArrTwoLen as um_tsIfOneArrTwoLen, tsisKeyOf as um_tsIsKeyOf, tsisMapEventType as um_tsIsMapEventType, };
 //# sourceMappingURL=slu-type-guard.js.map

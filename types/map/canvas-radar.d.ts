@@ -1,5 +1,4 @@
-import { Map as LMap } from 'leaflet';
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapType } from "../utils";
 import type { MapShow, MapPoint, SizeFix_, MapEvent } from ".";
 /**地图canvas绘制雷达类
  * @constructor
@@ -9,7 +8,7 @@ import type { MapShow, MapPoint, SizeFix_, MapEvent } from ".";
 export declare class MapCanvasRadar {
     private map;
     private ctx;
-    constructor(map: AMAP.Map | LMap | MaplibreMap, ctx: CanvasRenderingContext2D);
+    constructor(map: MapType, ctx: CanvasRenderingContext2D);
     /**当前地图缩放层级 */
     private get zoom();
     /**上一动画时间(毫秒) */

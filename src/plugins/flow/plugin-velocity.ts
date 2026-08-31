@@ -1,7 +1,5 @@
-import * as L from "leaflet";
-import { um_deepMergeOpt, um_getLngLatByPoint, um_getPointByLnglat } from "../../utils";
+import { MapType, um_deepMergeOpt, um_getLngLatByPoint, um_getPointByLnglat } from "../../utils";
 import type { VelocityHeader, MDataVeloctiyWind } from "./plugin-flow";
-import { Map as MaplibreMap } from 'maplibre-gl';
 
 /**
  * 运动粒子类
@@ -15,9 +13,9 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * @example
  * ```typescript
  * // 通常不直接使用此类，而是通过 MapPluginFlow 插件
- * import { SLUMap, MapPluginFlow } from '@sl-utils/map';
+ * import { SLMap, MapPluginFlow } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建流体动画插件（内部使用 PluginVelocity）
@@ -58,7 +56,7 @@ export class PluginVelocity {
     data: [],
   };
   /**地图实例 */
-  private map!: L.Map | AMAP.Map | MaplibreMap;
+  private map!: MapType;
   /**画布元素 */
   private canvas!: HTMLCanvasElement;
   /**粒子强度最低时的速度（米 / 秒） velocity at which particle intensity is minimum (m/s)*/

@@ -1,5 +1,5 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapCanvasLayer, SLMap } from "../map";
+import { MapType } from "../utils";
 import type { MapLine, MOptPluginArrowLine } from "../map";
 /**
  * 地图 Canvas 动态箭头线插件
@@ -9,14 +9,14 @@ import type { MapLine, MOptPluginArrowLine } from "../map";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 箭头线配置项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginArrowLine } from '@sl-utils/map';
+ * import { SLMap, MapPluginArrowLine } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建箭头线插件
@@ -51,7 +51,7 @@ import type { MapLine, MOptPluginArrowLine } from "../map";
  * ```
  */
 export declare class MapPluginArrowLine extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginArrowLine);
+    constructor(sluMap: SLMap, options?: MOptPluginArrowLine);
     /**箭头线实例 */
     private arrowLine;
     /**设置所有线数据
@@ -75,7 +75,7 @@ export declare class MapPluginArrowLine extends MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
      */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void;
+    protected addMapEvents(map: MapType, key: "on" | "off"): void;
     /**拖拽结束，开始绘制 */
     private drawStart;
     /**拖拽开始，结束绘制 */

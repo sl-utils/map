@@ -1,7 +1,5 @@
-import { Map as LMap, LayerOptions } from "leaflet";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapLayerOptions, MapType } from "../utils";
 import type { OptCanvas } from "../canvas";
-import type { CustomLayerOption } from "../amap";
 /**
  * 地图 Canvas 基础图层类
  *
@@ -15,7 +13,7 @@ import type { CustomLayerOption } from "../amap";
  * @example
  * ```typescript
  * // 通常不直接使用此类，而是继承它实现自定义插件
- * import { MapCanvasLayer, SLUMap } from '@sl-utils/map';
+ * import { MapCanvasLayer, SLMap } from '@sl-utils/map';
  *
  * // 自定义插件示例
  * class MyPlugin extends MapCanvasLayer {
@@ -48,7 +46,7 @@ import type { CustomLayerOption } from "../amap";
  * }
  *
  * // 使用自定义插件
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * const plugin = new MyPlugin(map, {
@@ -56,22 +54,16 @@ import type { CustomLayerOption } from "../amap";
  *   className: 'my-plugin',
  *   zIndex: 100
  * });
- *
- * // 移除图层
- * plugin.onRemove();
  * ```
  */
 export declare class MapCanvasLayer {
-    constructor(MAP: LMap, opt?: MOptCanvas);
-    constructor(MAP: MaplibreMap, opt?: MOptCanvas);
-    constructor(MAP: AMAP.Map, opt?: AMAP.CustomLayerOption);
-    constructor(MAP: AMAP.Map | LMap | MaplibreMap, opt?: AMAP.CustomLayerOption | MOptCanvas);
+    constructor(map: MapType, opt?: MOptCanvasLayer);
     /**地图实例*/
-    readonly map: AMAP.Map | LMap | MaplibreMap;
+    readonly map: MapType;
     /**图层 */
     private layer;
     /**画布 */
-    protected readonly canvas: HTMLCanvasElement;
+    readonly canvas: HTMLCanvasElement;
     /**画布上下文 */
     protected readonly ctx: CanvasRenderingContext2D;
     /**画布宽度 */
@@ -79,7 +71,7 @@ export declare class MapCanvasLayer {
     /**画布高度 */
     protected height: number;
     /**图层配置项 */
-    readonly options: MOptCanvas;
+    readonly options: MOptCanvasLayer;
     /**动画循环的id标识 */
     protected flagAnimation: number;
     /**移除图层 */
@@ -90,7 +82,7 @@ export declare class MapCanvasLayer {
      * @param map 地图实例
      * @param key 事件类型
      */
-    protected addMapEvents(map: AMAP.Map | LMap | MaplibreMap, key: 'on' | 'off'): void;
+    protected addMapEvents(map: MapType, key: 'on' | 'off'): void;
     /**绘制静态数据推荐使用此方法(固定的图) */
     protected renderFixedData(): void;
     /** 推荐使用此方法绘制动态图(跟随鼠标拖动，移动时需要立刻绘制时)
@@ -135,8 +127,6 @@ export declare class MapCanvasLayer {
     /**------------------------------Leaflet地图的实现------------------------------*/
     /**初始化Leaflet地图的图层 */
     private _initLeaflet;
-    /**初始化画布并添加到Pane中 */
-    private initLeafletCanvas;
     /**移除图层 */
     private _onLeafletRemove;
     /**添加Leaflet地图事件监听
@@ -151,7 +141,7 @@ export declare class MapCanvasLayer {
      */
     private _animateZoom;
     /**画布加载完成 */
-    private _onCanvasLoad;
+    _onCanvasLoad(): void;
     /**------------------------------MapLibre地图的实现------------------------------*/
     /**异步初始化MapLibre地图的图层 */
     private _initMapLibreAsync;
@@ -167,13 +157,13 @@ export declare class MapCanvasLayer {
      */
     private addMaplibreEvent;
 }
-/**地图画布配置 */
-export interface MOptCanvas extends OptCanvas, LayerOptions, CustomLayerOption {
+/**地图画布图层配置 */
+export type MOptCanvasLayer = OptCanvas & MapLayerOptions & {
     /**画布挂载的div节点名称 @default 'canvas'
-     * map默认创建mapPane、tilePane、shadowPane、overlayPane、markerPane、tooltipPane、popupPane，
-     * 不存在时CanvasLayer会调用创建方法。
-     * 类名会去掉Pane，例如XPane和X都生成类名为leaflet-X-pane的div节点，但是属于不同的pane
-     */
+        * map默认创建mapPane、tilePane、shadowPane、overlayPane、markerPane、tooltipPane、popupPane，
+        * 不存在时CanvasLayer会调用创建方法。
+        * 类名会去掉Pane，例如XPane和X都生成类名为leaflet-X-pane的div节点，但是属于不同的pane
+        */
     pane?: string;
     /**画布的class名称 */
     className?: string;
@@ -181,4 +171,4 @@ export interface MOptCanvas extends OptCanvas, LayerOptions, CustomLayerOption {
     zIndex?: number;
     /**zoom调整时是否开启缩放动画 @default true */
     zoomAnimation?: boolean;
-}
+};

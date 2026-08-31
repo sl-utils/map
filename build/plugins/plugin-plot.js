@@ -1,6 +1,6 @@
-import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
-import { MapPluginDraw } from "./plugin-draw";
 import { um_deepMergeOpt, um_getLngLatByPoint, um_getLngDiffByDistance, um_getMapMouseEvent, um_getPointByLnglat, um_setMapStatus, um_togcj02gps84, um_togps84gcj02, um_tsMapisAmap } from "../utils";
+import { MapPluginDraw } from "./plugin-draw";
+import { MapCanvasDraw, MapCanvasEvent, MapCanvasLayer } from "../map";
 export class MapPluginPlot extends MapCanvasLayer {
     constructor(sluMap, options) {
         const map = sluMap.map, { plotOpt, editOpt, textOpt } = options || {};

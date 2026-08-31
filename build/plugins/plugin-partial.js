@@ -1,7 +1,6 @@
-import { um_getPointsByLnglats } from "../utils";
+import { um_getPointsByLnglats, um_drawConvertgps84Togcj02 } from "../utils";
 import { MapCanvasLayer } from "../map";
 import { SLUCanvas } from "../canvas";
-import { um_drawConvertgps84Togcj02 } from "../utils";
 export class MapPluginPartial extends MapCanvasLayer {
     constructor(sluMap, options) {
         super(sluMap.map, options);

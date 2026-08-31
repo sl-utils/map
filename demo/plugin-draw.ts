@@ -1,4 +1,4 @@
-import { MapPluginDraw, SLUMap } from "../src/index.ts";
+import { MapPluginDraw, SLMap } from "../src/index.ts";
 
 function createButton(text: string) {
   const button = document.createElement("button");
@@ -8,7 +8,7 @@ function createButton(text: string) {
 }
 
 async function main() {
-  const map = new SLUMap("map");
+  const map = new SLMap("map");
   await map.init({ type: "A" });
 
   const draw = new MapPluginDraw(map);

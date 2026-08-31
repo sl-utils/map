@@ -1,4 +1,4 @@
-import { tsIfPlainObject } from "./slu-type-guard";
+import { um_tsIfPlainObject } from "./slu-type-guard";
 
 /**移除数组指定item，会改变原数组，不改变引用地址
  * @param arr 要操作的数组
@@ -32,7 +32,7 @@ function deepMergeOpt<T>(target: T, source: T): T {
             continue;
         }
         const targetValue = result[key];
-        if (tsIfPlainObject(targetValue) && tsIfPlainObject(sourceValue)) {
+        if (um_tsIfPlainObject(targetValue) && um_tsIfPlainObject(sourceValue)) {
             result[key] = deepMergeOpt(targetValue, sourceValue);
         } else {
             result[key] = sourceValue;

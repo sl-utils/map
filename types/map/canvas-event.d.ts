@@ -1,5 +1,4 @@
-import { LeafletMouseEvent, Map as LMap } from "leaflet";
-import { Map as MaplibreMap, MapMouseEvent as MaplibreMouseEvent } from 'maplibre-gl';
+import { MapEventType, MapType } from "../utils";
 import { CanvasCursorPosition, CanvasEvent, CanvasEventResponse, CanvasImage, EventType } from "../canvas";
 import { MapArc, MapGif, MapImage, MapLine, MapPolygon, MapPosition, MapRect, MapShow, MapTextBase } from ".";
 /**地图事件控制类
@@ -7,7 +6,7 @@ import { MapArc, MapGif, MapImage, MapLine, MapPolygon, MapPosition, MapRect, Ma
  * @param map 地图实例
  */
 export declare class MapCanvasEvent {
-    constructor(map: AMAP.Map | LMap | MaplibreMap);
+    constructor(map: MapType);
     /**R树搜索 事件 */
     private rbush;
     /**R树查找对象 */
@@ -19,7 +18,7 @@ export declare class MapCanvasEvent {
     /**地图销毁必须调用此方法，否则事件指针会异常 */
     static destory(): void;
     /**地图实例 */
-    protected map: AMAP.Map | LMap | MaplibreMap;
+    protected map: MapType;
     /**监听事件 */
     protected _listenCbs: {
         [key in EventType]?: ((e: MapEventResponse<any>) => void)[];
@@ -152,7 +151,7 @@ export interface MapMouseEvent {
     /**原始DOM事件 */
     orginDOMEvent: MouseEvent;
     /**原始地图事件 */
-    orginMapEvent: LeafletMouseEvent | AMapMapsEvent | MaplibreMouseEvent;
+    orginMapEvent: MapEventType;
 }
 /**地图事件触发时的响应对象 @template T 挂载此次事件的对象(MapImage|MapArc|Event) @template I 对象携带的相关数据 */
 export type MapEventResponse<T extends MapEvent = MapEvent, I = any> = CanvasEventResponse<T, I> & {

@@ -1,8 +1,5 @@
-import { CRS, Map as LMap, latLng } from "leaflet";
-import * as AMapLoader from '@amap/amap-jsapi-loader';
 import { MapNameType, SLULeafletNetMap } from '../leaflet';
-import { um_getBounds, um_getDistance, um_getLngLatByEvent, um_getLngLatByPoint, um_getLnglatByValue, um_getMapSize, um_getPointByLnglat, um_setFitBounds, um_setViewCenter, um_togcj02gps84, um_togps84gcj02, um_tsIsKeyOf, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { um_getBounds, um_getDistance, um_getLngLatByEvent, um_getLngLatByPoint, um_getLnglatByValue, um_getMapInstance, um_getMapSize, um_getPointByLnglat, um_setFitBounds, um_setViewCenter, um_togcj02gps84, um_tsIsKeyOf, um_tsMapisAmap, um_tsMapisLeaflet, um_tsMapisMapLibre } from "../utils";
 export class SLUMap {
     constructor(ele) {
         this.controlInfo = Object.create({});
@@ -27,17 +24,12 @@ export class SLUMap {
     }
     async init(options = {}) {
         const { type } = options, ele = this.ele;
-        switch (type) {
-            case "A":
-                this._map = await this.initAmap(ele, options);
-                break;
-            case "M":
-                this._map = await this.initMaplibre(ele, options);
-                break;
-            default:
-                this._map = await this.initLeaflet(ele, options);
-                this.showMap([MapNameType.tianDiTuNormalMap, MapNameType.tianDiTuNormalAnnotion]);
-                break;
+        this._map = await um_getMapInstance(type, ele, options);
+        if (type === 'L') {
+            this.showMap([MapNameType.tianDiTuNormalMap, MapNameType.tianDiTuNormalAnnotion]);
+        }
+        else if (type === 'M') {
+            this.map.on('style.load', () => { this.changeLanguage(false); });
         }
     }
     setFitView(lnglats) {
@@ -56,7 +48,8 @@ export class SLUMap {
         const center = this.map.getCenter();
         if (um_tsMapisAmap(this.map)) {
             const { lat, lng } = um_togcj02gps84(center.lng, center.lat);
-            return new AMap.LngLat(lng, lat);
+            center.lng = lng;
+            center.lat = lat;
         }
         return center;
     }
@@ -116,41 +109,6 @@ export class SLUMap {
         this.setZoomAndScale();
         return this.controlInfo;
     }
-    initLeaflet(ele, opt) {
-        const { zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false } = opt;
-        let param = {
-            dragging,
-            zoomControl,
-            zoom,
-            minZoom,
-            maxZoom,
-            center: latLng(lat, lng),
-            attributionControl,
-            doubleClickZoom,
-            crs: CRS.EPSG3857,
-            closePopupOnClick,
-        };
-        let map = new LMap(ele, param);
-        return Promise.resolve(map);
-    }
-    async initMaplibre(ele, opt) {
-        const { style = 'https://tiles.openfreemap.org/styles/bright', zoom = 11, minZoom = 2, maxZoom = 20, center: [lng, lat] = [114.12027, 22.68471], dragging = true, attributionControl = false, doubleClickZoom = false } = opt;
-        let map = new MaplibreMap({
-            container: ele,
-            style,
-            center: [lng, lat],
-            zoom,
-            minZoom,
-            maxZoom,
-            antialias: true,
-            dragRotate: dragging,
-            touchZoomRotate: false,
-            doubleClickZoom,
-            attributionControl: attributionControl ? undefined : false
-        });
-        map.on('style.load', () => { this.changeLanguage(false); });
-        return Promise.resolve(map);
-    }
     changeLanguage(ifEn) {
         const map = this.map;
         if (um_tsMapisMapLibre(map)) {
@@ -172,35 +130,6 @@ export class SLUMap {
                 }
             });
         }
-    }
-    async initAmap(ele, opt) {
-        const { zoom = 11, minZoom = 2, maxZoom = 20, center = [114.12027, 22.68471], dragging = true, zoomControl = false, attributionControl = false, doubleClickZoom = false, closePopupOnClick = false, showLabel = true } = opt;
-        const { lat, lng } = um_togps84gcj02(center[0], center[1]);
-        return AMapLoader.load({
-            "key": "87e1b1e9aa88724f69208972546fdd57",
-            "version": "1.4.15",
-            "plugins": ["Map3D"]
-        }).then(() => {
-            let map = new AMap.Map(ele, {
-                center: [lng, lat],
-                disableSocket: true,
-                viewMode: '2D',
-                mapStyle: 'amap://styles/dfd45346264e1fa2bb3b796f36cab42a',
-                skyColor: "#A3CCFF",
-                lang: 'zh_cn',
-                labelzIndex: 130,
-                pitch: 40,
-                zoom: zoom,
-                zooms: [minZoom, maxZoom],
-                dragEnable: dragging,
-                doubleClickZoom: doubleClickZoom,
-                keyboardEnable: false,
-                isHotspot: false,
-                showLabel,
-                layers: [],
-            });
-            return map;
-        });
     }
     eventSwitch(flag) {
         let key = flag ? 'on' : 'off';

@@ -1,8 +1,7 @@
-import { MapCanvasLayer, SLUMap } from "../map";
+import { MapCanvasLayer, SLMap } from "../map";
 import { SLUWorker } from "../utils/slu-worker";
-import { um_deepMergeOpt, um_getLngLatByPoint, um_getMapSize } from "../utils";
+import { MapType, um_deepMergeOpt, um_getLngLatByPoint, um_getMapSize } from "../utils";
 import { MDataGrid, MOptGrid } from "./grid/plugin-grid-base";
-import { Map as MaplibreMap } from "maplibre-gl";
 import { PluginCoastlineMask } from "./plugin-coastline-mask";
 
 
@@ -14,15 +13,15 @@ import { PluginCoastlineMask } from "./plugin-coastline-mask";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 配置项
  * @param mask 海岸线 Mask（可选，用于裁剪陆地区域）
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginGridRender, PluginCoastlineMask } from '@sl-utils/map';
+ * import { SLMap, MapPluginGridRender, PluginCoastlineMask } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 加载海岸线数据
@@ -61,7 +60,7 @@ import { PluginCoastlineMask } from "./plugin-coastline-mask";
  * ```
  */
 export class MapPluginGridRender extends MapCanvasLayer {
-  constructor(sluMap: SLUMap, options: Partial<MOptGrid>, mask?: PluginCoastlineMask) {
+  constructor(sluMap: SLMap, options: Partial<MOptGrid>, mask?: PluginCoastlineMask) {
     super(sluMap.map, options);
     this.options = um_deepMergeOpt(this.options, options);
     this.mask = mask;
@@ -265,7 +264,7 @@ export class MapPluginGridRender extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-  protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: "on" | "off"): void {
+  protected addMapEvents(map: MapType, key: "on" | "off"): void {
     const render = () => this.render();
     map[key]("moveend", render);
     map[key]("zoomend", render);

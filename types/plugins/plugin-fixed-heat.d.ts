@@ -1,4 +1,4 @@
-import { MapCanvasLayer, SLUMap } from "../map";
+import { MapCanvasLayer, SLMap } from "../map";
 import type { MOptPluginFixedHeat } from "../map";
 /**
  * 固定图片热力图插件
@@ -8,14 +8,14 @@ import type { MOptPluginFixedHeat } from "../map";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 热力图配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginFixedHeat } from '@sl-utils/map';
+ * import { SLMap, MapPluginFixedHeat } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建固定热力图插件
@@ -48,7 +48,7 @@ import type { MOptPluginFixedHeat } from "../map";
  * ```
  */
 export declare class MapPluginFixedHeat extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginFixedHeat);
+    constructor(sluMap: SLMap, options?: MOptPluginFixedHeat);
     private fixedHeat;
     /**
      * 外部设置热力数据

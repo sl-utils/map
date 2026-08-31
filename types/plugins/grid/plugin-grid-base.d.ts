@@ -1,6 +1,5 @@
-import { MapCanvasLayer } from "../../map";
-import type { MOptCanvas } from "../../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapCanvasLayer, type MOptCanvasLayer } from "../../map";
+import { MapType } from "../../utils";
 /**
  * 网格插件基础类
  *
@@ -15,9 +14,9 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * @example
  * ```typescript
  * // 通常不直接使用此类，而是使用其子类
- * import { SLUMap, MapPluginGrid } from '@sl-utils/map';
+ * import { SLMap, MapPluginGrid } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建网格插件（继承自 MapPluginGridBase）
@@ -50,7 +49,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * ```
  */
 export declare class MapPluginGridBase extends MapCanvasLayer {
-    constructor(map: L.Map | AMAP.Map | MaplibreMap, options: Partial<MOptGrid>);
+    constructor(map: MapType, options: Partial<MOptGrid>);
     /**基础配置 */
     readonly options: MOptGrid;
     /**网格数据   数据 [X] [Y]  */
@@ -259,7 +258,7 @@ export interface WorkerInfo {
     mosaicValue?: number[];
 }
 /**网格插件配置 */
-export interface MOptGrid extends MOptCanvas {
+export type MOptGrid = MOptCanvasLayer & {
     /**马赛克颜色 */
     mosaicColor?: string[];
     /**马赛克值 */
@@ -272,4 +271,4 @@ export interface MOptGrid extends MOptCanvas {
     gradientMax?: number;
     /**渐变半径 */
     gradientRadius?: number;
-}
+};

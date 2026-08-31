@@ -1,5 +1,4 @@
-import { Map as LMap } from 'leaflet';
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapType } from '../utils';
 /**
  * 海岸线 Mask 生成器
  *
@@ -12,9 +11,9 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  *
  * @example
  * ```typescript
- * import { SLUMap, PluginCoastlineMask, MapPluginGridRender } from '@sl-utils/map';
+ * import { SLMap, PluginCoastlineMask, MapPluginGridRender } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 加载不同精度的海岸线数据
@@ -50,7 +49,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * ```
  */
 export declare class PluginCoastlineMask {
-    constructor(sources: DataCoastline[], map: AMAP.Map | LMap | MaplibreMap);
+    constructor(sources: DataCoastline[], map: MapType);
     /**地图实例 */
     private map;
     /**海岸线数据源 */

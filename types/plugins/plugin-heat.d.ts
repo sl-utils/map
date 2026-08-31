@@ -1,5 +1,5 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import type { MOptCanvas } from "../map/canvas-layer";
+import { MapCanvasLayer, SLMap } from "../map";
+import type { MOptCanvasLayer } from "../map/canvas-layer";
 /**
  * 热力图图层插件
  *
@@ -8,14 +8,14 @@ import type { MOptCanvas } from "../map/canvas-layer";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 热力图配置项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginHeat } from '@sl-utils/map';
+ * import { SLMap, MapPluginHeat } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建热力图插件
@@ -49,7 +49,7 @@ import type { MOptCanvas } from "../map/canvas-layer";
  * ```
  */
 export declare class MapPluginHeat extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginHeat);
+    constructor(sluMap: SLMap, options?: MOptPluginHeat);
     /**热力数据集合 */
     private _allHeats;
     /**计算后的热力图绘制数据 [位置x,位置y,权重W] */
@@ -124,7 +124,7 @@ export interface MDataHeat {
     weight?: number;
 }
 /**热力图插件配置 */
-export interface MOptPluginHeat extends MOptCanvas {
+export type MOptPluginHeat = MOptCanvasLayer & {
     /**热力图半径 @default 20 */
     radius?: number;
     /**模糊程度 @default 15 */
@@ -141,4 +141,4 @@ export interface MOptPluginHeat extends MOptCanvas {
     tipX?: number;
     /**提示框垂直偏移 */
     tipY?: number;
-}
+};

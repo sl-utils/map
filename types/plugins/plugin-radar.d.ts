@@ -1,6 +1,6 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import type { MOptCanvas, MOptPluginRadar } from "../map";
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapCanvasLayer, SLMap } from "../map";
+import type { MOptCanvasLayer, MOptPluginRadar } from "../map";
+import { MapType } from "../utils";
 /**
  * 雷达绘制插件
  *
@@ -9,14 +9,14 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 雷达绘制配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginRadar } from '@sl-utils/map';
+ * import { SLMap, MapPluginRadar } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建雷达插件
@@ -53,7 +53,7 @@ import { Map as MaplibreMap } from 'maplibre-gl';
  * ```
  */
 export declare class MapPluginRadar extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: AMAP.CustomLayerOption | MOptCanvas);
+    constructor(sluMap: SLMap, options?: AMAP.CustomLayerOption | MOptCanvasLayer);
     /**动画所有状态 */
     private canvasRadar;
     /**
@@ -83,7 +83,7 @@ export declare class MapPluginRadar extends MapCanvasLayer {
    * @param map 地图实例
    * @param key 事件类型
    */
-    protected addMapEvents(map: L.Map | AMAP.Map | MaplibreMap, key: 'on' | 'off'): void;
+    protected addMapEvents(map: MapType, key: 'on' | 'off'): void;
     /**拖拽结束，开始绘制 */
     private drawStart;
     /**拖拽开始，结束绘制 */

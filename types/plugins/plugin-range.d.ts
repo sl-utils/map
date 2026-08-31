@@ -1,5 +1,5 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import type { MapText, MapImage, MOptCanvas } from "../map";
+import { MapCanvasLayer, SLMap } from "../map";
+import type { MapText, MapImage, MOptCanvasLayer } from "../map";
 import type { CanvasTextPanel } from "../canvas";
 /**
  * 测距插件
@@ -9,14 +9,14 @@ import type { CanvasTextPanel } from "../canvas";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 测距配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginRange } from '@sl-utils/map';
+ * import { SLMap, MapPluginRange } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建测距插件
@@ -51,7 +51,7 @@ import type { CanvasTextPanel } from "../canvas";
  * ```
  */
 export declare class MapPluginRange extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginRange);
+    constructor(sluMap: SLMap, options?: MOptPluginRange);
     /**默认配置 */
     options: MOptPluginRange;
     /** 地图事件控制管理对象 */
@@ -113,7 +113,7 @@ export declare class MapPluginRange extends MapCanvasLayer {
     private eventDblclick;
 }
 /**范围标注插件配置 */
-export interface MOptPluginRange extends MOptCanvas {
+export type MOptPluginRange = MOptCanvasLayer & {
     /**线条颜色 */
     colorLine?: string;
     /**圆弧颜色 */
@@ -126,4 +126,4 @@ export interface MOptPluginRange extends MOptCanvas {
     lang?: 'cn' | 'en';
     /**文本面板配置 */
     textPanel?: CanvasTextPanel;
-}
+};

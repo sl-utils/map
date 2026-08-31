@@ -1,8 +1,7 @@
-import { Map as LMap, LatLng } from "leaflet";
 import { MapNameType } from '../leaflet';
-import { type StyleSpecification, Map as MaplibreMap, type LngLat as MaplibreLngLat } from 'maplibre-gl';
+import { _MapMStyle, MapType } from "../utils";
 /**
- * SLUMap 地图核心类
+ * SLMap 地图核心类
  *
  * 封装了 Leaflet、高德、MapLibre 三种地图引擎，提供统一的 API 接口。
  * 支持地图初始化、视图控制、坐标转换、比例尺计算等功能。
@@ -12,10 +11,10 @@ import { type StyleSpecification, Map as MaplibreMap, type LngLat as MaplibreLng
  *
  * @example
  * ```typescript
- * import { SLUMap } from '@sl-utils/map';
+ * import { SLMap } from '@sl-utils/map';
  *
  * // 创建地图实例
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  *
  * // 初始化 Leaflet 地图（默认）
  * await map.init({
@@ -84,14 +83,14 @@ import { type StyleSpecification, Map as MaplibreMap, type LngLat as MaplibreLng
  * map.closeControl();
  * ```
  */
-export declare class SLUMap {
+export declare class SLMap {
     constructor(ele: string);
     /**地图容器元素 */
     private ele;
     /**地图实例 */
     private _map;
     /**地图实例 */
-    get map(): LMap | AMAP.Map | MaplibreMap;
+    get map(): MapType;
     /**地图控件更新时的回调 */
     private controlCb?;
     /**地图控件信息 */
@@ -110,7 +109,7 @@ export declare class SLUMap {
      * @param lnglats [经度,纬度][]
      * @returns SLUMap实例
      */
-    setFitView(lnglats: [number, number][]): SLUMap;
+    setFitView(lnglats: [number, number][]): SLMap;
     /**
      * 设置地图中心
      * @param center 中心 [lng,lat]顺序
@@ -125,7 +124,7 @@ export declare class SLUMap {
     /**获取地图中心
      * @returns 地图中心
      */
-    getCenter(): LatLng | AMAP.LngLat | MaplibreLngLat;
+    getCenter(): MapLatLng;
     /**获取地图缩放级别
      * @returns 地图缩放级别
      */
@@ -141,7 +140,7 @@ export declare class SLUMap {
      * @param names @default [] 网络图层名称数组
      * @returns SLUMap实例
      */
-    showMap(names?: Array<MapNameType>): SLUMap;
+    showMap(names?: Array<MapNameType>): SLMap;
     /**打开地图控件
      * @param ifDMS @default true 是否使用度分秒格式，否则显示度格式，默认精度为5
      * @returns 地图控件信息
@@ -158,31 +157,10 @@ export declare class SLUMap {
      * @returns 地图控件信息
      */
     changeLatlngFormat(ifDMS: boolean): MapControlInfo;
-    /**---------------leaflet地图的相关方法------------------- */
-    /**初始化leaflet地图
-     * @param ele 地图容器元素
-     * @param opt 地图初始化参数
-     * @returns LMap实例
-     */
-    private initLeaflet;
-    /**---------------maplibre地图的相关方法------------------- */
-    /**初始化maplibre地图
-     * @param ele 地图容器元素
-     * @param opt 地图初始化参数
-     * @returns maplibregl.Map实例
-     */
-    private initMaplibre;
     /**切换中英文 仅对maplibre地图生效
      * @param ifEn 是否切换英文
      */
     changeLanguage(ifEn: boolean): void;
-    /**---------------高德地图的相关方法------------------- */
-    /**初始化高德地图
-     * @param ele 地图容器元素
-     * @param opt 地图初始化参数
-     * @returns AMap实例
-     */
-    private initAmap;
     /**--------------地图控件的相关方法------------------- */
     /**监听事件开关
      * @param flag 开启或关闭事件
@@ -227,7 +205,7 @@ export interface MOpt {
     /**是否显示标签(省会、地名等)，仅适用于高德地图 @default true */
     showLabel: boolean;
     /**maplibre地图样式，支持url或json自定义样式 */
-    style?: string | StyleSpecification;
+    style?: string | _MapMStyle;
 }
 /**地图边界信息 */
 export interface MapBounds {

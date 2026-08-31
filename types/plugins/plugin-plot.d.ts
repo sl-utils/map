@@ -1,5 +1,5 @@
-import { MapCanvasLayer, SLUMap } from "../map";
-import type { MapArc, MapText, MOptCanvas } from "../map";
+import { MapCanvasLayer, SLMap } from "../map";
+import type { MapArc, MapText, MOptCanvasLayer } from "../map";
 import type { CanvasImage } from "../canvas";
 /**
  * 自定义标绘插件
@@ -9,14 +9,14 @@ import type { CanvasImage } from "../canvas";
  *
  * @extends MapCanvasLayer
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 标绘配置
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginPlot } from '@sl-utils/map';
+ * import { SLMap, MapPluginPlot } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建标绘插件
@@ -90,7 +90,7 @@ import type { CanvasImage } from "../canvas";
  * ```
  */
 export declare class MapPluginPlot extends MapCanvasLayer {
-    constructor(sluMap: SLUMap, options?: MOptPluginPlot);
+    constructor(sluMap: SLMap, options?: MOptPluginPlot);
     /**标绘形状配置 */
     options: MOptPluginPlotBase;
     /**动态绘制图层 */
@@ -287,7 +287,7 @@ export type MapPlotDetailType = ({
     lngLats: [number, number][];
 };
 /**地图标绘数据 */
-export type MDataPlot = MOptCanvas & {
+export type MDataPlot = MOptCanvasLayer & {
     /**标绘名称 */
     name?: string;
     /**是否隐藏 */
@@ -296,8 +296,7 @@ export type MDataPlot = MOptCanvas & {
     ifEdit?: boolean;
 } & MapPlotDetailType;
 /**地图标绘插件基础配置 */
-export interface MOptPluginPlotBase extends MOptCanvas {
-}
+export type MOptPluginPlotBase = MOptCanvasLayer & {};
 /**地图标绘插件编辑配置 */
 export type MOptPluginPlotEdit = Partial<MapArc>;
 /**地图标绘插件文本配置 */

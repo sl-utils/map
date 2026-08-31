@@ -1,6 +1,6 @@
 import { MapPluginDraw } from "./plugin-draw";
-import { SLUMap } from "../map";
-import { MOptCanvas } from "../map/canvas-layer";
+import { SLMap } from "../map";
+import { MOptCanvasLayer } from "../map/canvas-layer";
 import { MapImageEvent } from "../map/canvas-event";
 import { MapImage } from "../map/canvas-draw";
 /**
@@ -11,14 +11,14 @@ import { MapImage } from "../map/canvas-draw";
  *
  * @extends MapPluginDraw
  * @constructor
- * @param sluMap SLUMap 地图实例
+ * @param sluMap SLMap 地图实例
  * @param options 大数据绘制选项
  *
  * @example
  * ```typescript
- * import { SLUMap, MapPluginBigData } from '@sl-utils/map';
+ * import { SLMap, MapPluginBigData } from '@sl-utils/map';
  *
- * const map = new SLUMap('map');
+ * const map = new SLMap('map');
  * await map.init({ type: 'L' });
  *
  * // 创建大数据插件
@@ -50,7 +50,7 @@ import { MapImage } from "../map/canvas-draw";
  * ```
  */
 export declare class MapPluginBigData extends MapPluginDraw {
-    constructor(sluMap: SLUMap, options: MOptBigData);
+    constructor(sluMap: SLMap, options: MOptBigData);
     /**R树搜索 绘制 */
     private rbush;
     /**R树搜索 矩形 */
@@ -93,7 +93,7 @@ export declare class MapPluginBigData extends MapPluginDraw {
     drawMapAll(): this;
 }
 /**大数据插件配置 */
-export interface MOptBigData extends MOptCanvas {
+export type MOptBigData = MOptCanvasLayer & {
     /**不同层级的配置 */
     zoomOption: {
         [key: number]: {
@@ -103,4 +103,4 @@ export interface MOptBigData extends MOptCanvas {
             minBound?: [number, number];
         };
     };
-}
+};

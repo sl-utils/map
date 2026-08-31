@@ -1,7 +1,5 @@
 import { SLUCanvas } from "../canvas";
-import { um_deepMergeOpt, um_getPointByLnglat, um_getSizeByMap, um_tsIfOneArrTwoLen } from "../utils";
-import { Map as LMap } from 'leaflet';
-import { Map as MaplibreMap } from 'maplibre-gl';
+import { MapType, um_deepMergeOpt, um_getPointByLnglat, um_getSizeByMap, um_tsIfOneArrTwoLen } from "../utils";
 import type { MapShow, MapPoint, SizeFix_, MapEvent } from ".";
 
 /**地图canvas绘制雷达类
@@ -10,7 +8,7 @@ import type { MapShow, MapPoint, SizeFix_, MapEvent } from ".";
  * @param ctx 画布上下文
  */
 export class MapCanvasRadar {
-    constructor(private map: AMAP.Map | LMap | MaplibreMap, private ctx: CanvasRenderingContext2D) { }
+    constructor(private map: MapType, private ctx: CanvasRenderingContext2D) { }
     /**当前地图缩放层级 */
     private get zoom(): number {
         return this.map.getZoom();

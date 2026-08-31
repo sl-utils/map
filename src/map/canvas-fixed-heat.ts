@@ -1,6 +1,5 @@
-import { um_deepMergeOpt, um_getPointByLnglat, um_getProjectedPointByLnglat } from "../utils";
-import { Map as MaplibreMap } from 'maplibre-gl';
-import type { MOptCanvas } from "./canvas-layer";
+import { MapType, um_deepMergeOpt, um_getPointByLnglat, um_getProjectedPointByLnglat } from "../utils";
+import type { MOptCanvasLayer } from "./canvas-layer";
 /** 固定图片热力图-不随缩放而变化
  * @constructor
  * @param map 地图实例
@@ -8,7 +7,7 @@ import type { MOptCanvas } from "./canvas-layer";
  * @param heatOpt 热力图配置
  */
 export class MapCanvasFixedHeat {
-  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, public heatOpt?: MOptPluginFixedHeat) {
+  constructor(private map: MapType, private ctx: CanvasRenderingContext2D, public heatOpt?: MOptPluginFixedHeat) {
     this.heatOpt = um_deepMergeOpt(this.defaultOption, heatOpt);
   }
 
@@ -289,7 +288,7 @@ export class MapCanvasFixedHeat {
 // =============== 类型约束 ===============
 
 /**固定热力图插件配置 */
-export interface MOptPluginFixedHeat extends MOptCanvas {
+export type MOptPluginFixedHeat = MOptCanvasLayer & {
     /**参考层级 */
     refZoom?: number;
     /**最小层级 */

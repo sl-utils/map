@@ -1,9 +1,8 @@
-import { um_deepMergeOpt, um_getPointsByLnglats } from "../utils";
+import { MapType, um_deepMergeOpt, um_getPointsByLnglats } from "../utils";
 import { SLUCanvas } from "../canvas/slu-canvas";
 import { SLUCanvasImg } from "../canvas/slu-canvas-img";
-import { Map as MaplibreMap } from 'maplibre-gl';
 import type { MapLine } from ".";
-import type { MOptCanvas } from "./canvas-layer";
+import type { MOptCanvasLayer } from "./canvas-layer";
 const ARROW_URL = "/assets/images/direction-arrow.png";
 /**地图canvas箭头线类
  * @constructor
@@ -12,7 +11,7 @@ const ARROW_URL = "/assets/images/direction-arrow.png";
  * @param opts 动画线配置项
  */
 export class MapCanvasArrowLine {
-  constructor(private map: AMAP.Map | L.Map | MaplibreMap, private ctx: CanvasRenderingContext2D, opt?: MOptPluginArrowLine) {
+  constructor(private map: MapType, private ctx: CanvasRenderingContext2D, opt?: MOptPluginArrowLine) {
     this.opt = opt ? um_deepMergeOpt(this.options, opt) : this.options;
     this.initResource();
   }
@@ -425,7 +424,7 @@ export interface MDataArrowLine {
 }
 
 /**箭头线插件配置 */
-export interface MOptPluginArrowLine extends MOptCanvas, MDataArrowLine {
+export type MOptPluginArrowLine = MOptCanvasLayer & MDataArrowLine & {
   /**填充颜色 */
   fillColor?: string;
   /**描边颜色 */
